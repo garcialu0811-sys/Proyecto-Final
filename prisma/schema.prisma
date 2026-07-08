@@ -1,0 +1,50 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("VENDEDOR") // ADMIN, VENDEDOR, CLIENTE
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sales     Sale[]
+}
+
+model Sale {
+  id          String   @id @default(uuid())
+  productId   String   // ID del producto en MongoDB
+  productName String
+  quantity    Int
+  price       Float
+  total       Float
+  sellerId    String
+  seller      User     @relation(fields: [sellerId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model Order {
+  id            String   @id @default(uuid())
+  productId     String   // ID del producto en MongoDB
+  productName   String
+  quantity      Int
+  price         Float
+  total         Float
+  status        String   @default("PENDIENTE") // PENDING, PROCESSING, IN_ROUTE, DELIVERED, CANCELLED
+  clientName    String
+  clientPhone   String?
+  clientAddress String?
+  driverId      String?  // Vendedor o transportista asignado
+  driverName    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}

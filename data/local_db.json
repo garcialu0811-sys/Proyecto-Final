@@ -1,0 +1,454 @@
+{
+  "users": [
+    {
+      "id": "user-admin",
+      "email": "admin@qrshop.com",
+      "password": "admin123",
+      "name": "Administrador QRShop",
+      "role": "ADMIN",
+      "createdAt": "2026-07-07T17:17:02.268Z"
+    },
+    {
+      "id": "user-vendedor",
+      "email": "vendedor@qrshop.com",
+      "password": "vendedor123",
+      "name": "Carlos Vendedor",
+      "role": "VENDEDOR",
+      "createdAt": "2026-07-07T17:17:02.268Z"
+    },
+    {
+      "id": "user-cliente",
+      "email": "cliente@qrshop.com",
+      "password": "cliente123",
+      "name": "Juan Cliente",
+      "role": "CLIENTE",
+      "createdAt": "2026-07-07T17:17:02.268Z"
+    }
+  ],
+  "sales": [
+    {
+      "id": "sale-1",
+      "productId": "prod-1",
+      "productName": "Teclado Mecánico RGB",
+      "quantity": 1,
+      "price": 89.99,
+      "total": 89.99,
+      "sellerId": "user-vendedor",
+      "createdAt": "2026-07-06T17:17:02.268Z"
+    },
+    {
+      "id": "sale-2",
+      "productId": "prod-2",
+      "productName": "Mouse Gamer Inalámbrico",
+      "quantity": 2,
+      "price": 49.99,
+      "total": 99.98,
+      "sellerId": "user-vendedor",
+      "createdAt": "2026-07-07T17:17:02.269Z"
+    }
+  ],
+  "orders": [
+    {
+      "id": "ord-1",
+      "productId": "prod-1",
+      "productName": "Teclado Mecánico RGB",
+      "quantity": 1,
+      "price": 89.99,
+      "total": 89.99,
+      "status": "EN_RUTA",
+      "clientName": "María Gómez",
+      "clientPhone": "555-1234",
+      "clientAddress": "Av. Reforma 1234, CDMX",
+      "driverId": "user-vendedor",
+      "driverName": "Carlos Vendedor",
+      "createdAt": "2026-07-07T17:17:02.269Z"
+    },
+    {
+      "id": "ord-2",
+      "productId": "prod-3",
+      "productName": "Monitor 27\" IPS 144Hz",
+      "quantity": 1,
+      "price": 249.99,
+      "total": 249.99,
+      "status": "PENDIENTE",
+      "clientName": "Luis Pérez",
+      "clientPhone": "555-5678",
+      "clientAddress": "Calle Juárez 56, Col. Centro",
+      "createdAt": "2026-07-07T17:17:02.269Z"
+    }
+  ],
+  "products": [
+    {
+      "id": "prod-1",
+      "name": "Cafe Premium",
+      "description": "Cafe de alta calidad de origen guatemalteco.",
+      "price": 75,
+      "stock": 16,
+      "minStock": 5,
+      "category": "Bebidas",
+      "sku": "CAF-001",
+      "isActive": true,
+      "imageUrl": "",
+      "qrCode": "prod-1",
+      "costPrice": 45,
+      "location": {
+        "warehouse": "Almacen Principal",
+        "aisle": "Pasillo A",
+        "shelf": "Estante 1"
+      },
+      "createdAt": "2026-07-07T17:17:02.269Z"
+    },
+    {
+      "id": "prod-2",
+      "name": "Taza Magica",
+      "description": "Taza con diseno que cambia de color al calentar.",
+      "price": 45,
+      "stock": 3,
+      "minStock": 3,
+      "category": "Accesorios",
+      "sku": "TAZ-002",
+      "isActive": true,
+      "imageUrl": "",
+      "qrCode": "prod-2",
+      "costPrice": 25,
+      "location": {
+        "warehouse": "Almacen Principal",
+        "aisle": "Pasillo B",
+        "shelf": "Estante 2"
+      },
+      "createdAt": "2026-07-07T17:17:02.269Z"
+    },
+    {
+      "id": "prod-3",
+      "name": "Auriculares X1",
+      "description": "Auriculares inalambricos con cancelacion de ruido.",
+      "price": 120,
+      "stock": 6,
+      "minStock": 10,
+      "category": "Electrónicos",
+      "sku": "AUR-003",
+      "isActive": true,
+      "imageUrl": "",
+      "qrCode": "prod-3",
+      "costPrice": 70,
+      "location": {
+        "warehouse": "Almacen Principal",
+        "aisle": "Pasillo C",
+        "shelf": "Estante 1"
+      },
+      "createdAt": "2026-07-07T17:17:02.269Z"
+    },
+    {
+      "id": "prod-4",
+      "name": "Botella Termica",
+      "description": "Botella termica de acero inoxidable.",
+      "price": 85,
+      "stock": 10,
+      "minStock": 5,
+      "category": "Accesorios",
+      "sku": "BOT-004",
+      "isActive": true,
+      "imageUrl": "",
+      "qrCode": "prod-4",
+      "costPrice": 50,
+      "location": {
+        "warehouse": "Almacen Secundario",
+        "aisle": "",
+        "shelf": "Estante 3"
+      },
+      "createdAt": "2026-07-07T17:17:02.269Z"
+    },
+    {
+      "id": "prod-5",
+      "name": "Cuaderno Premium",
+      "description": "Cuaderno de lujo con cubierta de cuero.",
+      "price": 35,
+      "stock": 3,
+      "minStock": 10,
+      "category": "Papelería",
+      "sku": "CUA-005",
+      "isActive": true,
+      "imageUrl": "",
+      "qrCode": "prod-5",
+      "costPrice": 20,
+      "location": {
+        "warehouse": "Almacen Secundario",
+        "aisle": "",
+        "shelf": "Estante 1"
+      },
+      "createdAt": "2026-07-07T17:17:02.269Z"
+    },
+    {
+      "id": "prod-6",
+      "name": "Planta Decorativa",
+      "description": "Planta artificial de alta calidad, decorativa.",
+      "price": 60,
+      "stock": 2,
+      "minStock": 5,
+      "category": "Hogar",
+      "sku": "PLA-006",
+      "isActive": true,
+      "imageUrl": "",
+      "qrCode": "prod-6",
+      "costPrice": 35,
+      "location": {
+        "warehouse": "Almacen Principal",
+        "aisle": "Pasillo D",
+        "shelf": "Estante 2"
+      },
+      "createdAt": "2026-07-07T17:17:02.269Z"
+    },
+    {
+      "name": "Cafe Quetzal",
+      "description": "Cafe importado de Quetzaltenango",
+      "price": 30,
+      "stock": 92,
+      "category": "Bebidas",
+      "sku": "CAF-316",
+      "imageUrl": "",
+      "qrCode": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAEsCAYAAAB5fY51AAAAAklEQVR4AewaftIAAAXfSURBVO3BwY0syZUEQJ+H1iJFSBFS/hAhRAg5ZueyAC885OLXspxtZn/9/Y8AFJgAlJgAlJgAlJgAlJgAlJgAlJgAlJgAlJgAlJgAlJgAlJgAlJgAlJgAlJgAlJgAlJgAlJgAlJgAlJgAlJgAlJgAlJgAlPjJh133E/6cs1d+k+t+8sbZK29c9xP+nLNXPmkCUGICUGICUGICUGICUGICUGICUGICUGICUGICUGICUOInX+bsld/kup98k+t+8sbZK29c95NmZ6/8Jtf95JtMAEpMAEpMAEpMAEpMAEpMAEpMAEpMAEpMAEpMAEpMAEr8pNx1P/kmZ698k+t+8knX/YR/77qffJOzV5pNAEpMAEpMAEpMAEpMAEpMAEpMAEpMAEpMAEpMAEpMAEr8BP7F2SufdN1P4P9qAlBiAlBiAlBiAlBiAlBiAlBiAlBiAlBiAlBiAlBiAlDiJ/AvrvvJJ5298sZ1P4H/NQEoMQEoMQEoMQEoMQEoMQEoMQEoMQEoMQEoMQEoMQEo8ZNyZ6/w55y9wp9z9gp/zgSgxASgxASgxASgxASgxASgxASgxASgxASgxASgxASgxE++zHU/ocd1P3nj7JVm1/2E/5wJQIkJQIkJQIkJQIkJQIkJQIkJQIkJQIkJQIkJQIkJQImffNjZK/S47idvnL3S7OwVekwASkwASkwASkwASkwASkwASkwASkwASkwASkwASkwASvzkw677yRtnr7xx3U9+k7NX3jh75Ztc95Nvct1PfpOzV5pNAEpMAEpMAEpMAEpMAEpMAEpMAEpMAEpMAEpMAEpMAEr85MPOXnnjup98k7NXfpPrfvLG2SufdPbKG9f95I2zV9647iefdPbKG9f95I3rfvJJZ6980gSgxASgxASgxASgxASgxASgxASgxASgxASgxASgxASgxF9//yMfdN1P3jh75Ztc95Pf5OyVN677yRtnr7xx3U++ydkrza77yRtnr3yTCUCJCUCJCUCJCUCJCUCJCUCJCUCJCUCJCUCJCUCJCUCJn3zY2StvXPeTTzp75Y2zV/jPOXvlm1z3kzfOXnnjup980tkrzSYAJSYAJSYAJSYAJSYAJSYAJSYAJSYAJSYAJSYAJSYAJX7yYdf9pNl1P/kmZ6980nU/+SbX/eQ3OXuFf28CUGICUGICUGICUGICUGICUGICUGICUGICUGICUGICUOKvv/8R/mtd95NvcvbKb3LdTz7p7JU3rvvJJ5298kkTgBITgBITgBITgBITgBITgBITgBITgBITgBITgBITgBI/+bDrfsKfc/bKG2evfNJ1P3njup980tkrb1z3k086e+WN637yTc5e+SYTgBITgBITgBITgBITgBITgBITgBITgBITgBITgBITgBI/+TJnr/wm1/3kk677ySedvfLGdT954+yVN677yRtnrzS77idvnL3yxnU/eePslU+aAJSYAJSYAJSYAJSYAJSYAJSYAJSYAJSYAJSYAJSYAJT4SbnrfvJNzl6hx3U/eePslU86e+WTrvtJswlAiQlAiQlAiQlAiQlAiQlAiQlAiQlAiQlAiQlAiQlAiZ/A/6OzV77J2StvXPeTZmevNJsAlJgAlJgAlJgAlJgAlJgAlJgAlJgAlJgAlJgAlJgAlPgJ/IuzVz7pup98k+t+8sbZK9/kup/8JhOAEhOAEhOAEhOAEhOAEhOAEhOAEhOAEhOAEhOAEhOAEj8pd/YK/97ZK5903U++ydkr/PeaAJSYAJSYAJSYAJSYAJSYAJSYAJSYAJSYAJSYAJSYAJT4yZe57if8Odf95I2zVz7p7JU3rvvJG9f95JPOXnnjup+8cfbKG2evvHHdT944e+WbTABKTABKTABKTABKTABKTABKTABKTABKTABKTABKTABK/PX3PwJQYAJQYgJQYgJQYgJQYgJQYgJQYgJQYgJQYgJQYgJQYgJQYgJQYgJQYgJQYgJQYgJQYgJQYgJQYgJQYgJQYgJQYgJQYgJQ4n8ARBToZ8HtLC0AAAAASUVORK5CYII=",
+      "isActive": true,
+      "minStock": 5,
+      "costPrice": 0,
+      "location": {
+        "warehouse": "Almacen Principal",
+        "aisle": "",
+        "shelf": ""
+      },
+      "id": "prod-e0g2w1ob4",
+      "createdAt": "2026-07-07T22:05:54.319Z"
+    }
+  ],
+  "movements": [
+    {
+      "id": "mov-1",
+      "productId": "prod-3",
+      "productName": "Auriculares X1",
+      "sku": "AUR-003",
+      "type": "OUT",
+      "quantity": 2,
+      "previousStock": 8,
+      "newStock": 6,
+      "reason": "Venta",
+      "reference": "V-000123",
+      "userId": "user-vendedor",
+      "userName": "Carlos Vendedor",
+      "createdAt": "2026-07-07T15:17:02.269Z"
+    },
+    {
+      "id": "mov-2",
+      "productId": "prod-1",
+      "productName": "Cafe Premium",
+      "sku": "CAF-001",
+      "type": "IN",
+      "quantity": 10,
+      "previousStock": 5,
+      "newStock": 15,
+      "reason": "Compra",
+      "reference": "C-000045",
+      "userId": "user-admin",
+      "userName": "Administrador",
+      "createdAt": "2026-07-07T13:17:02.269Z"
+    },
+    {
+      "id": "mov-3",
+      "productId": "prod-2",
+      "productName": "Taza Magica",
+      "sku": "TAZ-002",
+      "type": "ADJUSTMENT",
+      "quantity": 1,
+      "previousStock": 7,
+      "newStock": 8,
+      "reason": "Inventario fisico",
+      "reference": "",
+      "userId": "user-admin",
+      "userName": "Administrador",
+      "createdAt": "2026-07-06T17:17:02.269Z"
+    },
+    {
+      "id": "mov-4",
+      "productId": "prod-5",
+      "productName": "Cuaderno Premium",
+      "sku": "CUA-005",
+      "type": "IN",
+      "quantity": 15,
+      "previousStock": 5,
+      "newStock": 20,
+      "reason": "Reposicion",
+      "reference": "C-000046",
+      "userId": "user-admin",
+      "userName": "Administrador",
+      "createdAt": "2026-07-04T17:17:02.269Z"
+    },
+    {
+      "id": "mov-5",
+      "productId": "prod-4",
+      "productName": "Botella Termica",
+      "sku": "BOT-004",
+      "type": "OUT",
+      "quantity": 3,
+      "previousStock": 13,
+      "newStock": 10,
+      "reason": "Venta",
+      "reference": "V-000124",
+      "userId": "user-vendedor",
+      "userName": "Carlos Vendedor",
+      "createdAt": "2026-07-07T12:17:02.269Z"
+    },
+    {
+      "productId": "prod-1",
+      "productName": "Cafe Premium",
+      "sku": "CAF-001",
+      "type": "IN",
+      "quantity": 5,
+      "previousStock": 15,
+      "newStock": 20,
+      "reason": "Reposicion",
+      "reference": "C-000050",
+      "userId": "user-admin",
+      "userName": "Administrador",
+      "id": "mov-ucbdxgc3k",
+      "createdAt": "2026-07-07T17:17:09.640Z"
+    }
+  ],
+  "forumPosts": [
+    {
+      "id": "post-1",
+      "title": "Excelente servicio y productos",
+      "content": "Acabo de comprar el monitor de 27 pulgadas y es increíble. La tasa de refresco se nota de inmediato. ¿Alguien más lo ha probado?",
+      "category": "RESENA",
+      "authorId": "user-cliente",
+      "authorName": "Juan Cliente",
+      "createdAt": "2026-07-05T17:17:02.269Z",
+      "isHidden": false,
+      "likes": [
+        "user-vendedor"
+      ]
+    },
+    {
+      "id": "post-2",
+      "title": "Sugerencia: Agregar teclados ergonómicos",
+      "content": "Me gustaría ver teclados ergonómicos en la tienda, del tipo split o con reposamuñecas acolchados. Ayudaría mucho para largas horas de trabajo.",
+      "category": "SUGERENCIA",
+      "authorId": "user-vendedor",
+      "authorName": "Carlos Vendedor",
+      "createdAt": "2026-07-02T17:17:02.269Z",
+      "isHidden": false,
+      "likes": []
+    },
+    {
+      "title": "Servicio de Reparto",
+      "content": "El servicio de reparto es muy bueno",
+      "category": "RESENA",
+      "authorId": "user-vendedor",
+      "authorName": "Carlos Vendedor",
+      "id": "post-4dges6c0q",
+      "isHidden": false,
+      "likes": [],
+      "createdAt": "2026-07-07T21:53:53.798Z"
+    }
+  ],
+  "forumReplies": [
+    {
+      "id": "rep-1",
+      "postId": "post-1",
+      "content": "Totalmente de acuerdo! Yo tambien lo compre hace una semana y el panel IPS tiene unos colores hermosos.",
+      "authorId": "user-vendedor",
+      "authorName": "Carlos Vendedor",
+      "createdAt": "2026-07-06T17:17:02.269Z",
+      "isHidden": false
+    },
+    {
+      "postId": "post-4dges6c0q",
+      "content": "Mejorar tiempo",
+      "authorId": "user-cliente",
+      "authorName": "Juan Cliente",
+      "id": "rep-m47hxykcl",
+      "isHidden": false,
+      "createdAt": "2026-07-07T21:58:02.523Z"
+    }
+  ],
+  "categories": [
+    {
+      "id": "cat-1",
+      "name": "Bebidas",
+      "description": "Todo tipo de bebidas calientes y frias.",
+      "icon": "Coffee",
+      "color": "#8B5CF6",
+      "isActive": true,
+      "createdAt": "2024-05-15T00:00:00.000Z"
+    },
+    {
+      "id": "cat-2",
+      "name": "Accesorios",
+      "description": "Accesorios y complementos variados.",
+      "icon": "Watch",
+      "color": "#F59E0B",
+      "isActive": true,
+      "createdAt": "2024-05-18T00:00:00.000Z"
+    },
+    {
+      "id": "cat-3",
+      "name": "Electrónicos",
+      "description": "Dispositivos y accesorios electrónicos.",
+      "icon": "Laptop",
+      "color": "#3B82F6",
+      "isActive": true,
+      "createdAt": "2024-05-20T00:00:00.000Z"
+    },
+    {
+      "id": "cat-4",
+      "name": "Papelería",
+      "description": "Útiles escolares y de oficina.",
+      "icon": "Pen",
+      "color": "#10B981",
+      "isActive": true,
+      "createdAt": "2024-05-22T00:00:00.000Z"
+    },
+    {
+      "id": "cat-5",
+      "name": "Hogar",
+      "description": "Artículos para el hogar y decoración.",
+      "icon": "Home",
+      "color": "#EF4444",
+      "isActive": true,
+      "createdAt": "2024-05-25T00:00:00.000Z"
+    },
+    {
+      "id": "cat-6",
+      "name": "Deportes",
+      "description": "Equipamiento y accesorios deportivos.",
+      "icon": "Trophy",
+      "color": "#EC4899",
+      "isActive": false,
+      "createdAt": "2024-05-28T00:00:00.000Z"
+    },
+    {
+      "id": "cat-7",
+      "name": "Regalos",
+      "description": "Regalos y detalles especiales.",
+      "icon": "Gift",
+      "color": "#F472B6",
+      "isActive": true,
+      "createdAt": "2024-05-30T00:00:00.000Z"
+    },
+    {
+      "id": "cat-8",
+      "name": "Mascotas",
+      "description": "Productos para mascotas.",
+      "icon": "PawPrint",
+      "color": "#8B5CF6",
+      "isActive": true,
+      "createdAt": "2024-06-02T00:00:00.000Z"
+    },
+    {
+      "name": "Reloj",
+      "description": "Todo tipo de relojes",
+      "icon": "Watch",
+      "color": "#3B82F6",
+      "isActive": true,
+      "id": "cat-z1rpyp2at",
+      "createdAt": "2026-07-07T22:01:57.635Z"
+    }
+  ]
+}
