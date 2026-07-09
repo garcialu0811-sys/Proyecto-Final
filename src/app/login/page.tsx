@@ -64,8 +64,8 @@ function LoginContent() {
   return (
     <div className="auth-card">
       <div className="auth-logo">
-        <QrCode size={36} />
-        <span>QRShop</span>
+        <img src="/logo.png" alt="Variedades Coatán" style={{ width: '36px', height: '36px', borderRadius: '8px', objectFit: 'contain' }} />
+        <span>Variedades Coatán</span>
       </div>
 
       <h1 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '8px', textAlign: 'center' }}>

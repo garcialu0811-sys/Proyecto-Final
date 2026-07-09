@@ -135,7 +135,7 @@ export default function DashboardPage() {
           <h1 style={{ fontSize: '24px', fontWeight: 700 }}>Resumen del Negocio</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
             {role === 'ADMIN' 
-              ? 'Estadísticas globales de ventas y control de inventario de QRShop.' 
+              ? 'Estadísticas globales de ventas y control de inventario de Variedades Coatán.' 
               : 'Tus estadísticas de ventas diarias y entregas asignadas.'}
           </p>
         </div>

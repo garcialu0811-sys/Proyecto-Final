@@ -9,8 +9,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "QRShop - Gestión de Inventario y Ventas",
-  description: "Sistema inteligente de inventario y ventas mediante códigos QR",
+  title: "Variedades Coatán - Gestión de Inventario y Ventas",
+  description: "Variedades Coatán - Sistema inteligente de inventario y ventas mediante códigos QR",
+  icons: { icon: '/logo.png' },
 };
 
 export default function RootLayout({

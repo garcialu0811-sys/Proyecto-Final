@@ -51,7 +51,7 @@ export function buildNewOrderMessage(data: OrderData): string {
 
 export function buildTestMessage(chatId: string): string {
   return [
-    '*Conexion exitosa con QRShop*',
+    '*Conexion exitosa con Variedades Coatán*',
     '',
     `*Chat ID:* ${chatId}`,
     '*Estado:* Notificaciones activas',
@@ -62,7 +62,7 @@ export function buildTestMessage(chatId: string): string {
 
 export function buildWelcomeMessage(chatId: string): string {
   return [
-    '*Bienvenido a QRShop Notificaciones*',
+    '*Bienvenido a Variedades Coatán Notificaciones*',
     '',
     '*Alertas configuradas:*',
     '- Stock bajo de productos',

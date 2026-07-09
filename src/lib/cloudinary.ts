@@ -26,7 +26,7 @@ function ensureConfig() {
   }
 }
 
-export async function uploadImage(file: Buffer, folder: string = 'qrshop'): Promise<string> {
+export async function uploadImage(file: Buffer, folder: string = 'variedades-coatan'): Promise<string> {
   ensureConfig();
   if (!configured) {
     throw new Error('Cloudinary no está configurado. Falta CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY o CLOUDINARY_API_SECRET.');

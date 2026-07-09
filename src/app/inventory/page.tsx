@@ -287,7 +287,7 @@ export default function InventoryPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `inventario-qrshop-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.download = `inventario-variedades-coatan-${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
     URL.revokeObjectURL(url);
     showToast('Inventario exportado.', 'success');

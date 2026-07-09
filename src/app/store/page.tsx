@@ -222,7 +222,7 @@ function StorePageInner() {
               {/* HERO */}
               <div style={{ background: 'linear-gradient(135deg, #0891b2 0%, #0e7490 50%, #155e75 100%)', borderRadius: '16px', padding: '48px', marginBottom: '32px', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '32px', flexWrap: 'wrap', position: 'relative', overflow: 'hidden' }} className="home-hero">
                 <div style={{ flex: '1 1 400px', zIndex: 1 }}>
-                  <h1 style={{ fontSize: '32px', fontWeight: 800, marginBottom: '12px', lineHeight: 1.2 }}>Bienvenido a QRShop</h1>
+                  <h1 style={{ fontSize: '32px', fontWeight: 800, marginBottom: '12px', lineHeight: 1.2 }}>Bienvenido a Variedades Coatán</h1>
                   <p style={{ fontSize: '15px', opacity: 0.9, marginBottom: '24px', maxWidth: '480px', lineHeight: 1.6 }}>Descubre productos de calidad en diferentes categorias. Compra facil, rapido y seguro.</p>
                   <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                     <button onClick={() => navigateTo('/store?view=products')} style={{ padding: '12px 24px', borderRadius: '10px', border: 'none', backgroundColor: '#fff', color: '#0891b2', fontWeight: 700, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'transform 0.2s' }}

@@ -138,14 +138,14 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, categorie
     const canvas = document.querySelector('#qr-preview canvas') as HTMLCanvasElement;
     if (canvas) {
       const link = document.createElement('a');
-      link.download = `QRShop-${formSku || formName || 'producto'}.png`;
+      link.download = `VariedadesCoatan-${formSku || formName || 'producto'}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
     }
   };
 
   const qrValue = formName
-    ? JSON.stringify({ productId: 'pending', name: formName, sku: formSku, type: 'QRShop', url: `${typeof window !== 'undefined' ? window.location.origin : ''}/scan` })
+    ? JSON.stringify({ productId: 'pending', name: formName, sku: formSku, type: 'VariedadesCoatan', url: `${typeof window !== 'undefined' ? window.location.origin : ''}/scan` })
     : '';
 
   if (!isOpen) return null;

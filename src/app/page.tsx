@@ -326,7 +326,7 @@ export default function CatalogPage() {
         showToast(`Producto encontrado: ${data.name}`, 'success');
         handleOpenDetails(data);
       } else {
-        showToast('Producto no registrado en QRShop.', 'error');
+        showToast('Producto no registrado en Variedades Coatán.', 'error');
       }
     } catch {
       showToast('Error al buscar producto escaneado.', 'error');
@@ -507,7 +507,7 @@ export default function CatalogPage() {
                   </p>
                   <a 
                     href={currentProduct.qrCode} 
-                    download={`QRShop-${currentProduct.name.replace(/\s+/g, '-')}.png`}
+                    download={`VariedadesCoatan-${currentProduct.name.replace(/\s+/g, '-')}.png`}
                     className="btn btn-secondary"
                     style={{ padding: '6px 12px', fontSize: '12px', display: 'inline-flex', gap: '6px' }}
                   >

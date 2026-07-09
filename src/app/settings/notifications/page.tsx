@@ -213,7 +213,7 @@ export default function NotificationSettingsPage() {
       <div className="card" style={{ padding: '20px', borderLeft: '4px solid var(--accent)' }}>
         <h4 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '10px' }}>Como configurar Telegram</h4>
         <ol style={{ fontSize: '13px', color: 'var(--text-secondary)', paddingLeft: '20px', lineHeight: 1.8 }}>
-          <li>Busca <strong>@QRShopAlertasBot</strong> en Telegram</li>
+          <li>Busca <strong>@VariedadesCoatanBot</strong> en Telegram</li>
           <li>Envia <strong>/start</strong> para iniciar la conversacion</li>
           <li>El bot vinculara tu cuenta automaticamente</li>
           <li>Recibiras un mensaje de confirmacion</li>

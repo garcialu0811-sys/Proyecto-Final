@@ -161,7 +161,7 @@ export default function EditProductModal({ isOpen, onClose, onSuccess, product, 
     const canvas = document.querySelector('#qr-edit-preview canvas') as HTMLCanvasElement;
     if (canvas) {
       const link = document.createElement('a');
-      link.download = `QRShop-${formSku || formName || 'producto'}.png`;
+      link.download = `VariedadesCoatan-${formSku || formName || 'producto'}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
     }
@@ -298,7 +298,7 @@ export default function EditProductModal({ isOpen, onClose, onSuccess, product, 
                 {product.qrCode && (
                   <a
                     href={product.qrCode}
-                    download={`QRShop-${product.sku || product.name}.png`}
+                    download={`VariedadesCoatan-${product.sku || product.name}.png`}
                     style={{ marginTop: '10px', width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid var(--border)', backgroundColor: 'var(--bg-secondary)', cursor: 'pointer', fontSize: '13px', fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: 'var(--text-primary)', textDecoration: 'none' }}
                   >
                     <Eye size={14} /> Descargar QR

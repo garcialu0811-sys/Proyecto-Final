@@ -612,7 +612,7 @@ export default function ProductsPage() {
             </div>
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', padding: '16px 0 8px 0' }}>
               {selectedProduct.qrCode && selectedProduct.qrCode !== 'temp' && (
-                <a href={selectedProduct.qrCode} download={`QRShop-${selectedProduct.name.replace(/\s+/g, '-')}.png`} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px' }}>
+                <a href={selectedProduct.qrCode} download={`VariedadesCoatan-${selectedProduct.name.replace(/\s+/g, '-')}.png`} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px' }}>
                   <Download size={16} />
                   Descargar QR
                 </a>

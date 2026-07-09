@@ -164,8 +164,8 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
   return (
     <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-logo">
-        <QrCode size={28} style={{ color: 'var(--accent)' }} />
-        <span style={{ opacity: collapsed ? 0 : 1, transition: 'opacity 0.2s ease' }}>QRShop</span>
+        <img src="/logo.png" alt="Variedades Coatán" style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'contain' }} />
+        <span style={{ opacity: collapsed ? 0 : 1, transition: 'opacity 0.2s ease' }}>Variedades Coatán</span>
       </div>
 
       <nav style={{ flex: 1, marginTop: '12px', paddingBottom: '24px' }}>
