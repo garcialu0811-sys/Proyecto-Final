@@ -63,9 +63,12 @@ function LoginContent() {
 
   return (
     <div className="auth-card">
-      <div className="auth-logo">
-        <img src="/logo.png" alt="Variedades Coatán" style={{ width: '36px', height: '36px', borderRadius: '8px', objectFit: 'contain' }} />
-        <span>Variedades Coatán</span>
+      <div className="auth-logo" style={{ flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
+        <img src="/logo.png" alt="Variedades Coatán" style={{ width: '64px', height: '64px', borderRadius: '14px', objectFit: 'contain' }} />
+        <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+          <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)' }}>Variedades</span>
+          <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--accent)' }}>Coatán</span>
+        </div>
       </div>
 
       <h1 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '8px', textAlign: 'center' }}>
