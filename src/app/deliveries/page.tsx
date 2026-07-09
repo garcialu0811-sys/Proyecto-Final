@@ -39,7 +39,10 @@ export default function DeliveriesPage() {
       if (res.ok) {
         const data = await res.json();
         const allOrders = data.orders || [];
-        const filtered = allOrders.filter((o: Order) => o.status === 'EN_RUTA' || o.status === 'ENTREGADO');
+        let filtered = allOrders.filter((o: Order) => o.status === 'EN_RUTA' || o.status === 'ENTREGADO');
+        if (role === 'VENDEDOR') {
+          filtered = filtered.filter((o: any) => o.driverId === user.id || o.driverName === user.name);
+        }
         setDeliveries(filtered);
       }
     } catch {
@@ -47,7 +50,7 @@ export default function DeliveriesPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [role, user]);
 
   useEffect(() => {
     if (status === 'unauthenticated') { router.push('/login'); return; }
@@ -139,7 +142,7 @@ export default function DeliveriesPage() {
       </div>
 
       {loading ? (
-        <div style={{ padding: '80px', textAlign: 'center' }}>
+        <div style={{ padding: '40px 16px', textAlign: 'center' }}>
           <div style={{ display: 'inline-block', width: '40px', height: '40px', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
           <p style={{ marginTop: '16px', color: 'var(--text-secondary)' }}>Cargando entregas...</p>
         </div>

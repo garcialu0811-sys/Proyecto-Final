@@ -6,9 +6,11 @@ import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/lib/store/cartStore';
 import {
   CreditCard, Banknote, ShoppingBag, ArrowLeft, Lock, CheckCircle,
-  Package, Truck, MapPin, X,
+  Package, Truck, MapPin, X, Phone, AlertTriangle,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
+
+const MIN_PURCHASE = 50;
 
 export default function CheckoutPage() {
   const { data: session, status } = useSession();
@@ -20,13 +22,14 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'cash'>('card');
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'summary' | 'payment' | 'success'>('summary');
-  const [orderNumber, setOrderNumber] = useState('');
+  const [orderData, setOrderData] = useState<any>(null);
 
   const [cardNumber, setCardNumber] = useState('');
   const [cardExpiry, setCardExpiry] = useState('');
   const [cardCvv, setCardCvv] = useState('');
   const [cardName, setCardName] = useState('');
   const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [clientPhone, setClientPhone] = useState('');
 
   useEffect(() => {
     if (status === 'unauthenticated' && !guestCheckout) {
@@ -55,6 +58,8 @@ export default function CheckoutPage() {
   const subtotal = getSubtotal();
   const shipping = getShipping();
   const total = getTotal();
+  const belowMinimum = total < MIN_PURCHASE;
+  const remainingForMin = MIN_PURCHASE - total;
 
   const formatCardNumber = (val: string) => {
     const digits = val.replace(/\D/g, '').slice(0, 16);
@@ -77,18 +82,39 @@ export default function CheckoutPage() {
   };
 
   const handleSubmitOrder = async () => {
-    if (paymentMethod === 'card' && !validateCard()) {
-      showToast('Completa todos los campos de la tarjeta.', 'warning');
+    if (belowMinimum) {
+      showToast(`El minimo de compra es Q${MIN_PURCHASE.toFixed(2)}. Te faltan Q${remainingForMin.toFixed(2)}.`, 'warning');
       return;
     }
-    if (paymentMethod === 'cash' && !deliveryAddress.trim()) {
-      showToast('Ingresa la direccion de entrega.', 'warning');
-      return;
+
+    if (paymentMethod === 'card') {
+      if (!validateCard()) {
+        showToast('Completa todos los campos de la tarjeta.', 'warning');
+        return;
+      }
+      if (!clientPhone.trim()) {
+        showToast('Ingresa tu numero de telefono.', 'warning');
+        return;
+      }
+      if (!deliveryAddress.trim()) {
+        showToast('Ingresa la direccion de entrega.', 'warning');
+        return;
+      }
+    }
+    if (paymentMethod === 'cash') {
+      if (!clientPhone.trim()) {
+        showToast('Ingresa tu numero de telefono.', 'warning');
+        return;
+      }
+      if (!deliveryAddress.trim()) {
+        showToast('Ingresa la direccion de entrega.', 'warning');
+        return;
+      }
     }
 
     setLoading(true);
     try {
-      const orderData = guestCheckout && guestInfo
+      const orderPayload = guestCheckout && guestInfo
         ? {
             guestInfo,
             items: items.map(item => ({
@@ -102,7 +128,10 @@ export default function CheckoutPage() {
             shipping,
             total,
             paymentMethod: paymentMethod === 'card' ? 'CARD' : 'CASH_ON_DELIVERY',
-            shippingAddress: paymentMethod === 'cash' ? deliveryAddress : '',
+            shippingAddress: deliveryAddress,
+            clientPhone,
+            phone: clientPhone,
+            address: deliveryAddress,
           }
         : {
             userId: user.id,
@@ -112,25 +141,43 @@ export default function CheckoutPage() {
               productPrice: item.price,
               quantity: item.quantity,
               image: item.imageUrl,
+              sku: item.sku,
             })),
             subtotal,
             shipping,
             total,
             paymentMethod: paymentMethod === 'card' ? 'CARD' : 'CASH_ON_DELIVERY',
-            shippingAddress: paymentMethod === 'cash' ? deliveryAddress : '',
+            shippingAddress: deliveryAddress,
             clientName: user.name,
+            clientPhone,
+            phone: clientPhone,
+            address: deliveryAddress,
           };
 
-      const apiUrl = guestCheckout ? '/api/orders/guest' : '/api/orders';
+      const apiUrl = guestCheckout ? '/api/orders/guest' : '/api/orders/client';
       const res = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderData),
+        body: JSON.stringify(orderPayload),
       });
 
       if (res.ok) {
         const data = await res.json();
-        setOrderNumber(data.orderNumber);
+        setOrderData({
+          orderNumber: data.order?.id || data.orderNumber || 'N/A',
+          paymentMethod: paymentMethod === 'card' ? 'Tarjeta' : 'Contra entrega',
+          total,
+          subtotal,
+          shipping,
+          items: items.map(item => ({
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+            imageUrl: item.imageUrl,
+          })),
+          clientPhone,
+          deliveryAddress,
+        });
         clearCart();
         setStep('success');
         showToast('Pedido confirmado exitosamente.', 'success');
@@ -145,10 +192,10 @@ export default function CheckoutPage() {
     }
   };
 
-  if (step === 'success') {
+  if (step === 'success' && orderData) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', backgroundColor: 'var(--bg-primary)' }}>
-        <div style={{ backgroundColor: 'var(--bg-secondary)', borderRadius: '16px', padding: '48px', maxWidth: '500px', width: '100%', textAlign: 'center', boxShadow: '0 10px 30px rgba(0,0,0,0.08)' }}>
+        <div style={{ backgroundColor: 'var(--bg-secondary)', borderRadius: '16px', padding: '40px', maxWidth: '520px', width: '100%', textAlign: 'center', boxShadow: '0 10px 30px rgba(0,0,0,0.08)' }}>
           <div style={{ width: '80px', height: '80px', borderRadius: '50%', backgroundColor: 'var(--success-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px auto' }}>
             <CheckCircle size={40} style={{ color: 'var(--success)' }} />
           </div>
@@ -158,15 +205,55 @@ export default function CheckoutPage() {
           <div style={{ backgroundColor: 'var(--bg-primary)', borderRadius: '12px', padding: '20px', marginBottom: '24px', textAlign: 'left' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
               <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Numero de pedido</span>
-              <span style={{ fontSize: '14px', fontWeight: 700, fontFamily: 'monospace' }}>{orderNumber}</span>
+              <span style={{ fontSize: '14px', fontWeight: 700, fontFamily: 'monospace' }}>#{orderData.orderNumber.slice(-8).toUpperCase()}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
               <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Metodo de pago</span>
-              <span style={{ fontSize: '13px', fontWeight: 600 }}>{paymentMethod === 'card' ? 'Tarjeta' : 'Contra entrega'}</span>
+              <span style={{ fontSize: '13px', fontWeight: 600 }}>{orderData.paymentMethod}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
-              <span style={{ fontSize: '14px', fontWeight: 600 }}>Total</span>
-              <span style={{ fontSize: '18px', fontWeight: 700, color: 'var(--accent)' }}>Q{total.toFixed(2)}</span>
+            {orderData.clientPhone && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Telefono</span>
+                <span style={{ fontSize: '13px', fontWeight: 600 }}>{orderData.clientPhone}</span>
+              </div>
+            )}
+            {orderData.deliveryAddress && (
+              <div style={{ marginBottom: '12px' }}>
+                <span style={{ fontSize: '13px', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Direccion de entrega</span>
+                <span style={{ fontSize: '13px', fontWeight: 500 }}>{orderData.deliveryAddress}</span>
+              </div>
+            )}
+          </div>
+
+          <div style={{ backgroundColor: 'var(--bg-primary)', borderRadius: '12px', padding: '16px', marginBottom: '24px', textAlign: 'left' }}>
+            <p style={{ fontSize: '13px', fontWeight: 600, marginBottom: '12px', color: 'var(--text-secondary)' }}>Productos</p>
+            {orderData.items.map((item: any, idx: number) => (
+              <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', paddingBottom: '10px', borderBottom: idx < orderData.items.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, backgroundColor: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {item.imageUrl ? <img src={item.imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Package size={16} style={{ color: 'var(--text-light)' }} />}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: '13px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</p>
+                  <p style={{ fontSize: '12px', color: 'var(--text-light)' }}>x{item.quantity}</p>
+                </div>
+                <span style={{ fontSize: '13px', fontWeight: 600, flexShrink: 0 }}>Q{(item.price * item.quantity).toFixed(2)}</span>
+              </div>
+            ))}
+            <div style={{ borderTop: '1px solid var(--border)', paddingTop: '10px', marginTop: '4px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>Subtotal</span>
+                <span>Q{orderData.subtotal.toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '8px' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>Envio</span>
+                <span style={{ color: orderData.shipping === 0 ? 'var(--success)' : 'var(--text-primary)' }}>
+                  {orderData.shipping === 0 ? 'Gratis' : `Q${orderData.shipping.toFixed(2)}`}
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '8px', borderTop: '1px solid var(--border)', fontSize: '16px', fontWeight: 700 }}>
+                <span>Total</span>
+                <span style={{ color: 'var(--accent)' }}>Q{orderData.total.toFixed(2)}</span>
+              </div>
             </div>
           </div>
 
@@ -208,8 +295,17 @@ export default function CheckoutPage() {
           Finalizar compra
         </h1>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '32px' }}>
-          {/* Left: Payment */}
+        {belowMinimum && (
+          <div style={{ padding: '14px 18px', backgroundColor: '#fef3cd', borderRadius: '10px', border: '1px solid #ffc107', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <AlertTriangle size={20} style={{ color: '#856404', flexShrink: 0 }} />
+            <div>
+              <p style={{ fontSize: '14px', fontWeight: 600, color: '#856404', margin: 0 }}>Compra minima: Q{MIN_PURCHASE.toFixed(2)}</p>
+              <p style={{ fontSize: '13px', color: '#856404', margin: '2px 0 0 0', opacity: 0.8 }}>Agrega Q{remainingForMin.toFixed(2)} mas para completar tu pedido.</p>
+            </div>
+          </div>
+        )}
+
+        <div className="checkout-grid">
           <div>
             <div style={{ backgroundColor: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border)', padding: '24px', marginBottom: '24px' }}>
               <h2 style={{ fontSize: '17px', fontWeight: 700, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -284,38 +380,72 @@ export default function CheckoutPage() {
                       style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--border)', backgroundColor: 'var(--bg-primary)', fontSize: '14px', outline: 'none', color: 'var(--text-primary)' }} />
                   </div>
 
-                  <button onClick={handleSubmitOrder} disabled={loading || !validateCard()} className="btn btn-primary" style={{ width: '100%', padding: '14px', fontSize: '15px', fontWeight: 600 }}>
-                    {loading ? 'Procesando...' : `Pagar Q${total.toFixed(2)}`}
+                  <div style={{ borderTop: '1px solid var(--border)', paddingTop: '16px', marginTop: '8px', marginBottom: '20px' }}>
+                    <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)' }}>
+                      <MapPin size={15} style={{ color: 'var(--accent)' }} />
+                      Datos de entrega
+                    </h3>
+                    <div style={{ marginBottom: '14px' }}>
+                      <label style={{ fontSize: '13px', fontWeight: 600, marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Phone size={13} style={{ color: 'var(--accent)' }} /> Numero de telefono *
+                      </label>
+                      <input type="tel" value={clientPhone} onChange={e => setClientPhone(e.target.value)}
+                        placeholder="555-1234"
+                        style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--border)', backgroundColor: 'var(--bg-primary)', fontSize: '14px', outline: 'none', color: 'var(--text-primary)' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '13px', fontWeight: 600, marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <MapPin size={13} style={{ color: 'var(--accent)' }} /> Direccion de entrega *
+                      </label>
+                      <textarea value={deliveryAddress} onChange={e => setDeliveryAddress(e.target.value)}
+                        placeholder="Calle, numero, colonia, ciudad, referencia..."
+                        rows={2}
+                        style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--border)', backgroundColor: 'var(--bg-primary)', fontSize: '14px', outline: 'none', resize: 'vertical', color: 'var(--text-primary)' }} />
+                    </div>
+                  </div>
+
+                  <button onClick={handleSubmitOrder} disabled={loading || !validateCard() || !clientPhone.trim() || !deliveryAddress.trim() || belowMinimum} className="btn btn-primary" style={{ width: '100%', padding: '14px', fontSize: '15px', fontWeight: 600, opacity: belowMinimum ? 0.5 : 1 }}>
+                    {loading ? 'Procesando...' : belowMinimum ? `Minimo Q${MIN_PURCHASE.toFixed(2)}` : `Pagar Q${total.toFixed(2)}`}
                   </button>
                 </div>
               ) : (
                 <div style={{ borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
                   <h3 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <MapPin size={16} style={{ color: 'var(--accent)' }} />
-                   Direccion de entrega
+                    Datos de entrega
                   </h3>
 
                   <div style={{ padding: '14px', backgroundColor: 'var(--bg-primary)', borderRadius: '8px', marginBottom: '16px', fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5, borderLeft: '3px solid var(--accent)' }}>
-                    Pagas en efectivo al recibir tu pedido en la direccion indicada.
+                    Pagas en efectivo al recibir tu pedido en la direccion indicada. Necesitamos tu telefono para contactarte.
+                  </div>
+
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={{ fontSize: '13px', fontWeight: 600, marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Phone size={14} style={{ color: 'var(--accent)' }} /> Numero de telefono *
+                    </label>
+                    <input type="tel" value={clientPhone} onChange={e => setClientPhone(e.target.value)}
+                      placeholder="555-1234"
+                      style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--border)', backgroundColor: 'var(--bg-primary)', fontSize: '14px', outline: 'none', color: 'var(--text-primary)' }} />
                   </div>
 
                   <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Direccion completa</label>
+                    <label style={{ fontSize: '13px', fontWeight: 600, marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <MapPin size={14} style={{ color: 'var(--accent)' }} /> Direccion completa de entrega *
+                    </label>
                     <textarea value={deliveryAddress} onChange={e => setDeliveryAddress(e.target.value)}
-                      placeholder="Calle, numero, colonia, ciudad..."
+                      placeholder="Calle, numero, colonia, ciudad, referencia..."
                       rows={3}
                       style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--border)', backgroundColor: 'var(--bg-primary)', fontSize: '14px', outline: 'none', resize: 'vertical', color: 'var(--text-primary)' }} />
                   </div>
 
-                  <button onClick={handleSubmitOrder} disabled={loading || !deliveryAddress.trim()} className="btn btn-primary" style={{ width: '100%', padding: '14px', fontSize: '15px', fontWeight: 600 }}>
-                    {loading ? 'Procesando...' : 'Confirmar pedido'}
+                  <button onClick={handleSubmitOrder} disabled={loading || !clientPhone.trim() || !deliveryAddress.trim() || belowMinimum} className="btn btn-primary" style={{ width: '100%', padding: '14px', fontSize: '15px', fontWeight: 600, opacity: belowMinimum ? 0.5 : 1 }}>
+                    {loading ? 'Procesando...' : belowMinimum ? `Minimo Q${MIN_PURCHASE.toFixed(2)}` : 'Confirmar pedido'}
                   </button>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Right: Order Summary */}
           <div>
             <div style={{ backgroundColor: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border)', padding: '24px', position: 'sticky', top: '24px' }}>
               <h2 style={{ fontSize: '17px', fontWeight: 700, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>

@@ -292,12 +292,12 @@ export default function RolesPage() {
           </div>
 
           {loading ? (
-            <div style={{ padding: '60px', textAlign: 'center' }}>
+            <div style={{ padding: '40px 16px', textAlign: 'center' }}>
               <div className="spinner"></div>
               <p style={{ marginTop: '16px', color: 'var(--text-secondary)' }}>Cargando roles...</p>
             </div>
           ) : filteredRoles.length === 0 ? (
-            <div style={{ padding: '60px', textAlign: 'center' }}>
+            <div style={{ padding: '40px 16px', textAlign: 'center' }}>
               <ShieldCheck size={40} style={{ color: 'var(--text-light)', margin: '0 auto 12px auto', display: 'block' }} />
               <p style={{ color: 'var(--text-secondary)' }}>No hay roles.</p>
             </div>

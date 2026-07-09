@@ -26,11 +26,11 @@ export default function FavoritosPage() {
   return (
     <ClientLayout title="Favoritos" subtitle="Tus productos guardados.">
       {status === 'loading' ? (
-        <div style={{ padding: '80px', textAlign: 'center' }}>
+        <div style={{ padding: '40px 16px', textAlign: 'center' }}>
           <div style={{ display: 'inline-block', width: '40px', height: '40px', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
         </div>
       ) : favorites.length === 0 ? (
-        <div style={{ padding: '80px', textAlign: 'center' }}>
+        <div style={{ padding: '40px 16px', textAlign: 'center' }}>
           <Heart size={48} style={{ color: 'var(--text-light)', margin: '0 auto 16px auto', display: 'block' }} />
           <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '8px' }}>No hay favoritos</h3>
           <p style={{ color: 'var(--text-secondary)', marginBottom: '16px' }}>Aun no has guardado ningun producto como favorito.</p>

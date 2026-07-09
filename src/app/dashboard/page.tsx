@@ -118,7 +118,7 @@ export default function DashboardPage() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="text-center" style={{ padding: '80px' }}>
+      <div className="text-center" style={{ padding: '40px 16px' }}>
         <div style={{ display: 'inline-block', width: '40px', height: '40px', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
         <p style={{ marginTop: '16px', color: 'var(--text-secondary)' }}>Cargando estadísticas del Dashboard...</p>
       </div>

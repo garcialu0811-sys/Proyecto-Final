@@ -47,7 +47,7 @@ function ClientSidebarInner({ isOpen, onClose }: ClientSidebarProps) {
     const hrefPath = href.split('?')[0];
     const hrefQuery = href.includes('?') ? href.split('?')[1] : '';
 
-    if (pathname !== hrefPath) return false;
+    if (pathname !== hrefPath && !pathname.startsWith(hrefPath + '/')) return false;
 
     if (hrefQuery) {
       const hrefParams = new URLSearchParams(hrefQuery);

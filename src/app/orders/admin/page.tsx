@@ -90,7 +90,11 @@ export default function AdminOrdersPage() {
       const res = await fetch(`/api/orders?${params}`);
       if (res.ok) {
         const data = await res.json();
-        setOrders(data.orders || []);
+        let fetchedOrders = data.orders || [];
+        if (role === 'VENDEDOR') {
+          fetchedOrders = fetchedOrders.filter((o: any) => o.driverId === user.id || o.driverName === user.name || !o.driverId);
+        }
+        setOrders(fetchedOrders);
         setStats(data.stats || { total: 0, pending: 0, processing: 0, inTransit: 0, delivered: 0, cancelled: 0, totalRevenue: 0, avgOrder: 0 });
         setPagination(data.pagination || { total: 0, totalPages: 1, hasNext: false, hasPrev: false });
       }
@@ -143,7 +147,7 @@ export default function AdminOrdersPage() {
   };
 
   if (authStatus === 'loading' || (authStatus === 'authenticated' && user?.role === 'CLIENTE')) {
-    return <div style={{ padding: '80px', textAlign: 'center' }}><div style={{ display: 'inline-block', width: '40px', height: '40px', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div></div>;
+    return <div style={{ padding: '40px 16px', textAlign: 'center' }}><div style={{ display: 'inline-block', width: '40px', height: '40px', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div></div>;
   }
 
   return (
@@ -187,9 +191,9 @@ export default function AdminOrdersPage() {
       </div>
       <div className="card" style={{ overflow: 'hidden' }}>
         {loading ? (
-          <div style={{ padding: '80px', textAlign: 'center' }}><div style={{ display: 'inline-block', width: '40px', height: '40px', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div></div>
+          <div style={{ padding: '40px 16px', textAlign: 'center' }}><div style={{ display: 'inline-block', width: '40px', height: '40px', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div></div>
         ) : orders.length === 0 ? (
-          <div style={{ padding: '80px', textAlign: 'center' }}><ShoppingBag size={48} style={{ color: 'var(--text-light)', margin: '0 auto 16px auto', display: 'block' }} /><h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '8px' }}>No hay pedidos</h3><p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>No se encontraron pedidos con los filtros aplicados.</p></div>
+          <div style={{ padding: '40px 16px', textAlign: 'center' }}><ShoppingBag size={48} style={{ color: 'var(--text-light)', margin: '0 auto 16px auto', display: 'block' }} /><h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '8px' }}>No hay pedidos</h3><p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>No se encontraron pedidos con los filtros aplicados.</p></div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>

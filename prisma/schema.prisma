@@ -117,3 +117,21 @@ model OrderHistory {
   note      String?
   createdAt DateTime @default(now())
 }
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  price       Float
+  stock       Int      @default(0)
+  minStock    Int      @default(5)
+  category    String
+  sku         String?  @unique
+  imageUrl    String   @default("")
+  qrCode      String   @default("")
+  isActive    Boolean  @default(true)
+  costPrice   Float    @default(0)
+  location    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

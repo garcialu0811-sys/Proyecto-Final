@@ -111,7 +111,7 @@ export default function ProfilePage() {
   if (status === 'loading') {
     return (
       <ClientLayout>
-        <div style={{ padding: '80px', textAlign: 'center' }}>
+        <div style={{ padding: '40px 16px', textAlign: 'center' }}>
           <div style={{ display: 'inline-block', width: '40px', height: '40px', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
         </div>
       </ClientLayout>
@@ -158,41 +158,9 @@ export default function ProfilePage() {
 
         <div className="card">
           <h2 className="card-title" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
-            <span>{labels.changePassword}</span>
-            <Lock size={20} style={{ color: 'var(--accent)' }} />
-          </h2>
-          <form onSubmit={handleChangePassword}>
-            <div className="form-group">
-              <label className="form-label">{labels.currentPass} *</label>
-              <input type="password" className="form-control" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} placeholder={language === 'en' ? 'Enter current password' : 'Ingresa tu contraseña actual'} disabled={passwordLoading} required />
-            </div>
-            <div className="form-group">
-              <label className="form-label">{labels.newPass} *</label>
-              <input type="password" className="form-control" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder={language === 'en' ? 'Minimum 6 characters' : 'Mínimo 6 caracteres'} minLength={6} disabled={passwordLoading} required />
-            </div>
-            <div className="form-group">
-              <label className="form-label">{labels.confirmPass} *</label>
-              <input type="password" className="form-control" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder={language === 'en' ? 'Repeat new password' : 'Repite la nueva contraseña'} minLength={6} disabled={passwordLoading} required />
-            </div>
-            <button type="submit" className="btn btn-primary" style={{ width: '100%', display: 'flex', gap: '6px' }} disabled={passwordLoading}>
-              <Lock size={16} /> {passwordLoading ? (language === 'en' ? 'Changing...' : 'Cambiando...') : labels.changePass}
-            </button>
-          </form>
-        </div>
-
-        <div className="card">
-          <h2 className="card-title" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
             <span>{labels.preferences}</span>
             <Palette size={20} style={{ color: 'var(--accent)' }} />
           </h2>
-
-          <div className="form-group">
-            <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Bell size={14} /> {labels.notifs}</label>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={() => setEmailNotifs(true)} className={`btn ${emailNotifs ? 'btn-primary' : 'btn-secondary'}`} style={{ flex: 1, fontSize: '12px' }}>{labels.activated}</button>
-              <button onClick={() => setEmailNotifs(false)} className={`btn ${!emailNotifs ? 'btn-primary' : 'btn-secondary'}`} style={{ flex: 1, fontSize: '12px' }}>{labels.deactivated}</button>
-            </div>
-          </div>
 
           <div className="form-group">
             <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Palette size={14} /> {labels.themeLabel}</label>

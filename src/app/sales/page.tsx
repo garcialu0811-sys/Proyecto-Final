@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import {
   DollarSign, ShoppingCart, Plus, Search, Package, Truck, Check,
   UserPlus, MapPin, Phone, User, Calendar, Layers, ArrowRight, Camera, X, Save,
 } from 'lucide-react';
+import { Html5Qrcode } from 'html5-qrcode';
 import { useToast } from '@/components/ui/ToastContext';
 
 interface Product {
@@ -57,6 +58,9 @@ export default function SalesPage() {
   const [clientAddress, setClientAddress] = useState('');
   const [formLoading, setFormLoading] = useState(false);
   const [scannedId, setScannedId] = useState('');
+  const [useCamera, setUseCamera] = useState(false);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const scannerContainerId = 'sales-qr-reader';
 
   const fireConfetti = async () => {
     try {
@@ -64,6 +68,56 @@ export default function SalesPage() {
       mod.default({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
     } catch {}
   };
+
+  const startCameraScanner = async () => {
+    try {
+      if (scannerRef.current) return;
+      const scanner = new Html5Qrcode(scannerContainerId);
+      scannerRef.current = scanner;
+      await scanner.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        async (decodedText) => {
+          await handleCameraScanSuccess(decodedText);
+          stopCameraScanner();
+        },
+        () => {}
+      );
+    } catch (err) {
+      console.error('Camera scanner error:', err);
+      showToast('No se pudo acceder a la camara. Usa la entrada manual.', 'error');
+      setUseCamera(false);
+    }
+  };
+
+  const stopCameraScanner = async () => {
+    try {
+      if (scannerRef.current) {
+        await scannerRef.current.stop();
+        scannerRef.current.clear();
+        scannerRef.current = null;
+      }
+    } catch {}
+  };
+
+  const handleCameraScanSuccess = async (code: string) => {
+    try {
+      const res = await fetch(`/api/products/qr/${code}`);
+      const data = await res.json();
+      if (res.ok) {
+        setSelectedProductId(data.id);
+        showToast(`Producto encontrado: ${data.name}`, 'success');
+      } else {
+        showToast('Codigo QR no encontrado.', 'error');
+      }
+    } catch {
+      showToast('Error al buscar producto.', 'error');
+    }
+  };
+
+  useEffect(() => {
+    return () => { stopCameraScanner(); };
+  }, []);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -84,7 +138,7 @@ export default function SalesPage() {
         const usersRes = await fetch('/api/users');
         if (usersRes.ok) {
           const usersData = await usersRes.json();
-          setDrivers(usersData.filter((u: any) => u.role === 'VENDEDOR' || u.role === 'ADMIN'));
+          setDrivers((usersData.users || []).filter((u: any) => u.role === 'VENDEDOR' || u.role === 'ADMIN'));
         }
       } else {
         setDrivers([{ id: currentUser.id, name: currentUser.name, email: currentUser.email, role: currentUser.role }]);
@@ -179,7 +233,17 @@ export default function SalesPage() {
   const filteredOrders = orders.filter(o => {
     const matchSearch = !search || o.clientName.toLowerCase().includes(search.toLowerCase()) || o.id.toLowerCase().includes(search.toLowerCase());
     const matchStatus = !statusFilter || o.status === statusFilter;
-    return matchSearch && matchStatus;
+    if (!matchSearch || !matchStatus) return false;
+
+    if (role === 'VENDEDOR') {
+      const isMine = o.driverId === currentUser.id || o.driverName === currentUser.name;
+      const isUnassigned = !o.driverId;
+      if (o.status === 'ENTREGADO' || o.status === 'CANCELADO') {
+        return isMine;
+      }
+      return isMine || isUnassigned;
+    }
+    return true;
   });
 
   const activeProduct = products.find(p => p.id === selectedProductId);
@@ -202,7 +266,7 @@ export default function SalesPage() {
       </div>
 
       {showRegisterForm ? (
-        <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '600px', margin: '0 auto', width: '100%' }}>
           <div className="card" style={{ padding: '24px' }}>
             <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <ShoppingCart size={20} style={{ color: 'var(--accent)' }} />
@@ -210,14 +274,38 @@ export default function SalesPage() {
             </h2>
 
             <div style={{ marginBottom: '20px', padding: '16px', backgroundColor: 'var(--bg-primary)', borderRadius: '10px', border: '1px dashed var(--border)' }}>
-              <p style={{ fontSize: '13px', fontWeight: 600, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Camera size={16} style={{ color: 'var(--accent)' }} />
-                Escanear codigo del producto
-              </p>
-              <form onSubmit={handleSimulateScan} style={{ display: 'flex', gap: '8px' }}>
-                <input type="text" className="form-control" placeholder="Ingresa el codigo QR o ID" value={scannedId} onChange={e => setScannedId(e.target.value)} disabled={formLoading} style={{ flex: 1 }} />
-                <button type="submit" className="btn btn-secondary" style={{ padding: '10px 16px' }} disabled={formLoading}>Escanear</button>
-              </form>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <p style={{ fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
+                  <Camera size={16} style={{ color: 'var(--accent)' }} />
+                  Escanear codigo del producto
+                </p>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const next = !useCamera;
+                    setUseCamera(next);
+                    if (next) {
+                      setTimeout(() => startCameraScanner(), 100);
+                    } else {
+                      await stopCameraScanner();
+                    }
+                  }}
+                  style={{ fontSize: '12px', padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--accent)', background: useCamera ? 'var(--accent)' : 'transparent', color: useCamera ? '#fff' : 'var(--accent)', cursor: 'pointer', fontWeight: 500 }}
+                >
+                  {useCamera ? 'Usar entrada manual' : 'Usar camara'}
+                </button>
+              </div>
+
+              {useCamera ? (
+                <div style={{ borderRadius: '8px', overflow: 'hidden', backgroundColor: '#000', minHeight: '250px' }}>
+                  <div id={scannerContainerId} style={{ width: '100%' }} />
+                </div>
+              ) : (
+                <form onSubmit={handleSimulateScan} style={{ display: 'flex', gap: '8px' }}>
+                  <input type="text" className="form-control" placeholder="Ingresa el codigo QR o ID del producto" value={scannedId} onChange={e => setScannedId(e.target.value)} disabled={formLoading} style={{ flex: 1 }} />
+                  <button type="submit" className="btn btn-secondary" style={{ padding: '10px 16px' }} disabled={formLoading}>Escanear</button>
+                </form>
+              )}
             </div>
 
             <form onSubmit={handleRegisterSale}>
@@ -258,7 +346,7 @@ export default function SalesPage() {
                 <input type="text" className="form-control" placeholder="Maria Gomez" value={clientName} onChange={e => setClientName(e.target.value)} disabled={formLoading} />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }} className="form-grid-2">
                 <div className="form-group">
                   <label className="form-label">Telefono</label>
                   <input type="text" className="form-control" placeholder="555-1234" value={clientPhone} onChange={e => setClientPhone(e.target.value)} disabled={formLoading} />
@@ -289,7 +377,7 @@ export default function SalesPage() {
         <div>
           <div className="card" style={{ padding: '16px 20px', marginBottom: '20px' }}>
             <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-              <div style={{ position: 'relative', flex: 1, minWidth: '220px' }}>
+              <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
                 <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
                 <input type="text" className="form-control" placeholder="Buscar por cliente o ID..." value={searchInput} onChange={e => { setSearchInput(e.target.value); setSearch(e.target.value); }} style={{ paddingLeft: '36px', height: '40px' }} />
               </div>
@@ -304,12 +392,12 @@ export default function SalesPage() {
           </div>
 
           {loading ? (
-            <div style={{ padding: '80px', textAlign: 'center' }}>
+            <div style={{ padding: '40px 16px', textAlign: 'center' }}>
               <div style={{ display: 'inline-block', width: '40px', height: '40px', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
               <p style={{ marginTop: '16px', color: 'var(--text-secondary)' }}>Cargando ventas...</p>
             </div>
           ) : filteredOrders.length === 0 ? (
-            <div className="card" style={{ padding: '80px', textAlign: 'center' }}>
+            <div className="card" style={{ padding: '40px 16px', textAlign: 'center' }}>
               <Package size={48} style={{ color: 'var(--text-light)', margin: '0 auto 16px auto', display: 'block' }} />
               <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '8px' }}>No hay pedidos</h3>
               <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Registra tu primera venta para comenzar.</p>
@@ -363,20 +451,31 @@ export default function SalesPage() {
                   </div>
 
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
-                    {order.status === 'PENDIENTE' && (
+                    {order.status === 'PENDIENTE' && role === 'ADMIN' && (
                       <button onClick={() => handleUpdateStatus(order.id, 'PROCESANDO')} className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }}>Procesar</button>
                     )}
-                    {order.status === 'PROCESANDO' && (
-                      <button onClick={() => handleUpdateStatus(order.id, 'EN_RUTA')} className="btn btn-primary" style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }} disabled={!order.driverId} title={!order.driverId ? 'Asigna un repartidor primero' : ''}>
+                    {order.status === 'PENDIENTE' && role === 'VENDEDOR' && !order.driverId && (
+                      <span style={{ fontSize: '12px', color: 'var(--text-light)', fontStyle: 'italic' }}>Esperando asignacion...</span>
+                    )}
+                    {order.status === 'PROCESANDO' && order.driverId === currentUser.id && (
+                      <button onClick={() => handleUpdateStatus(order.id, 'EN_RUTA')} className="btn btn-primary" style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <Truck size={14} /> En Ruta
                       </button>
                     )}
-                    {order.status === 'EN_RUTA' && (
+                    {order.status === 'PROCESANDO' && order.driverId === currentUser.id && (
                       <button onClick={() => handleUpdateStatus(order.id, 'ENTREGADO')} className="btn btn-primary" style={{ padding: '6px 12px', fontSize: '12px', backgroundColor: 'var(--success)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <Check size={14} /> Entregado
                       </button>
                     )}
-                    {order.status !== 'ENTREGADO' && order.status !== 'CANCELADO' && (
+                    {order.status === 'PROCESANDO' && role === 'ADMIN' && !order.driverId && (
+                      <span style={{ fontSize: '12px', color: 'var(--warning)', fontStyle: 'italic' }}>Asigna un repartidor</span>
+                    )}
+                    {order.status === 'EN_RUTA' && order.driverId === currentUser.id && (
+                      <button onClick={() => handleUpdateStatus(order.id, 'ENTREGADO')} className="btn btn-primary" style={{ padding: '6px 12px', fontSize: '12px', backgroundColor: 'var(--success)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Check size={14} /> Entregado
+                      </button>
+                    )}
+                    {order.status !== 'ENTREGADO' && order.status !== 'CANCELADO' && role === 'ADMIN' && (
                       <button onClick={() => handleUpdateStatus(order.id, 'CANCELADO')} className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '12px', color: 'var(--danger)', borderColor: 'var(--danger-light)' }}>Cancelar</button>
                     )}
                     {order.status === 'ENTREGADO' && (

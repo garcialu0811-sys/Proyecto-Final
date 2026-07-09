@@ -13,6 +13,7 @@ import {
   X,
   Package,
   Filter,
+  ArrowDownCircle,
   ChevronLeft,
   ChevronRight,
   Upload,
@@ -20,6 +21,8 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
+import ProductFormModal from '@/components/products/ProductFormModal';
+import EditProductModal from '@/components/products/EditProductModal';
 
 interface Product {
   id: string;
@@ -52,9 +55,11 @@ export default function ProductsPage() {
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0, hasNext: false, hasPrev: false });
   const [categories, setCategories] = useState<string[]>([]);
 
-  const [modal, setModal] = useState<'create' | 'edit' | 'delete' | 'qr' | 'details' | null>(null);
+  const [modal, setModal] = useState<'create' | 'edit' | 'delete' | 'qr' | 'details' | 'stockEntry' | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [formLoading, setFormLoading] = useState(false);
+  const [stockEntryQty, setStockEntryQty] = useState('');
+  const [stockEntryReason, setStockEntryReason] = useState('');
 
   const [formName, setFormName] = useState('');
   const [formDesc, setFormDesc] = useState('');
@@ -285,55 +290,49 @@ export default function ProductsPage() {
         )}
       </div>
 
-      <div className="card" style={{ padding: '16px 20px', marginBottom: '20px' }}>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ position: 'relative', flex: 1, minWidth: '220px' }}>
-            <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Buscar productos..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              style={{ paddingLeft: '36px', height: '40px' }}
-            />
-          </div>
-          <select
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
+        <div style={{ position: 'relative', flex: '1 1 250px' }}>
+          <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
+          <input
+            type="text"
             className="form-control"
-            value={category}
-            onChange={(e) => { setCategory(e.target.value); setPage(1); }}
-            style={{ minWidth: '180px', height: '40px' }}
-          >
-            <option value="">Todas las categorias</option>
-            {categories.map(c => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-          <select
-            className="form-control"
-            value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-            style={{ minWidth: '170px', height: '40px' }}
-          >
-            <option value="">Todos los estados</option>
-            <option value="active">Activos</option>
-            <option value="inactive">Inactivos</option>
-          </select>
-          <button className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '6px', height: '40px', padding: '0 16px' }}>
-            <Filter size={16} />
-            Filtros
-          </button>
+            placeholder="Buscar productos..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            style={{ paddingLeft: '36px' }}
+          />
         </div>
+        <select
+          className="form-control"
+          value={category}
+          onChange={(e) => { setCategory(e.target.value); setPage(1); }}
+          style={{ width: '160px', flexShrink: 0 }}
+        >
+          <option value="">Categoria</option>
+          {categories.map(c => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+        <select
+          className="form-control"
+          value={statusFilter}
+          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+          style={{ width: '140px', flexShrink: 0 }}
+        >
+          <option value="">Estado</option>
+          <option value="active">Activos</option>
+          <option value="inactive">Inactivos</option>
+        </select>
       </div>
 
       <div className="card" style={{ overflow: 'hidden' }}>
         {loading ? (
-          <div style={{ padding: '80px', textAlign: 'center' }}>
+          <div style={{ padding: '40px 16px', textAlign: 'center' }}>
             <div style={{ display: 'inline-block', width: '40px', height: '40px', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
             <p style={{ marginTop: '16px', color: 'var(--text-secondary)' }}>Cargando productos...</p>
           </div>
         ) : products.length === 0 ? (
-          <div style={{ padding: '80px', textAlign: 'center' }}>
+          <div style={{ padding: '40px 16px', textAlign: 'center' }}>
             <Package size={48} style={{ color: 'var(--text-light)', margin: '0 auto 16px auto', display: 'block' }} />
             <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '8px' }}>No hay productos</h3>
             <p style={{ color: 'var(--text-secondary)' }}>No se encontraron productos con los filtros seleccionados.</p>
@@ -408,6 +407,17 @@ export default function ProductsPage() {
                               <Pencil size={15} />
                             </button>
                           )}
+                          {role !== 'CLIENTE' && (
+                            <button
+                              onClick={() => { setSelectedProduct(product); setStockEntryQty(''); setStockEntryReason(''); setModal('stockEntry'); }}
+                              title="Agregar stock (Entrada)"
+                              style={{ width: '34px', height: '34px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.15s', color: 'var(--success)' }}
+                              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#D1FAE5'; e.currentTarget.style.borderColor = 'var(--success)'; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
+                            >
+                              <ArrowDownCircle size={15} />
+                            </button>
+                          )}
                           {role === 'ADMIN' && (
                             <button
                               onClick={() => { setSelectedProduct(product); setModal('delete'); }}
@@ -473,140 +483,83 @@ export default function ProductsPage() {
         </div>
       )}
 
-      {modal === 'create' && (
-        <div className="modal-overlay" onClick={() => setModal(null)}>
-          <div className="modal-content" style={{ maxWidth: '560px' }} onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2 style={{ fontSize: '18px', fontWeight: 600 }}>Nuevo Producto</h2>
-              <button className="modal-close" onClick={() => setModal(null)}><X size={20} /></button>
-            </div>
-            <form onSubmit={handleFormSubmit}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div className="form-group">
-                  <label className="form-label">Nombre *</label>
-                  <input type="text" className="form-control" value={formName} onChange={e => setFormName(e.target.value)} placeholder="Nombre del producto" required />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">SKU</label>
-                  <input type="text" className="form-control" value={formSku} onChange={e => setFormSku(e.target.value)} placeholder="Ej: CAF-001 (se genera automaticamente si se deja vacio)" />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Descripcion *</label>
-                  <textarea className="form-control" value={formDesc} onChange={e => setFormDesc(e.target.value)} placeholder="Descripcion del producto" rows={3} required />
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  <div className="form-group">
-                    <label className="form-label">Precio (Q) *</label>
-                    <input type="number" step="0.01" className="form-control" value={formPrice} onChange={e => setFormPrice(e.target.value)} placeholder="0.00" required />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Stock *</label>
-                    <input type="number" className="form-control" value={formStock} onChange={e => setFormStock(e.target.value)} placeholder="0" required />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Categoria *</label>
-                  <input type="text" className="form-control" value={formCategory} onChange={e => setFormCategory(e.target.value)} placeholder="Ej: Bebidas, Electronica" list="category-list" required />
-                  <datalist id="category-list">
-                    {categories.map(c => <option key={c} value={c} />)}
-                  </datalist>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Imagen</label>
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f?.type.startsWith('image/')) { setFormImageFile(f); setFormImagePreview(URL.createObjectURL(f)); } }}
-                    onDragOver={e => e.preventDefault()}
-                    style={{ border: '2px dashed var(--border)', borderRadius: '10px', padding: '24px', textAlign: 'center', cursor: 'pointer', backgroundColor: formImagePreview ? 'transparent' : 'var(--bg-primary)', transition: 'border-color 0.2s' }}
-                  >
-                    {formImagePreview ? (
-                      <img src={formImagePreview} alt="Preview" style={{ maxWidth: '100%', maxHeight: '120px', borderRadius: '8px' }} />
-                    ) : (
-                      <>
-                        <Upload size={28} style={{ color: 'var(--text-light)', margin: '0 auto 8px auto', display: 'block' }} />
-                        <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Arrastra una imagen o haz click</p>
-                      </>
-                    )}
-                  </div>
-                  <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} style={{ display: 'none' }} />
-                  {uploadingImage && <p style={{ fontSize: '12px', color: 'var(--accent)', marginTop: '6px' }}>Subiendo imagen...</p>}
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
-                <button type="button" onClick={() => setModal(null)} className="btn btn-secondary" disabled={formLoading}>Cancelar</button>
-                <button type="submit" className="btn btn-primary" disabled={formLoading} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Save size={16} />
-                  {formLoading ? 'Guardando...' : 'Crear Producto'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <ProductFormModal
+        isOpen={modal === 'create'}
+        onClose={() => setModal(null)}
+        onSuccess={fetchProducts}
+        categories={categories}
+      />
 
-      {modal === 'edit' && selectedProduct && (
+      <EditProductModal
+        isOpen={modal === 'edit'}
+        onClose={() => setModal(null)}
+        onSuccess={fetchProducts}
+        product={selectedProduct}
+        categories={categories}
+      />
+
+      {modal === 'stockEntry' && selectedProduct && (
         <div className="modal-overlay" onClick={() => setModal(null)}>
-          <div className="modal-content" style={{ maxWidth: '560px' }} onClick={e => e.stopPropagation()}>
+          <div className="modal-content" style={{ maxWidth: '480px' }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2 style={{ fontSize: '18px', fontWeight: 600 }}>Editar Producto</h2>
+              <h2 style={{ fontSize: '18px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <ArrowDownCircle size={20} style={{ color: 'var(--success)' }} />
+                Entrada de Stock
+              </h2>
               <button className="modal-close" onClick={() => setModal(null)}><X size={20} /></button>
             </div>
-            <form onSubmit={handleFormSubmit}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div className="form-group">
-                  <label className="form-label">Nombre *</label>
-                  <input type="text" className="form-control" value={formName} onChange={e => setFormName(e.target.value)} required />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">SKU</label>
-                  <input type="text" className="form-control" value={formSku} onChange={e => setFormSku(e.target.value)} />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Descripcion *</label>
-                  <textarea className="form-control" value={formDesc} onChange={e => setFormDesc(e.target.value)} rows={3} required />
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  <div className="form-group">
-                    <label className="form-label">Precio (Q) *</label>
-                    <input type="number" step="0.01" className="form-control" value={formPrice} onChange={e => setFormPrice(e.target.value)} required />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Stock *</label>
-                    <input type="number" className="form-control" value={formStock} onChange={e => setFormStock(e.target.value)} required />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Categoria *</label>
-                  <input type="text" className="form-control" value={formCategory} onChange={e => setFormCategory(e.target.value)} list="category-list-edit" required />
-                  <datalist id="category-list-edit">
-                    {categories.map(c => <option key={c} value={c} />)}
-                  </datalist>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Imagen</label>
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f?.type.startsWith('image/')) { setFormImageFile(f); setFormImagePreview(URL.createObjectURL(f)); } }}
-                    onDragOver={e => e.preventDefault()}
-                    style={{ border: '2px dashed var(--border)', borderRadius: '10px', padding: '20px', textAlign: 'center', cursor: 'pointer', backgroundColor: formImagePreview ? 'transparent' : 'var(--bg-primary)' }}
-                  >
-                    {formImagePreview ? (
-                      <img src={formImagePreview} alt="Preview" style={{ maxWidth: '100%', maxHeight: '120px', borderRadius: '8px' }} />
-                    ) : (
-                      <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Click para cambiar imagen</p>
-                    )}
-                  </div>
-                  <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} style={{ display: 'none' }} />
-                </div>
+            <div style={{ padding: '20px' }}>
+              <div style={{ padding: '12px', backgroundColor: 'var(--bg-primary)', borderRadius: '8px', marginBottom: '16px' }}>
+                <p style={{ fontSize: '14px', fontWeight: 600, margin: 0 }}>{selectedProduct.name}</p>
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>Stock actual: <strong>{selectedProduct.stock}</strong> unidades</p>
               </div>
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
-                <button type="button" onClick={() => setModal(null)} className="btn btn-secondary" disabled={formLoading}>Cancelar</button>
-                <button type="submit" className="btn btn-primary" disabled={formLoading} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Save size={16} />
-                  {formLoading ? 'Guardando...' : 'Actualizar'}
-                </button>
-              </div>
-            </form>
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                const qty = Number(stockEntryQty);
+                if (!qty || qty <= 0) { showToast('Ingresa una cantidad valida.', 'warning'); return; }
+                setFormLoading(true);
+                try {
+                  const res = await fetch('/api/inventory/movement', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      productId: selectedProduct.id,
+                      type: 'IN',
+                      quantity: qty,
+                      reason: stockEntryReason || 'Entrada de stock',
+                    }),
+                  });
+                  const data = await res.json();
+                  if (res.ok) {
+                    showToast(`Stock actualizado: ${selectedProduct.stock} -> ${data.newStock} unidades.`, 'success');
+                    setModal(null);
+                    fetchProducts();
+                  } else {
+                    showToast(data.message || 'Error al registrar entrada.', 'error');
+                  }
+                } catch {
+                  showToast('Error de conexion.', 'error');
+                } finally {
+                  setFormLoading(false);
+                }
+              }}>
+                <div className="form-group">
+                  <label className="form-label">Cantidad a agregar *</label>
+                  <input type="number" min="1" className="form-control" value={stockEntryQty} onChange={e => setStockEntryQty(e.target.value)} placeholder="Ej: 50" required autoFocus />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Motivo (opcional)</label>
+          <input type="text" className="form-control" value={stockEntryReason} onChange={e => setStockEntryReason(e.target.value)} placeholder="Ej: Compra a proveedor" />
+                </div>
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '16px' }}>
+                  <button type="button" onClick={() => setModal(null)} className="btn btn-secondary" disabled={formLoading}>Cancelar</button>
+                  <button type="submit" className="btn btn-primary" disabled={formLoading} style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'var(--success)', borderColor: 'var(--success)' }}>
+                    <ArrowDownCircle size={16} />
+                    {formLoading ? 'Registrando...' : 'Registrar Entrada'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}

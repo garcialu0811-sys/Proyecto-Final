@@ -394,12 +394,12 @@ export default function UsersPage() {
       <div className="users-content">
         <div className="users-table-panel">
           {loading ? (
-            <div style={{ padding: '80px', textAlign: 'center' }}>
+            <div style={{ padding: '40px 16px', textAlign: 'center' }}>
               <div className="spinner"></div>
               <p style={{ marginTop: '16px', color: 'var(--text-secondary)' }}>Cargando usuarios...</p>
             </div>
           ) : users.length === 0 ? (
-            <div style={{ padding: '80px', textAlign: 'center' }}>
+            <div style={{ padding: '40px 16px', textAlign: 'center' }}>
               <Users size={48} style={{ color: 'var(--text-light)', margin: '0 auto 16px auto', display: 'block' }} />
               <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '8px' }}>No hay usuarios</h3>
               <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>No se encontraron usuarios con los filtros aplicados.</p>

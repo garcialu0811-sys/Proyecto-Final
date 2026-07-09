@@ -98,54 +98,54 @@ export async function POST(request: NextRequest) {
     if (!prisma) return NextResponse.json({ message: 'Error de base de datos.' }, { status: 500 });
 
     const body = await request.json();
-    const { items, phone, address, city, zone, reference, paymentMethod } = body;
+    const { items, phone, address, city, zone, reference, paymentMethod, clientName: bodyClientName, userId: bodyUserId, subtotal: bodySubtotal, shipping: bodyShipping, total: bodyTotal } = body;
 
     if (!items || !items.length) {
       return NextResponse.json({ message: 'El pedido debe contener al menos un producto.' }, { status: 400 });
     }
-    if (!phone || !address || !city || !zone) {
-      return NextResponse.json({ message: 'Telefono, direccion, ciudad y zona son obligatorios.' }, { status: 400 });
+    if (!phone || !address) {
+      return NextResponse.json({ message: 'Telefono y direccion son obligatorios.' }, { status: 400 });
     }
     if (!paymentMethod) {
       return NextResponse.json({ message: 'Seleccione un metodo de pago.' }, { status: 400 });
     }
 
     const orderNumber = generateOrderNumber();
-    const subtotal = items.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
-    const shipping = 30;
-    const total = subtotal + shipping;
-    const fullAddress = `${address}${city ? ', ' + city : ''}${zone ? ', ' + zone : ''}`;
+    const computedSubtotal = bodySubtotal || items.reduce((sum: number, item: any) => sum + (item.price || item.productPrice || 0) * item.quantity, 0);
+    const computedShipping = bodyShipping ?? 25;
+    const computedTotal = bodyTotal || computedSubtotal + computedShipping;
+    const fullAddress = address;
 
     const order = await prisma.order.create({
       data: {
         orderNumber,
-        userId: user.id,
+        userId: bodyUserId || user.id,
         productId: items[0].productId || items[0].id,
         productName: items.map((i: any) => i.productName || i.name).join(', '),
         quantity: items.reduce((sum: number, i: any) => sum + i.quantity, 0),
-        price: subtotal,
-        total,
+        price: computedSubtotal,
+        total: computedTotal,
         status: 'PENDIENTE',
-        clientName: user.name || 'Cliente',
+        clientName: bodyClientName || user.name || 'Cliente',
         clientPhone: phone,
         clientAddress: fullAddress,
         phone,
         address,
-        city,
-        zone,
+        city: city || null,
+        zone: zone || null,
         reference: reference || null,
         paymentMethod,
-        subtotal,
-        shipping,
+        subtotal: computedSubtotal,
+        shipping: computedShipping,
         discount: 0,
         items: {
           create: items.map((item: any) => ({
             productId: item.productId || item.id,
             productName: item.productName || item.name,
             sku: item.sku || null,
-            price: item.price,
+            price: item.price || item.productPrice || 0,
             quantity: item.quantity,
-            subtotal: item.price * item.quantity,
+            subtotal: (item.price || item.productPrice || 0) * item.quantity,
             image: item.image || item.imageUrl || null,
           })),
         },

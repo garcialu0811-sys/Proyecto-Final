@@ -10,6 +10,7 @@ import {
   Send, Ban, ChevronDown, ChevronUp, ArrowLeft, FileText,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
+import ClientLayout from '@/components/store/ClientLayout';
 
 interface OrderItem {
   id: string; productId: string; productName: string; sku?: string;
@@ -146,11 +147,11 @@ export default function ClientOrdersPage() {
   const isCancelled = selectedOrder?.status === 'CANCELADO';
 
   if (authStatus === 'loading') {
-    return <div style={{ padding: '80px', textAlign: 'center' }}><div style={{ display: 'inline-block', width: '40px', height: '40px', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div></div>;
+    return <ClientLayout><div style={{ padding: '40px 16px', textAlign: 'center' }}><div style={{ display: 'inline-block', width: '40px', height: '40px', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div></div></ClientLayout>;
   }
 
   return (
-    <>
+    <ClientLayout>
       <div style={{ marginBottom: '24px' }}>
         <h1 style={{ fontSize: '24px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px' }}>
           <ShoppingBag size={24} style={{ color: 'var(--accent)' }} /> Mis pedidos
@@ -160,7 +161,7 @@ export default function ClientOrdersPage() {
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: selectedOrder ? '1fr 1fr' : '1fr', gap: '24px', alignItems: 'start' }}>
+      <div className="order-split" style={{ gridTemplateColumns: selectedOrder ? undefined : '1fr' }}>
         {/* LEFT: Order List */}
         <div>
           <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
@@ -403,6 +404,6 @@ export default function ClientOrdersPage() {
       )}
 
       <style jsx global>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-    </>
+    </ClientLayout>
   );
 }

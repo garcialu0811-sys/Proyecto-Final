@@ -33,8 +33,13 @@ export async function POST(request: Request) {
     const url = await uploadImage(buffer, 'qrshop/products');
 
     return NextResponse.json({ url }, { status: 200 });
-  } catch (error) {
-    console.error('Error al subir imagen:', error);
-    return NextResponse.json({ message: 'Error al subir imagen.' }, { status: 500 });
+  } catch (error: any) {
+    console.error('Error al subir imagen:', error?.message || error);
+    console.error('Cloudinary env vars:', {
+      cloud_name: !!process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: !!process.env.CLOUDINARY_API_KEY,
+      api_secret: !!process.env.CLOUDINARY_API_SECRET,
+    });
+    return NextResponse.json({ message: 'Error al subir imagen: ' + (error?.message || 'unknown') }, { status: 500 });
   }
 }

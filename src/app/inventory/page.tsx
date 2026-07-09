@@ -384,30 +384,28 @@ export default function InventoryPage() {
       )}
 
       {/* Search and Filters */}
-      <div className="card" style={{ padding: '16px 20px', marginBottom: '20px' }}>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ position: 'relative', flex: 1, minWidth: '220px' }}>
-            <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
-            <input type="text" className="form-control" placeholder="Buscar productos..." value={searchInput} onChange={e => setSearchInput(e.target.value)} style={{ paddingLeft: '36px', height: '40px' }} />
-          </div>
-          <select className="form-control" value={categoryFilter} onChange={e => { setCategoryFilter(e.target.value); setPage(1); }} style={{ minWidth: '180px', height: '40px' }}>
-            <option value="">Todas las categorias</option>
-            {productCategories.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-          <select className="form-control" value={stockFilter} onChange={e => { setStockFilter(e.target.value); setPage(1); }} style={{ minWidth: '180px', height: '40px' }}>
-            <option value="">Todos los estados de stock</option>
-            <option value="optimal">Optimo</option>
-            <option value="low">Bajo</option>
-            <option value="out">Sin stock</option>
-          </select>
-          <select className="form-control" value={locationFilter} onChange={e => { setLocationFilter(e.target.value); setPage(1); }} style={{ minWidth: '180px', height: '40px' }}>
-            <option value="">Todas las ubicaciones</option>
-            {locations.map(l => <option key={l} value={l}>{l}</option>)}
-          </select>
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{ position: 'relative', flex: '1 1 250px' }}>
+          <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
+          <input type="text" className="form-control" placeholder="Buscar productos..." value={searchInput} onChange={e => setSearchInput(e.target.value)} style={{ paddingLeft: '36px' }} />
         </div>
-        <div style={{ marginTop: '12px', fontSize: '13px', color: 'var(--text-secondary)' }}>
-          Mostrando {((pagination.page - 1) * pagination.limit) + 1} a {Math.min(pagination.page * pagination.limit, pagination.total)} de {pagination.total} productos
-        </div>
+        <select className="form-control" value={categoryFilter} onChange={e => { setCategoryFilter(e.target.value); setPage(1); }} style={{ width: '150px', flexShrink: 0 }}>
+          <option value="">Categoria</option>
+          {productCategories.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <select className="form-control" value={stockFilter} onChange={e => { setStockFilter(e.target.value); setPage(1); }} style={{ width: '130px', flexShrink: 0 }}>
+          <option value="">Stock</option>
+          <option value="optimal">Optimo</option>
+          <option value="low">Bajo</option>
+          <option value="out">Sin stock</option>
+        </select>
+        <select className="form-control" value={locationFilter} onChange={e => { setLocationFilter(e.target.value); setPage(1); }} style={{ width: '140px', flexShrink: 0 }}>
+          <option value="">Ubicacion</option>
+          {locations.map(l => <option key={l} value={l}>{l}</option>)}
+        </select>
+        <span style={{ fontSize: '13px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+          {pagination.total} productos
+        </span>
       </div>
 
       {/* Main Content Grid */}
@@ -415,12 +413,12 @@ export default function InventoryPage() {
         {/* Table */}
         <div className="card" style={{ overflow: 'hidden' }}>
           {loading ? (
-            <div style={{ padding: '80px', textAlign: 'center' }}>
+            <div style={{ padding: '40px 16px', textAlign: 'center' }}>
               <div style={{ display: 'inline-block', width: '40px', height: '40px', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
               <p style={{ marginTop: '16px', color: 'var(--text-secondary)' }}>Cargando inventario...</p>
             </div>
           ) : products.length === 0 ? (
-            <div style={{ padding: '80px', textAlign: 'center' }}>
+            <div style={{ padding: '40px 16px', textAlign: 'center' }}>
               <Package size={48} style={{ color: 'var(--text-light)', margin: '0 auto 16px auto', display: 'block' }} />
               <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '8px' }}>No hay productos</h3>
               <p style={{ color: 'var(--text-secondary)' }}>No se encontraron productos con los filtros seleccionados.</p>
@@ -618,7 +616,7 @@ export default function InventoryPage() {
               <button className="modal-close" onClick={() => setModal(null)}><X size={20} /></button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+            <div className="form-grid-2" style={{ marginBottom: '20px' }}>
               <div>
                 <p style={{ fontSize: '11px', color: 'var(--text-light)', fontWeight: 600, marginBottom: '4px' }}>PRODUCTO</p>
                 <p style={{ fontWeight: 600, fontSize: '16px' }}>{selectedProduct.name}</p>
@@ -628,7 +626,7 @@ export default function InventoryPage() {
               </div>
               <div>
                 <p style={{ fontSize: '11px', color: 'var(--text-light)', fontWeight: 600, marginBottom: '4px' }}>INFORMACION DE STOCK</p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginTop: '8px' }}>
+                <div className="form-grid-3" style={{ marginTop: '8px' }}>
                   <div style={{ padding: '12px', backgroundColor: 'var(--bg-primary)', borderRadius: '8px', textAlign: 'center' }}>
                     <p style={{ fontSize: '11px', color: 'var(--text-light)', margin: 0 }}>Stock actual</p>
                     <p style={{ fontSize: '20px', fontWeight: 700, margin: '4px 0 0 0' }}>{selectedProduct.stock}</p>
@@ -710,7 +708,7 @@ export default function InventoryPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
                   <p style={{ fontSize: '11px', color: 'var(--text-light)', fontWeight: 600, marginBottom: '8px', textTransform: 'uppercase' }}>Informacion del Producto</p>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="form-grid-2">
                     <div className="form-group" style={{ marginBottom: 0 }}>
                       <label className="form-label">Nombre</label>
                       <input type="text" className="form-control" value={selectedProduct.name} disabled style={{ opacity: 0.6 }} />
@@ -724,7 +722,7 @@ export default function InventoryPage() {
 
                 <div>
                   <p style={{ fontSize: '11px', color: 'var(--text-light)', fontWeight: 600, marginBottom: '8px', textTransform: 'uppercase' }}>Stock y Ubicacion</p>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="form-grid-2">
                     <div className="form-group" style={{ marginBottom: 0 }}>
                       <label className="form-label">Stock *</label>
                       <input type="number" min="0" className="form-control" value={editStock} onChange={e => setEditStock(e.target.value)} required />
@@ -738,7 +736,7 @@ export default function InventoryPage() {
                     <label className="form-label">Ubicacion - Almacen</label>
                     <input type="text" className="form-control" value={editWarehouse} onChange={e => setEditWarehouse(e.target.value)} placeholder="Almacen Principal" />
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
+                  <div className="form-grid-2" style={{ marginTop: '12px' }}>
                     <div className="form-group" style={{ marginBottom: 0 }}>
                       <label className="form-label">Pasillo</label>
                       <input type="text" className="form-control" value={editAisle} onChange={e => setEditAisle(e.target.value)} placeholder="Pasillo A" />
@@ -752,7 +750,7 @@ export default function InventoryPage() {
 
                 <div>
                   <p style={{ fontSize: '11px', color: 'var(--text-light)', fontWeight: 600, marginBottom: '8px', textTransform: 'uppercase' }}>Precio y Costo</p>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="form-grid-2">
                     <div className="form-group" style={{ marginBottom: 0 }}>
                       <label className="form-label">Precio (Q) *</label>
                       <input type="number" step="0.01" min="0" className="form-control" value={editPrice} onChange={e => setEditPrice(e.target.value)} required />
@@ -865,7 +863,7 @@ export default function InventoryPage() {
               <button className="modal-close" onClick={() => setModal(null)}><X size={20} /></button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+            <div className="form-grid-2" style={{ marginBottom: '20px' }}>
               <div style={{ padding: '16px', backgroundColor: 'var(--bg-primary)', borderRadius: '10px' }}>
                 <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0 }}>Total productos</p>
                 <p style={{ fontSize: '24px', fontWeight: 700, margin: '4px 0 0 0' }}>{metrics.totalProducts}</p>

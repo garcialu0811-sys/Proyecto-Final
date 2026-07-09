@@ -92,27 +92,32 @@ export async function POST(request: Request) {
       category,
       sku: generatedSku,
       imageUrl: imageUrl || '',
-      qrCode: 'temp',
+      qrCode: '',
       isActive: true,
       minStock: minStock !== undefined ? Number(minStock) : 5,
       costPrice: costPrice !== undefined ? Number(costPrice) : 0,
       location: location || { warehouse: 'Almacen Principal', aisle: '', shelf: '' },
     });
 
-    const qrDataUrl = await QRCode.toDataURL(tempProduct.id, {
-      width: 300,
-      margin: 2,
-      color: {
-        dark: '#1a2a3a',
-        light: '#ffffff'
-      }
-    });
+    let qrDataUrl = '';
+    try {
+      qrDataUrl = await QRCode.toDataURL(tempProduct.id, {
+        width: 300,
+        margin: 2,
+        color: {
+          dark: '#1a2a3a',
+          light: '#ffffff'
+        }
+      });
+    } catch (qrErr) {
+      console.error('Error generando QR:', qrErr);
+    }
 
-    const updatedProduct = await dbClient.products.update(tempProduct.id, {
-      qrCode: qrDataUrl
-    });
+    if (qrDataUrl) {
+      await dbClient.products.update(tempProduct.id, { qrCode: qrDataUrl });
+    }
 
-    return NextResponse.json(updatedProduct, { status: 201 });
+    return NextResponse.json(tempProduct, { status: 201 });
   } catch (error) {
     console.error('Error al crear producto con QR:', error);
     return NextResponse.json({ message: 'Error interno del servidor al crear producto.' }, { status: 500 });

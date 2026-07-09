@@ -1,0 +1,309 @@
+'use client';
+
+import React, { useState, useRef, useEffect } from 'react';
+import { X, Upload, Package, CheckCircle, Eye } from 'lucide-react';
+import { QRCodeCanvas } from 'qrcode.react';
+import { useToast } from '@/components/ui/ToastContext';
+
+interface ProductFormModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  categories: string[];
+}
+
+const PRODUCT_CATEGORIES = [
+  'Bebidas', 'Accesorios', 'Electrónicos', 'Papelería',
+  'Hogar', 'Deportes', 'Regalos', 'Mascotas', 'Ropa', 'Otros',
+];
+
+export default function ProductFormModal({ isOpen, onClose, onSuccess, categories }: ProductFormModalProps) {
+  const { showToast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [loading, setLoading] = useState(false);
+  const [formName, setFormName] = useState('');
+  const [formSku, setFormSku] = useState('');
+  const [formCategory, setFormCategory] = useState('');
+  const [formPrice, setFormPrice] = useState('');
+  const [formStock, setFormStock] = useState('');
+  const [formDesc, setFormDesc] = useState('');
+  const [formImageFile, setFormImageFile] = useState<File | null>(null);
+  const [formImagePreview, setFormImagePreview] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setFormName('');
+      setFormSku('');
+      setFormCategory('');
+      setFormPrice('');
+      setFormStock('');
+      setFormDesc('');
+      setFormImageFile(null);
+      setFormImagePreview('');
+      setShowPreview(false);
+    }
+  }, [isOpen]);
+
+  const allCategories = [...new Set([...PRODUCT_CATEGORIES, ...categories])].sort();
+
+  const handleImageUpload = async (file: File): Promise<string | null> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    setUploadingImage(true);
+    try {
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (res.ok) return data.url;
+      showToast(data.message || 'Error al subir imagen.', 'error');
+      return null;
+    } catch {
+      showToast('Error al conectar con el servidor de imagenes.', 'error');
+      return null;
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('La imagen no puede superar 5MB.', 'warning');
+      return;
+    }
+    setFormImageFile(file);
+    setFormImagePreview(URL.createObjectURL(file));
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('La imagen no puede superar 5MB.', 'warning');
+        return;
+      }
+      setFormImageFile(file);
+      setFormImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formName || !formDesc || !formPrice || !formStock || !formCategory) {
+      showToast('Completa todos los campos requeridos.', 'warning');
+      return;
+    }
+    setLoading(true);
+    try {
+      let imageUrl = '';
+      if (formImageFile) {
+        const uploaded = await handleImageUpload(formImageFile);
+        if (uploaded) imageUrl = uploaded;
+      }
+
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formName,
+          description: formDesc,
+          price: Number(formPrice),
+          stock: Number(formStock),
+          category: formCategory,
+          sku: formSku || undefined,
+          imageUrl: imageUrl || undefined,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        showToast('Producto creado exitosamente.', 'success');
+        onSuccess();
+        onClose();
+      } else {
+        showToast(data.error || data.message || 'Error al crear producto.', 'error');
+      }
+    } catch {
+      showToast('Error al conectar con el servidor.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const downloadQR = () => {
+    const canvas = document.querySelector('#qr-preview canvas') as HTMLCanvasElement;
+    if (canvas) {
+      const link = document.createElement('a');
+      link.download = `QRShop-${formSku || formName || 'producto'}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+  };
+
+  const qrValue = formName
+    ? JSON.stringify({ productId: 'pending', name: formName, sku: formSku, type: 'QRShop', url: `${typeof window !== 'undefined' ? window.location.origin : ''}/scan` })
+    : '';
+
+  if (!isOpen) return null;
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: '16px' }}>
+      <div style={{ backgroundColor: 'var(--bg-secondary)', borderRadius: '16px', width: '900px', maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+
+        {/* Header */}
+        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>Nuevo Producto</h2>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>Completa la informacion para agregar un nuevo producto a tu inventario.</p>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-light)', padding: '4px' }}><X size={20} /></button>
+        </div>
+
+        {/* Body */}
+        <form onSubmit={handleSubmit}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '24px', padding: '24px' }}>
+
+            {/* Left: Form */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className="form-group">
+                <label className="form-label">Nombre del producto *</label>
+                <input type="text" className="form-control" value={formName} onChange={e => setFormName(e.target.value)} placeholder="Ej: Auriculares Bluetooth X1" required />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div className="form-group">
+                  <label className="form-label">SKU *</label>
+                  <input type="text" className="form-control" value={formSku} onChange={e => setFormSku(e.target.value)} placeholder="Ej: AUR-006" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Categoria *</label>
+                  <select className="form-control" value={formCategory} onChange={e => setFormCategory(e.target.value)} required>
+                    <option value="">Seleccionar</option>
+                    {allCategories.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div className="form-group">
+                  <label className="form-label">Precio (Q) *</label>
+                  <input type="number" step="0.01" min="0" className="form-control" value={formPrice} onChange={e => setFormPrice(e.target.value)} placeholder="0.00" required />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Stock *</label>
+                  <input type="number" min="0" className="form-control" value={formStock} onChange={e => setFormStock(e.target.value)} placeholder="10" required />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Descripcion *</label>
+                <textarea className="form-control" value={formDesc} onChange={e => setFormDesc(e.target.value)} placeholder="Descripcion detallada del producto..." rows={3} required style={{ resize: 'vertical' }} />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Imagen del producto</label>
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  onDrop={handleDrop}
+                  onDragOver={e => e.preventDefault()}
+                  style={{
+                    border: '2px dashed var(--border)', borderRadius: '10px', padding: '16px', textAlign: 'center',
+                    cursor: 'pointer', backgroundColor: formImagePreview ? 'transparent' : 'var(--bg-primary)',
+                    transition: 'border-color 0.2s', display: 'flex', alignItems: 'center', gap: '12px',
+                    justifyContent: formImagePreview ? 'flex-start' : 'center',
+                  }}
+                >
+                  {formImagePreview ? (
+                    <>
+                      <div style={{ position: 'relative' }}>
+                        <img src={formImagePreview} alt="Preview" style={{ width: '56px', height: '56px', objectFit: 'cover', borderRadius: '8px' }} />
+                        <button
+                          type="button"
+                          onClick={e => { e.stopPropagation(); setFormImageFile(null); setFormImagePreview(''); }}
+                          style={{ position: 'absolute', top: '-6px', right: '-6px', width: '18px', height: '18px', borderRadius: '50%', backgroundColor: 'var(--danger)', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px' }}
+                        ><X size={10} /></button>
+                      </div>
+                      <div style={{ textAlign: 'left' }}>
+                        <p style={{ fontSize: '13px', fontWeight: 500, margin: 0 }}>Haz clic o arrastra una imagen aqui</p>
+                        <p style={{ fontSize: '11px', color: 'var(--text-light)', margin: '2px 0 0 0' }}>PNG, JPG o WEBP (max. 5MB)</p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <Upload size={20} style={{ color: 'var(--text-light)' }} />
+                      <div style={{ textAlign: 'left' }}>
+                        <p style={{ fontSize: '13px', fontWeight: 500, margin: 0 }}>Haz clic o arrastra una imagen aqui</p>
+                        <p style={{ fontSize: '11px', color: 'var(--text-light)', margin: '2px 0 0 0' }}>PNG, JPG o WEBP (max. 5MB)</p>
+                      </div>
+                    </>
+                  )}
+                </div>
+                <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} style={{ display: 'none' }} />
+                {uploadingImage && <p style={{ fontSize: '12px', color: 'var(--accent)', marginTop: '6px' }}>Subiendo imagen...</p>}
+              </div>
+            </div>
+
+            {/* Right: QR Preview */}
+            <div>
+              {/* QR Generated Badge */}
+              <div style={{ padding: '12px 16px', backgroundColor: '#D1FAE5', borderRadius: '10px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <CheckCircle size={16} style={{ color: '#fff' }} />
+                </div>
+                <div>
+                  <p style={{ fontSize: '13px', fontWeight: 600, color: '#065F46', margin: 0 }}>Codigo QR generado</p>
+                  <p style={{ fontSize: '11px', color: '#047857', margin: '2px 0 0 0' }}>Se generara automaticamente al crear el producto.</p>
+                </div>
+              </div>
+
+              {/* QR Preview Card */}
+              <div style={{ backgroundColor: 'var(--bg-primary)', borderRadius: '12px', padding: '20px', marginBottom: '16px' }}>
+                <p style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px' }}>Vista previa del QR</p>
+                <div style={{ backgroundColor: '#fff', borderRadius: '10px', padding: '16px', textAlign: 'center', border: '1px solid var(--border)', minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {qrValue ? (
+                    <div id="qr-preview">
+                      <QRCodeCanvas
+                        value={qrValue}
+                        size={180}
+                        level="H"
+                        includeMargin
+                        bgColor="#FFFFFF"
+                        fgColor="#000000"
+                      />
+                    </div>
+                  ) : (
+                    <div style={{ padding: '20px' }}>
+                      <Package size={40} style={{ color: 'var(--text-light)', margin: '0 auto 8px auto', display: 'block' }} />
+                      <p style={{ fontSize: '12px', color: 'var(--text-light)' }}>El QR se generara automaticamente</p>
+                    </div>
+                  )}
+                </div>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '12px', lineHeight: 1.5 }}>
+                  Este codigo QR sera unico para este producto y podra ser escaneado por tus clientes.
+                </p>
+                {qrValue && (
+                  <button type="button" onClick={downloadQR} style={{ marginTop: '10px', width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid var(--border)', backgroundColor: 'var(--bg-secondary)', cursor: 'pointer', fontSize: '13px', fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: 'var(--text-primary)' }}>
+                    <Eye size={14} /> Vista previa de producto
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+            <button type="button" onClick={onClose} className="btn btn-secondary" disabled={loading}>Cancelar</button>
+            <button type="submit" className="btn btn-primary" disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Package size={16} />
+              {loading ? 'Creando...' : 'Crear Producto'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

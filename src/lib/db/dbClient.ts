@@ -192,52 +192,53 @@ export const dbClient = {
 
   products: {
     findMany: async () => {
-      if (isFallbackActive()) {
+      if (isFallbackActive() || !prisma) {
         return fallbackDb.products.findMany();
       }
-      const mongo = await tryMongo();
-      if (!mongo) return fallbackDb.products.findMany();
-      const products = await MongooseProduct.find({}).sort({ createdAt: -1 });
-      return products.map(p => ({
-        id: p._id.toString(),
-        name: p.name,
-        description: p.description,
-        price: p.price,
-        stock: p.stock,
-        minStock: (p as any).minStock ?? 5,
-        category: p.category,
-        sku: (p as any).sku || '',
-        isActive: (p as any).isActive ?? true,
-        imageUrl: p.imageUrl,
-        qrCode: p.qrCode,
-        costPrice: (p as any).costPrice ?? 0,
-        location: (p as any).location || { warehouse: 'Almacen Principal', aisle: '', shelf: '' },
-        createdAt: p.createdAt.toISOString()
-      }));
-    },
-    findUnique: async (id: string) => {
-      if (isFallbackActive()) {
-        return fallbackDb.products.findUnique(id);
-      }
-      const mongo = await tryMongo();
-      if (!mongo) return fallbackDb.products.findUnique(id);
       try {
-        const p = await MongooseProduct.findById(id);
-        if (!p) return undefined;
-        return {
-          id: p._id.toString(),
+        const products = await prisma.product.findMany({ orderBy: { createdAt: 'desc' } });
+        return products.map(p => ({
+          id: p.id,
           name: p.name,
           description: p.description,
           price: p.price,
           stock: p.stock,
-          minStock: (p as any).minStock ?? 5,
+          minStock: p.minStock ?? 5,
           category: p.category,
-          sku: (p as any).sku || '',
-          isActive: (p as any).isActive ?? true,
-          imageUrl: p.imageUrl,
-          qrCode: p.qrCode,
-          costPrice: (p as any).costPrice ?? 0,
-          location: (p as any).location || { warehouse: 'Almacen Principal', aisle: '', shelf: '' },
+          sku: p.sku || '',
+          isActive: p.isActive,
+          imageUrl: p.imageUrl || '',
+          qrCode: p.qrCode || '',
+          costPrice: p.costPrice ?? 0,
+          location: (p.location as any) || { warehouse: 'Almacen Principal', aisle: '', shelf: '' },
+          createdAt: p.createdAt.toISOString()
+        }));
+      } catch (error) {
+        console.error('Prisma products.findMany failed:', error);
+        return fallbackDb.products.findMany();
+      }
+    },
+    findUnique: async (id: string) => {
+      if (isFallbackActive() || !prisma) {
+        return fallbackDb.products.findUnique(id);
+      }
+      try {
+        const p = await prisma.product.findUnique({ where: { id } });
+        if (!p) return undefined;
+        return {
+          id: p.id,
+          name: p.name,
+          description: p.description,
+          price: p.price,
+          stock: p.stock,
+          minStock: p.minStock ?? 5,
+          category: p.category,
+          sku: p.sku || '',
+          isActive: p.isActive,
+          imageUrl: p.imageUrl || '',
+          qrCode: p.qrCode || '',
+          costPrice: p.costPrice ?? 0,
+          location: (p.location as any) || { warehouse: 'Almacen Principal', aisle: '', shelf: '' },
           createdAt: p.createdAt.toISOString()
         };
       } catch {
@@ -245,77 +246,94 @@ export const dbClient = {
       }
     },
     findByQrCode: async (qrCode: string) => {
-      if (isFallbackActive()) {
+      if (isFallbackActive() || !prisma) {
         return fallbackDb.products.findByQrCode(qrCode);
       }
-      const mongo = await tryMongo();
-      if (!mongo) return fallbackDb.products.findByQrCode(qrCode);
-      const p = await MongooseProduct.findOne({ qrCode });
-      if (!p) return undefined;
-      return {
-        id: p._id.toString(),
-        name: p.name,
-        description: p.description,
-        price: p.price,
-        stock: p.stock,
-        minStock: (p as any).minStock ?? 5,
-        category: p.category,
-        sku: (p as any).sku || '',
-        isActive: (p as any).isActive ?? true,
-        imageUrl: p.imageUrl,
-        qrCode: p.qrCode,
-        costPrice: (p as any).costPrice ?? 0,
-        location: (p as any).location || { warehouse: 'Almacen Principal', aisle: '', shelf: '' },
-        createdAt: p.createdAt.toISOString()
-      };
-    },
-    create: async (data: any) => {
-      if (isFallbackActive()) {
-        return fallbackDb.products.create(data);
-      }
-      const mongo = await tryMongo();
-      if (!mongo) return fallbackDb.products.create(data);
-      const p = await MongooseProduct.create(data);
-      return {
-        id: p._id.toString(),
-        name: p.name,
-        description: p.description,
-        price: p.price,
-        stock: p.stock,
-        minStock: (p as any).minStock ?? 5,
-        category: p.category,
-        sku: (p as any).sku || '',
-        isActive: (p as any).isActive ?? true,
-        imageUrl: p.imageUrl,
-        qrCode: p.qrCode,
-        costPrice: (p as any).costPrice ?? 0,
-        location: (p as any).location || { warehouse: 'Almacen Principal', aisle: '', shelf: '' },
-        createdAt: p.createdAt.toISOString()
-      };
-    },
-    update: async (id: string, data: any) => {
-      if (isFallbackActive()) {
-        return fallbackDb.products.update(id, data);
-      }
-      const mongo = await tryMongo();
-      if (!mongo) return fallbackDb.products.update(id, data);
       try {
-        const p = await MongooseProduct.findByIdAndUpdate(id, data, { new: true });
+        const p = await prisma.product.findFirst({ where: { qrCode } });
         if (!p) return undefined;
         return {
-          id: p._id.toString(),
+          id: p.id,
           name: p.name,
           description: p.description,
           price: p.price,
           stock: p.stock,
-          minStock: (p as any).minStock ?? 5,
+          minStock: p.minStock ?? 5,
           category: p.category,
-          sku: (p as any).sku || '',
-          isActive: (p as any).isActive ?? true,
-          imageUrl: p.imageUrl,
-          qrCode: p.qrCode,
-          costPrice: (p as any).costPrice ?? 0,
-          location: (p as any).location || { warehouse: 'Almacen Principal', aisle: '', shelf: '' },
+          sku: p.sku || '',
+          isActive: p.isActive,
+          imageUrl: p.imageUrl || '',
+          qrCode: p.qrCode || '',
+          costPrice: p.costPrice ?? 0,
+          location: (p.location as any) || { warehouse: 'Almacen Principal', aisle: '', shelf: '' },
+          createdAt: p.createdAt.toISOString()
+        };
+      } catch {
+        return undefined;
+      }
+    },
+    create: async (data: any) => {
+      if (isFallbackActive() || !prisma) {
+        return fallbackDb.products.create(data);
+      }
+      try {
+        const p = await prisma.product.create({
+          data: {
+            name: data.name,
+            description: data.description,
+            price: data.price,
+            stock: data.stock,
+            minStock: data.minStock ?? 5,
+            category: data.category,
+            sku: data.sku || null,
+            imageUrl: data.imageUrl || '',
+            qrCode: data.qrCode || '',
+            isActive: data.isActive ?? true,
+            costPrice: data.costPrice ?? 0,
+            location: data.location || { warehouse: 'Almacen Principal', aisle: '', shelf: '' },
+          }
+        });
+        return {
+          id: p.id,
+          name: p.name,
+          description: p.description,
+          price: p.price,
+          stock: p.stock,
+          minStock: p.minStock ?? 5,
+          category: p.category,
+          sku: p.sku || '',
+          isActive: p.isActive,
+          imageUrl: p.imageUrl || '',
+          qrCode: p.qrCode || '',
+          costPrice: p.costPrice ?? 0,
+          location: (p.location as any) || { warehouse: 'Almacen Principal', aisle: '', shelf: '' },
+          createdAt: p.createdAt.toISOString()
+        };
+      } catch (error) {
+        console.error('Prisma products.create failed:', error);
+        return fallbackDb.products.create(data);
+      }
+    },
+    update: async (id: string, data: any) => {
+      if (isFallbackActive() || !prisma) {
+        return fallbackDb.products.update(id, data);
+      }
+      try {
+        const p = await prisma.product.update({ where: { id }, data });
+        return {
+          id: p.id,
+          name: p.name,
+          description: p.description,
+          price: p.price,
+          stock: p.stock,
+          minStock: p.minStock ?? 5,
+          category: p.category,
+          sku: p.sku || '',
+          isActive: p.isActive,
+          imageUrl: p.imageUrl || '',
+          qrCode: p.qrCode || '',
+          costPrice: p.costPrice ?? 0,
+          location: (p.location as any) || { warehouse: 'Almacen Principal', aisle: '', shelf: '' },
           createdAt: p.createdAt.toISOString()
         };
       } catch {
@@ -323,14 +341,12 @@ export const dbClient = {
       }
     },
     delete: async (id: string) => {
-      if (isFallbackActive()) {
+      if (isFallbackActive() || !prisma) {
         return fallbackDb.products.delete(id);
       }
-      const mongo = await tryMongo();
-      if (!mongo) return fallbackDb.products.delete(id);
       try {
-        const res = await MongooseProduct.findByIdAndDelete(id);
-        return !!res;
+        await prisma.product.delete({ where: { id } });
+        return true;
       } catch {
         return false;
       }

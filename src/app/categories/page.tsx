@@ -191,11 +191,11 @@ export default function CategoriesPage() {
       </div>
 
       {loading ? (
-        <div style={{ padding: '60px', textAlign: 'center' }}>
+        <div style={{ padding: '40px 16px', textAlign: 'center' }}>
           <div style={{ display: 'inline-block', width: '40px', height: '40px', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
         </div>
       ) : sorted.length === 0 ? (
-        <div style={{ padding: '60px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+        <div style={{ padding: '40px 16px', textAlign: 'center', color: 'var(--text-secondary)' }}>
           <FolderOpen size={48} style={{ margin: '0 auto 16px auto', display: 'block', color: 'var(--text-light)' }} />
           <p>No se encontraron categorias.</p>
         </div>
