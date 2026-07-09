@@ -15,9 +15,11 @@ export async function checkProductStock(product: {
     });
 
     const settings = (admin as any)?.notificationSettings;
-    if (!settings || !settings.lowStockAlerts || !settings.sendToTelegram) return;
+    const lowStockAlerts = settings ? settings.lowStockAlerts !== false : true;
+    const sendToTelegram = settings ? settings.sendToTelegram !== false : true;
+    if (!lowStockAlerts || !sendToTelegram) return;
 
-    const threshold = settings.lowStockThreshold || 5;
+    const threshold = settings?.lowStockThreshold || 5;
 
     if (product.stock <= threshold) {
       await sendLowStockAlert({
