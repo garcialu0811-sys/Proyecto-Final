@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { dbClient } from '@/lib/db/dbClient';
+import { checkProductStock } from '@/lib/stock/monitor';
 
 export async function GET(
   request: Request,
@@ -66,6 +67,17 @@ export async function PUT(
     }
 
     const updated = await dbClient.products.update(id, updateData);
+
+    if (updated) {
+      checkProductStock({
+        id: updated.id,
+        name: updated.name,
+        stock: updated.stock,
+        category: updated.category,
+        price: updated.price,
+      }).catch(() => {});
+    }
+
     return NextResponse.json(updated);
   } catch (error) {
     console.error('Error al actualizar producto:', error);

@@ -18,7 +18,8 @@ import {
   MessageSquare,
   Settings,
   LogOut,
-  QrCode
+  QrCode,
+  Bell,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -138,6 +139,12 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
     {
       title: 'CONFIGURACIÓN',
       items: [
+        {
+          name: 'Notificaciones',
+          path: '/settings/notifications',
+          icon: Bell,
+          roles: ['ADMIN']
+        },
         {
           name: 'Ajustes',
           path: '/settings',

@@ -10,18 +10,33 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(uuid())
-  email     String    @unique
-  password  String
-  name      String
-  role      String    @default("VENDEDOR") // ADMIN, VENDEDOR, CLIENTE
-  phone     String?
-  isActive  Boolean   @default(true)
-  lastLogin DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  sales     Sale[]
-  orders    Order[]
+  id              String    @id @default(uuid())
+  email           String    @unique
+  password        String
+  name            String
+  role            String    @default("VENDEDOR") // ADMIN, VENDEDOR, CLIENTE
+  phone           String?
+  isActive        Boolean   @default(true)
+  lastLogin       DateTime?
+  telegramChatId  String?   @unique
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  sales           Sale[]
+  orders          Order[]
+  notificationSettings NotificationSettings?
+}
+
+model NotificationSettings {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lowStockAlerts    Boolean  @default(true)
+  lowStockThreshold Int      @default(5)
+  newOrderAlerts    Boolean  @default(true)
+  sendToTelegram    Boolean  @default(true)
+  sendToEmail       Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model Role {
