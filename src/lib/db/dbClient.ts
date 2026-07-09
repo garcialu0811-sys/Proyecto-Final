@@ -19,39 +19,175 @@ export const dbClient = {
       if (isFallbackActive() || !prisma) {
         return fallbackDb.users.findUnique(email);
       }
-      return prisma.user.findUnique({ where: { email } });
+      try {
+        return await prisma.user.findUnique({ where: { email } });
+      } catch {
+        return fallbackDb.users.findUnique(email);
+      }
     },
     findById: async (id: string) => {
       if (isFallbackActive() || !prisma) {
         return fallbackDb.users.findById(id);
       }
-      return prisma.user.findUnique({ where: { id } });
+      try {
+        return await prisma.user.findUnique({ where: { id } });
+      } catch {
+        return fallbackDb.users.findById(id);
+      }
     },
     findMany: async () => {
       if (isFallbackActive() || !prisma) {
         return fallbackDb.users.findMany();
       }
-      return prisma.user.findMany({ orderBy: { createdAt: 'desc' } });
+      try {
+        return await prisma.user.findMany({ orderBy: { createdAt: 'desc' } });
+      } catch {
+        return fallbackDb.users.findMany();
+      }
     },
     create: async (data: any) => {
       if (isFallbackActive() || !prisma) {
         return fallbackDb.users.create(data);
       }
-      return prisma.user.create({ data });
+      try {
+        return await prisma.user.create({ data });
+      } catch (error) {
+        console.error('Prisma user create failed, using fallback:', error);
+        return fallbackDb.users.create(data);
+      }
     },
     update: async (id: string, data: any) => {
       if (isFallbackActive() || !prisma) {
         return fallbackDb.users.update(id, data);
       }
-      return prisma.user.update({ where: { id }, data });
+      try {
+        return await prisma.user.update({ where: { id }, data });
+      } catch {
+        return fallbackDb.users.update(id, data);
+      }
     },
     delete: async (id: string) => {
       if (isFallbackActive() || !prisma) {
         return fallbackDb.users.delete(id);
       }
-      const res = await prisma.user.delete({ where: { id } });
-      return !!res;
+      try {
+        const res = await prisma.user.delete({ where: { id } });
+        return !!res;
+      } catch {
+        return fallbackDb.users.delete(id);
+      }
     }
+  },
+
+  roles: {
+    findMany: async (includePermissions = false) => {
+      if (isFallbackActive() || !prisma) return [];
+      try {
+        return await prisma.role.findMany({
+          include: { permissions: includePermissions },
+          orderBy: { createdAt: 'asc' },
+        });
+      } catch {
+        return [];
+      }
+    },
+    findUnique: async (id: string) => {
+      if (isFallbackActive() || !prisma) return null;
+      try {
+        return await prisma.role.findUnique({
+          where: { id },
+          include: { permissions: true },
+        });
+      } catch {
+        return null;
+      }
+    },
+    findByName: async (name: string) => {
+      if (isFallbackActive() || !prisma) return null;
+      try {
+        return await prisma.role.findUnique({
+          where: { name },
+          include: { permissions: true },
+        });
+      } catch {
+        return null;
+      }
+    },
+    create: async (data: any) => {
+      if (isFallbackActive() || !prisma) return null;
+      try {
+        return await prisma.role.create({
+          data: {
+            name: data.name,
+            displayName: data.displayName || data.name,
+            description: data.description || '',
+            icon: data.icon || null,
+            color: data.color || null,
+            isActive: data.isActive !== false,
+            isSystem: data.isSystem || false,
+            permissions: data.permissions ? {
+              create: data.permissions.map((p: any) => ({
+                module: p.module,
+                action: p.action,
+                isEnabled: p.isEnabled || false,
+              })),
+            } : undefined,
+          },
+          include: { permissions: true },
+        });
+      } catch {
+        return null;
+      }
+    },
+    update: async (id: string, data: any) => {
+      if (isFallbackActive() || !prisma) return null;
+      try {
+        return await prisma.role.update({
+          where: { id },
+          data: {
+            ...(data.name !== undefined && { name: data.name }),
+            ...(data.displayName !== undefined && { displayName: data.displayName }),
+            ...(data.description !== undefined && { description: data.description }),
+            ...(data.icon !== undefined && { icon: data.icon }),
+            ...(data.color !== undefined && { color: data.color }),
+            ...(data.isActive !== undefined && { isActive: data.isActive }),
+          },
+          include: { permissions: true },
+        });
+      } catch {
+        return null;
+      }
+    },
+    updatePermissions: async (roleId: string, permissions: { module: string; action: string; isEnabled: boolean }[]) => {
+      if (isFallbackActive() || !prisma) return null;
+      try {
+        await prisma.permission.deleteMany({ where: { roleId } });
+        return await prisma.role.update({
+          where: { id: roleId },
+          data: {
+            permissions: {
+              create: permissions.map(p => ({
+                module: p.module,
+                action: p.action,
+                isEnabled: p.isEnabled,
+              })),
+            },
+          },
+          include: { permissions: true },
+        });
+      } catch {
+        return null;
+      }
+    },
+    delete: async (id: string) => {
+      if (isFallbackActive() || !prisma) return false;
+      try {
+        await prisma.role.delete({ where: { id } });
+        return true;
+      } catch {
+        return false;
+      }
+    },
   },
 
   products: {
@@ -206,13 +342,22 @@ export const dbClient = {
       if (isFallbackActive() || !prisma) {
         return fallbackDb.sales.findMany();
       }
-      return prisma.sale.findMany({ orderBy: { createdAt: 'desc' } });
+      try {
+        return await prisma.sale.findMany({ orderBy: { createdAt: 'desc' } });
+      } catch {
+        return fallbackDb.sales.findMany();
+      }
     },
     create: async (data: any) => {
       if (isFallbackActive() || !prisma) {
         return fallbackDb.sales.create(data);
       }
-      return prisma.sale.create({ data });
+      try {
+        return await prisma.sale.create({ data });
+      } catch (error) {
+        console.error('Prisma sale create failed, using fallback:', error);
+        return fallbackDb.sales.create(data);
+      }
     }
   },
 
@@ -221,32 +366,53 @@ export const dbClient = {
       if (isFallbackActive() || !prisma) {
         return fallbackDb.orders.findMany();
       }
-      return prisma.order.findMany({ orderBy: { createdAt: 'desc' } });
+      try {
+        return await prisma.order.findMany({ orderBy: { createdAt: 'desc' } });
+      } catch {
+        return fallbackDb.orders.findMany();
+      }
     },
     findUnique: async (id: string) => {
       if (isFallbackActive() || !prisma) {
         return fallbackDb.orders.findUnique(id);
       }
-      return prisma.order.findUnique({ where: { id } });
+      try {
+        return await prisma.order.findUnique({ where: { id } });
+      } catch {
+        return fallbackDb.orders.findUnique(id);
+      }
     },
     create: async (data: any) => {
       if (isFallbackActive() || !prisma) {
         return fallbackDb.orders.create(data);
       }
-      return prisma.order.create({ data });
+      try {
+        return await prisma.order.create({ data });
+      } catch (error) {
+        console.error('Prisma order create failed, using fallback:', error);
+        return fallbackDb.orders.create(data);
+      }
     },
     update: async (id: string, data: any) => {
       if (isFallbackActive() || !prisma) {
         return fallbackDb.orders.update(id, data);
       }
-      return prisma.order.update({ where: { id }, data });
+      try {
+        return await prisma.order.update({ where: { id }, data });
+      } catch {
+        return fallbackDb.orders.update(id, data);
+      }
     },
     delete: async (id: string) => {
       if (isFallbackActive() || !prisma) {
         return fallbackDb.orders.delete(id);
       }
-      const res = await prisma.order.delete({ where: { id } });
-      return !!res;
+      try {
+        const res = await prisma.order.delete({ where: { id } });
+        return !!res;
+      } catch {
+        return fallbackDb.orders.delete(id);
+      }
     }
   },
 

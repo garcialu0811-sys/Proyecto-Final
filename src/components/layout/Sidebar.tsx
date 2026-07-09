@@ -140,9 +140,15 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
       items: [
         {
           name: 'Ajustes',
+          path: '/settings',
+          icon: Settings,
+          roles: ['ADMIN', 'VENDEDOR']
+        },
+        {
+          name: 'Ajustes',
           path: '/profile',
           icon: Settings,
-          roles: ['ADMIN', 'VENDEDOR', 'CLIENTE']
+          roles: ['CLIENTE']
         }
       ]
     }

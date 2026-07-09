@@ -8,7 +8,6 @@ import {
   UserPlus, MapPin, Phone, User, Calendar, Layers, ArrowRight, Camera, X, Save,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
-import confetti from 'canvas-confetti';
 
 interface Product {
   id: string;
@@ -59,6 +58,13 @@ export default function SalesPage() {
   const [formLoading, setFormLoading] = useState(false);
   const [scannedId, setScannedId] = useState('');
 
+  const fireConfetti = async () => {
+    try {
+      const mod = await import('canvas-confetti');
+      mod.default({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+    } catch {}
+  };
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
@@ -66,7 +72,10 @@ export default function SalesPage() {
         fetch('/api/orders'),
         fetch('/api/products?limit=1000'),
       ]);
-      if (ordersRes.ok) setOrders(await ordersRes.json());
+      if (ordersRes.ok) {
+        const ordersData = await ordersRes.json();
+        setOrders(ordersData.orders || []);
+      }
       if (productsRes.ok) {
         const data = await productsRes.json();
         setProducts(data.products || []);
@@ -111,7 +120,7 @@ export default function SalesPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        fireConfetti();
         showToast('Venta registrada con exito.', 'success');
         setShowRegisterForm(false);
         setSelectedProductId(''); setQty('1'); setClientName(''); setClientPhone(''); setClientAddress(''); setScannedId('');

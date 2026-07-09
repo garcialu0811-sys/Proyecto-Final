@@ -6,10 +6,9 @@ import { useRouter } from 'next/navigation';
 import {
   MessageSquare, Send, Trash2, EyeOff, Eye, PlusCircle, MessageCircle,
   Clock, User, ThumbsUp, Edit3, X, ChevronDown, ChevronRight,
-  Search, Filter, Tag, Menu, ShoppingCart, ShoppingBag,
+  Search, Filter, Tag,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
-import ClientSidebar from '@/components/store/ClientSidebar';
 
 interface ForumPost {
   id: string;
@@ -63,7 +62,6 @@ export default function ForumPage() {
   const [editingReplyId, setEditingReplyId] = useState<string | null>(null);
   const [editReplyContent, setEditReplyContent] = useState('');
   const [editLoading, setEditLoading] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const fetchForumData = useCallback(async () => {
     setLoading(true);
@@ -247,35 +245,8 @@ export default function ForumPage() {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-primary)' }}>
-      <ClientSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-      <div style={{ flex: 1, marginLeft: '260px', display: 'flex', flexDirection: 'column', minWidth: 0 }} className="main-area">
-        <header style={{ height: '64px', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', padding: '0 24px', gap: '20px', position: 'sticky', top: 0, zIndex: 100 }}>
-          <button onClick={() => setSidebarOpen(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', display: 'none' }} className="hamburger-btn">
-            <Menu size={22} />
-          </button>
-          <div style={{ flex: 1 }} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
-            <button onClick={() => router.push('/store')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', fontWeight: 500, padding: '8px 12px', borderRadius: '8px' }}>
-              <ShoppingBag size={18} /> Tienda
-            </button>
-            {session && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ width: '34px', height: '34px', borderRadius: '50%', backgroundColor: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ color: '#fff', fontWeight: 600, fontSize: '13px' }}>{currentUser?.name?.charAt(0) || 'U'}</span>
-                </div>
-                <div style={{ lineHeight: 1.2 }}>
-                  <p style={{ fontSize: '13px', fontWeight: 600 }}>{currentUser?.name}</p>
-                  <p style={{ fontSize: '10px', color: 'var(--text-light)' }}>Cliente</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </header>
-
-        <div style={{ flex: 1, padding: '24px', maxWidth: '1000px', width: '100%', margin: '0 auto' }}>
-    <div>
+    <div style={{ backgroundColor: 'var(--bg-primary)' }}>
+      <div style={{ padding: '24px', maxWidth: '1000px', width: '100%', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 style={{ fontSize: '28px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -432,15 +403,9 @@ export default function ForumPage() {
         </>
       )}
     </div>
-        </div>
-      </div>
 
       <style jsx global>{`
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @media (max-width: 1024px) {
-          .main-area { margin-left: 0 !important; }
-          .hamburger-btn { display: flex !important; }
-        }
       `}</style>
     </div>
   );

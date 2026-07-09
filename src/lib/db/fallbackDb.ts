@@ -10,6 +10,9 @@ export interface User {
   password?: string; // stored as plain or hashed, for fallback plain is easy for verification
   name: string;
   role: 'ADMIN' | 'VENDEDOR' | 'CLIENTE';
+  phone?: string;
+  isActive?: boolean;
+  lastLogin?: string;
   createdAt: string;
 }
 
@@ -454,7 +457,11 @@ export const fallbackDb = {
   },
 
   save: (data: LocalSchema) => {
-    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
+    try {
+      fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
+    } catch {
+      // On Vercel/serverless, filesystem is read-only - skip saving
+    }
   },
 
   // Users

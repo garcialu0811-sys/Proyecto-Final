@@ -30,6 +30,13 @@ export const authOptions: AuthOptions = {
           throw new Error('Contraseña incorrecta.');
         }
 
+        // Update lastLogin on successful login
+        try {
+          await dbClient.users.update(user.id, { lastLogin: new Date().toISOString(), name: user.name });
+        } catch {
+          // Ignore if update fails
+        }
+
         return {
           id: user.id,
           name: user.name,
@@ -66,6 +73,12 @@ export const authOptions: AuthOptions = {
         } else {
           (user as any).id = existingUser.id;
           (user as any).role = existingUser.role;
+          // Track lastLogin on Google sign-in
+          try {
+            await dbClient.users.update(existingUser.id, { lastLogin: new Date().toISOString(), name: existingUser.name });
+          } catch {
+            // Ignore if update fails
+          }
         }
       }
       return true;

@@ -38,7 +38,8 @@ export default function DeliveriesPage() {
       const res = await fetch('/api/orders');
       if (res.ok) {
         const data = await res.json();
-        const filtered = data.filter((o: Order) => o.status === 'EN_RUTA' || o.status === 'ENTREGADO');
+        const allOrders = data.orders || [];
+        const filtered = allOrders.filter((o: Order) => o.status === 'EN_RUTA' || o.status === 'ENTREGADO');
         setDeliveries(filtered);
       }
     } catch {
