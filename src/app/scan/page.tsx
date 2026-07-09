@@ -42,6 +42,7 @@ export default function ScanPage() {
   const [manualCode, setManualCode] = useState('');
   const [loadingSearch, setLoadingSearch] = useState(false);
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+  const lastScanRef = useRef<{ code: string; time: number }>({ code: '', time: 0 });
 
   const [editPrice, setEditPrice] = useState('');
   const [editStock, setEditStock] = useState('');
@@ -112,6 +113,10 @@ export default function ScanPage() {
   };
 
   const handleScanSuccess = async (code: string) => {
+    const now = Date.now();
+    if (code === lastScanRef.current.code && now - lastScanRef.current.time < 3000) return;
+    lastScanRef.current = { code, time: now };
+
     setLoadingSearch(true);
     try {
       const res = await fetch(`/api/products/qr/${code}`);
