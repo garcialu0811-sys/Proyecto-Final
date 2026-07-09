@@ -66,10 +66,7 @@ export default function RegisterPage() {
       <div className="auth-card" style={{ maxWidth: '480px' }}>
         <div className="auth-logo" style={{ flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
           <img src="/logo.png" alt="Variedades Coatán" style={{ width: '64px', height: '64px', borderRadius: '14px', objectFit: 'contain' }} />
-          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-            <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)' }}>Variedades</span>
-            <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--accent)' }}>Coatán</span>
-          </div>
+          <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--accent)', whiteSpace: 'nowrap' }}>Variedades Coatán</span>
         </div>
 
         <h1 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '8px', textAlign: 'center' }}>
