@@ -28,7 +28,7 @@ export async function GET() {
     // Filtrar pedidos por rol
     const orders = user.role === 'ADMIN'
       ? allOrders
-      : allOrders.filter((o: any) => o.driverId === user.id || o.status === 'PENDIENTE');
+      : allOrders.filter((o: any) => o.driverId === user.id);
 
     // Helper to safely get date string from potentially Date or string
     const toDateString = (val: any): string => {
