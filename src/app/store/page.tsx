@@ -237,34 +237,7 @@ function StorePageInner() {
                 </div>
                 <div style={{ flex: '0 0 280px', display: 'flex', justifyContent: 'center', zIndex: 1 }} className="hero-qr-wrap">
                   <div style={{ width: '200px', height: '200px', backgroundColor: '#fff', borderRadius: '16px', padding: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <svg viewBox="0 0 120 120" width="160" height="160">
-                      <rect x="10" y="10" width="30" height="30" rx="4" fill="#0891b2"/>
-                      <rect x="15" y="15" width="20" height="20" rx="2" fill="#fff"/>
-                      <rect x="20" y="20" width="10" height="10" rx="1" fill="#0891b2"/>
-                      <rect x="80" y="10" width="30" height="30" rx="4" fill="#0891b2"/>
-                      <rect x="85" y="15" width="20" height="20" rx="2" fill="#fff"/>
-                      <rect x="90" y="20" width="10" height="10" rx="1" fill="#0891b2"/>
-                      <rect x="10" y="80" width="30" height="30" rx="4" fill="#0891b2"/>
-                      <rect x="15" y="85" width="20" height="20" rx="2" fill="#fff"/>
-                      <rect x="20" y="90" width="10" height="10" rx="1" fill="#0891b2"/>
-                      <rect x="50" y="10" width="8" height="8" rx="1" fill="#0891b2"/>
-                      <rect x="62" y="10" width="8" height="8" rx="1" fill="#0891b2"/>
-                      <rect x="50" y="22" width="8" height="8" rx="1" fill="#0891b2"/>
-                      <rect x="50" y="50" width="8" height="8" rx="1" fill="#0891b2"/>
-                      <rect x="62" y="50" width="8" height="8" rx="1" fill="#0891b2"/>
-                      <rect x="74" y="50" width="8" height="8" rx="1" fill="#0891b2"/>
-                      <rect x="86" y="50" width="8" height="8" rx="1" fill="#0891b2"/>
-                      <rect x="50" y="62" width="8" height="8" rx="1" fill="#0891b2"/>
-                      <rect x="62" y="62" width="8" height="8" rx="1" fill="#0891b2"/>
-                      <rect x="50" y="74" width="8" height="8" rx="1" fill="#0891b2"/>
-                      <rect x="62" y="86" width="8" height="8" rx="1" fill="#0891b2"/>
-                      <rect x="74" y="74" width="8" height="8" rx="1" fill="#0891b2"/>
-                      <rect x="86" y="74" width="8" height="8" rx="1" fill="#0891b2"/>
-                      <rect x="98" y="62" width="8" height="8" rx="1" fill="#0891b2"/>
-                      <rect x="86" y="98" width="8" height="8" rx="1" fill="#0891b2"/>
-                      <rect x="98" y="86" width="8" height="8" rx="1" fill="#0891b2"/>
-                      <rect x="98" y="98" width="8" height="8" rx="1" fill="#0891b2"/>
-                    </svg>
+                    <img src="/logo.png" alt="Variedades Coatán" style={{ width: '168px', height: '168px', objectFit: 'contain' }} />
                   </div>
                 </div>
                 <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '200px', height: '200px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.05)' }} />
