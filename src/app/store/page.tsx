@@ -8,6 +8,8 @@ import {
   Package, MessageSquare, Truck, Tag, CheckCircle,
   ShoppingBag, Menu, Heart, ChevronDown, LogOut, Settings,
   Home, FolderOpen, Coffee, Watch, Laptop, Pen, Trophy, Gift, PawPrint,
+  ShieldCheck, BadgeCheck, Headphones, CreditCard, Star, ArrowRight,
+  Box, Armchair, Dumbbell, Palette, Baby,
 } from 'lucide-react';
 import { useCartStore } from '@/lib/store/cartStore';
 import { useFavoritesStore } from '@/lib/store/favoritesStore';
@@ -91,7 +93,7 @@ function StorePageInner() {
     finally { setLoading(false); }
   }, [page, search, selectedCategory, sortBy, availability, maxPrice]);
 
-  useEffect(() => { if (viewParam === 'products') fetchProducts(); }, [fetchProducts, viewParam]);
+  useEffect(() => { if (viewParam === 'products' || viewParam === 'inicio') fetchProducts(); }, [fetchProducts, viewParam]);
 
   useEffect(() => {
     const timer = setTimeout(() => { setSearch(searchInput); setPage(1); }, 300);
@@ -217,65 +219,170 @@ function StorePageInner() {
           {/* INICIO VIEW */}
           {viewParam === 'inicio' && (
             <div>
-              <div style={{ background: 'linear-gradient(135deg, var(--accent), #0891b2)', borderRadius: '16px', padding: '48px', marginBottom: '32px', color: '#fff' }}>
-                <h1 style={{ fontSize: '32px', fontWeight: 700, marginBottom: '12px' }}>Bienvenido a QRShop</h1>
-                <p style={{ fontSize: '16px', opacity: 0.9, marginBottom: '24px', maxWidth: '500px' }}>Descubre productos de calidad en diferentes categorias. Compra facil, rapido y seguro.</p>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <button onClick={() => navigateTo('/store?view=products')} style={{ padding: '12px 24px', borderRadius: '10px', border: 'none', backgroundColor: '#fff', color: 'var(--accent)', fontWeight: 700, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <ShoppingBag size={18} /> Ver productos
+              {/* HERO */}
+              <div style={{ background: 'linear-gradient(135deg, #0891b2 0%, #0e7490 50%, #155e75 100%)', borderRadius: '16px', padding: '48px', marginBottom: '32px', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '32px', flexWrap: 'wrap', position: 'relative', overflow: 'hidden' }} className="home-hero">
+                <div style={{ flex: '1 1 400px', zIndex: 1 }}>
+                  <h1 style={{ fontSize: '32px', fontWeight: 800, marginBottom: '12px', lineHeight: 1.2 }}>Bienvenido a QRShop</h1>
+                  <p style={{ fontSize: '15px', opacity: 0.9, marginBottom: '24px', maxWidth: '480px', lineHeight: 1.6 }}>Descubre productos de calidad en diferentes categorias. Compra facil, rapido y seguro.</p>
+                  <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                    <button onClick={() => navigateTo('/store?view=products')} style={{ padding: '12px 24px', borderRadius: '10px', border: 'none', backgroundColor: '#fff', color: '#0891b2', fontWeight: 700, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'transform 0.2s' }}
+                      onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.03)'} onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
+                      <ShoppingBag size={18} /> Ver productos
+                    </button>
+                    <button onClick={() => { const el = document.getElementById('home-categories'); el?.scrollIntoView({ behavior: 'smooth' }); }} style={{ padding: '12px 24px', borderRadius: '10px', border: '2px solid rgba(255,255,255,0.4)', backgroundColor: 'transparent', color: '#fff', fontWeight: 600, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s' }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = '#fff'; e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; }} onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)'; e.currentTarget.style.backgroundColor = 'transparent'; }}>
+                      <FolderOpen size={18} /> Ver categorias
+                    </button>
+                  </div>
+                </div>
+                <div style={{ flex: '0 0 280px', display: 'flex', justifyContent: 'center', zIndex: 1 }} className="hero-qr-wrap">
+                  <div style={{ width: '200px', height: '200px', backgroundColor: '#fff', borderRadius: '16px', padding: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg viewBox="0 0 120 120" width="160" height="160">
+                      <rect x="10" y="10" width="30" height="30" rx="4" fill="#0891b2"/>
+                      <rect x="15" y="15" width="20" height="20" rx="2" fill="#fff"/>
+                      <rect x="20" y="20" width="10" height="10" rx="1" fill="#0891b2"/>
+                      <rect x="80" y="10" width="30" height="30" rx="4" fill="#0891b2"/>
+                      <rect x="85" y="15" width="20" height="20" rx="2" fill="#fff"/>
+                      <rect x="90" y="20" width="10" height="10" rx="1" fill="#0891b2"/>
+                      <rect x="10" y="80" width="30" height="30" rx="4" fill="#0891b2"/>
+                      <rect x="15" y="85" width="20" height="20" rx="2" fill="#fff"/>
+                      <rect x="20" y="90" width="10" height="10" rx="1" fill="#0891b2"/>
+                      <rect x="50" y="10" width="8" height="8" rx="1" fill="#0891b2"/>
+                      <rect x="62" y="10" width="8" height="8" rx="1" fill="#0891b2"/>
+                      <rect x="50" y="22" width="8" height="8" rx="1" fill="#0891b2"/>
+                      <rect x="50" y="50" width="8" height="8" rx="1" fill="#0891b2"/>
+                      <rect x="62" y="50" width="8" height="8" rx="1" fill="#0891b2"/>
+                      <rect x="74" y="50" width="8" height="8" rx="1" fill="#0891b2"/>
+                      <rect x="86" y="50" width="8" height="8" rx="1" fill="#0891b2"/>
+                      <rect x="50" y="62" width="8" height="8" rx="1" fill="#0891b2"/>
+                      <rect x="62" y="62" width="8" height="8" rx="1" fill="#0891b2"/>
+                      <rect x="50" y="74" width="8" height="8" rx="1" fill="#0891b2"/>
+                      <rect x="62" y="86" width="8" height="8" rx="1" fill="#0891b2"/>
+                      <rect x="74" y="74" width="8" height="8" rx="1" fill="#0891b2"/>
+                      <rect x="86" y="74" width="8" height="8" rx="1" fill="#0891b2"/>
+                      <rect x="98" y="62" width="8" height="8" rx="1" fill="#0891b2"/>
+                      <rect x="86" y="98" width="8" height="8" rx="1" fill="#0891b2"/>
+                      <rect x="98" y="86" width="8" height="8" rx="1" fill="#0891b2"/>
+                      <rect x="98" y="98" width="8" height="8" rx="1" fill="#0891b2"/>
+                    </svg>
+                  </div>
+                </div>
+                <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '200px', height: '200px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.05)' }} />
+                <div style={{ position: 'absolute', bottom: '-60px', right: '100px', width: '160px', height: '160px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.03)' }} />
+              </div>
+
+              {/* CATEGORIES */}
+              <div id="home-categories" style={{ marginBottom: '32px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                  <h2 style={{ fontSize: '20px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <FolderOpen size={22} style={{ color: 'var(--accent)' }} /> Categorias destacadas
+                  </h2>
+                  <button onClick={() => navigateTo('/categories')} style={{ background: 'none', border: 'none', color: 'var(--accent)', fontWeight: 600, fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    Ver todas <ArrowRight size={14} />
                   </button>
-                  <button onClick={() => navigateTo('/categories')} style={{ padding: '12px 24px', borderRadius: '10px', border: '2px solid rgba(255,255,255,0.4)', backgroundColor: 'transparent', color: '#fff', fontWeight: 600, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <FolderOpen size={18} /> Ver categorias
-                  </button>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '16px' }} className="home-categories-grid">
+                  {categories.slice(0, 6).map(cat => {
+                    const catIcons: Record<string, any> = { 'Electronicos': Laptop, 'Accesorios': Watch, 'Hogar': Armchair, 'Deportes': Dumbbell, 'Belleza': Palette, 'Juguetes': Baby, 'Bebidas': Coffee, 'Papeleria': Pen, 'Otros': Box };
+                    const Icon = catIcons[cat.name] || Tag;
+                    const catColors: Record<string, string> = { 'Electronicos': '#3B82F6', 'Accesorios': '#F59E0B', 'Hogar': '#EF4444', 'Deportes': '#10B981', 'Belleza': '#EC4899', 'Juguetes': '#8B5CF6' };
+                    const color = catColors[cat.name] || 'var(--accent)';
+                    return (
+                      <div key={cat.name} onClick={() => navigateTo(`/store?view=products&category=${encodeURIComponent(cat.name)}`)}
+                        style={{ padding: '20px 12px', borderRadius: '14px', border: '1px solid var(--border)', backgroundColor: 'var(--bg-secondary)', cursor: 'pointer', transition: 'all 0.2s', textAlign: 'center' }}
+                        onMouseEnter={e => { e.currentTarget.style.borderColor = color; e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = `0 6px 20px ${color}20`; }}
+                        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}>
+                        <div style={{ width: '52px', height: '52px', borderRadius: '50%', backgroundColor: `${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
+                          <Icon size={24} style={{ color }} />
+                        </div>
+                        <p style={{ fontWeight: 600, fontSize: '13px', marginBottom: '2px' }}>{cat.name}</p>
+                        <p style={{ fontSize: '11px', color: 'var(--text-light)' }}>{cat.count} productos</p>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
-              <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Tag size={20} style={{ color: 'var(--accent)' }} /> Categorias destacadas
-              </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px', marginBottom: '32px' }}>
-                {categories.map(cat => {
-                  const Icon = ICON_MAP[cat.icon] || Tag;
-                  return (
-                    <div key={cat.name} onClick={() => navigateTo(`/store?view=products&category=${encodeURIComponent(cat.name)}`)}
-                      style={{ padding: '20px', borderRadius: '12px', border: '1px solid var(--border)', backgroundColor: 'var(--bg-secondary)', cursor: 'pointer', transition: 'all 0.2s', textAlign: 'center' }}
-                      onMouseEnter={e => { e.currentTarget.style.borderColor = cat.color || 'var(--accent)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'none'; }}>
-                      <div style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: `${cat.color || 'var(--accent)'}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
-                        <Icon size={22} style={{ color: cat.color || 'var(--accent)' }} />
+              {/* SHIPPING BANNER */}
+              <div style={{ background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)', borderRadius: '14px', padding: '24px 32px', marginBottom: '32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', border: '1px solid #a7f3d0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Truck size={24} style={{ color: '#fff' }} />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#065f46', marginBottom: '2px' }}>Envios rapidos a todo el pais</h3>
+                    <p style={{ fontSize: '13px', color: '#047857' }}>Recibe tus productos en la puerta de tu casa.</p>
+                  </div>
+                </div>
+                <button onClick={() => navigateTo('/store?view=products')} style={{ background: 'none', border: '1px solid #059669', color: '#059669', fontWeight: 600, fontSize: '13px', cursor: 'pointer', padding: '8px 16px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s' }}
+                  onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#059669'; e.currentTarget.style.color = '#fff'; }} onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#059669'; }}>
+                  Mas informacion <ArrowRight size={14} />
+                </button>
+              </div>
+
+              {/* FEATURED PRODUCTS */}
+              <div style={{ marginBottom: '32px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                  <h2 style={{ fontSize: '20px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Star size={22} style={{ color: '#F59E0B', fill: '#F59E0B' }} /> Productos destacados
+                  </h2>
+                  <button onClick={() => navigateTo('/store?view=products')} style={{ background: 'none', border: 'none', color: 'var(--accent)', fontWeight: 600, fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    Ver todos los productos <ArrowRight size={14} />
+                  </button>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px' }} className="home-products-grid">
+                  {products.slice(0, 5).map(product => {
+                    const avgRating = 3.5 + (product.stock % 3) * 0.5;
+                    const fullStars = Math.floor(avgRating);
+                    const hasHalf = avgRating % 1 >= 0.5;
+                    return (
+                      <div key={product.id} style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '14px', overflow: 'hidden', transition: 'all 0.2s', display: 'flex', flexDirection: 'column' }}
+                        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.08)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}>
+                        <div style={{ height: '160px', backgroundColor: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                          {product.imageUrl ? <img src={product.imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Package size={40} style={{ color: 'var(--text-light)' }} />}
+                        </div>
+                        <div style={{ padding: '14px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                          <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '6px', lineHeight: 1.3, flex: 1 }}>{product.name}</h3>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px' }}>
+                            {[1,2,3,4,5].map(i => (
+                              <Star key={i} size={13} style={{ color: i <= fullStars ? '#F59E0B' : (i === fullStars + 1 && hasHalf ? '#F59E0B' : '#D1D5DB'), fill: i <= fullStars ? '#F59E0B' : (i === fullStars + 1 && hasHalf ? '#F59E0B' : 'none') }} />
+                            ))}
+                            <span style={{ fontSize: '11px', color: 'var(--text-light)', marginLeft: '4px' }}>({avgRating.toFixed(1)})</span>
+                          </div>
+                          <p style={{ fontSize: '16px', fontWeight: 700, color: 'var(--accent)', marginBottom: '10px' }}>Q{product.price.toFixed(2)}</p>
+                          <button onClick={() => navigateTo(`/store?view=products`)} style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid var(--accent)', cursor: 'pointer', fontWeight: 600, fontSize: '12px', backgroundColor: 'transparent', color: 'var(--accent)', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                            onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--accent)'; e.currentTarget.style.color = '#fff'; }} onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--accent)'; }}>
+                            Ver mas
+                          </button>
+                        </div>
                       </div>
-                      <p style={{ fontWeight: 600, fontSize: '14px', marginBottom: '4px' }}>{cat.name}</p>
-                      <p style={{ fontSize: '12px', color: 'var(--text-light)' }}>{cat.count} productos</p>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* BENEFITS */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }} className="home-benefits-grid">
+                {[
+                  { icon: ShieldCheck, title: 'Compra segura', desc: 'Tu compra esta protegida', color: '#3B82F6' },
+                  { icon: BadgeCheck, title: 'Productos verificados', desc: 'Calidad garantizada en cada producto', color: '#10B981' },
+                  { icon: Headphones, title: 'Soporte 24/7', desc: 'Escanea aqui para ayudarte', color: '#8B5CF6' },
+                  { icon: CreditCard, title: 'Pagos seguros', desc: 'Multiples metodos de pago', color: '#F59E0B' },
+                ].map((b, i) => {
+                  const Icon = b.icon;
+                  return (
+                    <div key={i} style={{ padding: '24px 16px', borderRadius: '14px', border: '1px solid var(--border)', backgroundColor: 'var(--bg-secondary)', textAlign: 'center', transition: 'all 0.2s' }}
+                      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.06)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}>
+                      <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: `${b.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+                        <Icon size={24} style={{ color: b.color }} />
+                      </div>
+                      <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '4px' }}>{b.title}</h3>
+                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>{b.desc}</p>
                     </div>
                   );
                 })}
-              </div>
-
-              <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ShoppingBag size={20} style={{ color: 'var(--accent)' }} /> Productos recientes
-              </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }} className="product-grid">
-                {products.slice(0, 4).map(product => (
-                  <div key={product.id} style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '12px', overflow: 'hidden', transition: 'all 0.2s' }}
-                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.08)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
-                    <div style={{ height: '140px', backgroundColor: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {product.imageUrl ? <img src={product.imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Package size={32} style={{ color: 'var(--text-light)' }} />}
-                    </div>
-                    <div style={{ padding: '14px' }}>
-                      <p style={{ fontSize: '13px', fontWeight: 600, marginBottom: '4px' }}>{product.name}</p>
-                      <p style={{ fontSize: '16px', fontWeight: 700, color: 'var(--accent)' }}>{formatCurrency(product.price)}</p>
-                      <button onClick={() => handleAddToCart(product)} disabled={product.stock <= 0} style={{ width: '100%', marginTop: '10px', padding: '8px', borderRadius: '8px', border: 'none', cursor: product.stock > 0 ? 'pointer' : 'not-allowed', fontWeight: 600, fontSize: '12px', backgroundColor: product.stock > 0 ? 'var(--accent)' : 'var(--border)', color: product.stock > 0 ? '#fff' : 'var(--text-light)' }}>
-                        <ShoppingCart size={14} /> {product.stock > 0 ? 'Agregar' : 'Agotado'}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div style={{ textAlign: 'center', marginTop: '24px' }}>
-                <button onClick={() => navigateTo('/store?view=products')} className="btn btn-primary" style={{ padding: '10px 24px' }}>
-                  Ver todos los productos <ShoppingBag size={16} />
-                </button>
               </div>
             </div>
           )}
@@ -357,11 +464,11 @@ function StorePageInner() {
                     </h2>
                   </div>
                   {loading ? (
-                    <div style={{ padding: '80px', textAlign: 'center' }}>
+                    <div style={{ padding: '40px 16px', textAlign: 'center' }}>
                       <div style={{ display: 'inline-block', width: '40px', height: '40px', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
                     </div>
                   ) : products.length === 0 ? (
-                    <div style={{ padding: '80px', textAlign: 'center', backgroundColor: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                    <div style={{ padding: '40px 16px', textAlign: 'center', backgroundColor: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border)' }}>
                       <Package size={48} style={{ color: 'var(--text-light)', margin: '0 auto 16px', display: 'block' }} />
                       <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '8px' }}>No se encontraron productos</h3>
                       <p style={{ color: 'var(--text-secondary)' }}>Intenta con otros filtros.</p>
