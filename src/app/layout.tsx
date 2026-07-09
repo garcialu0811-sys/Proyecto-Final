@@ -11,7 +11,14 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Variedades Coatán - Gestión de Inventario y Ventas",
   description: "Variedades Coatán - Sistema inteligente de inventario y ventas mediante códigos QR",
-  icons: { icon: '/logo.png' },
+  icons: {
+    icon: [
+      { url: '/favicon-16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-64.png', sizes: '64x64', type: 'image/png' },
+    ],
+    apple: '/logo.png',
+  },
 };
 
 export default function RootLayout({
