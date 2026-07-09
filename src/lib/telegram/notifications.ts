@@ -1,5 +1,6 @@
 import { sendMessage, getAdminChatId } from './client';
-import { buildLowStockMessage, buildTestMessage, LowStockData } from './messages';
+import { buildLowStockMessage, buildNewOrderMessage, buildTestMessage, LowStockData, OrderData } from './messages';
+import { checkProductStock } from '@/lib/stock/monitor';
 
 export async function sendLowStockAlert(data: LowStockData): Promise<boolean> {
   try {
@@ -13,6 +14,29 @@ export async function sendLowStockAlert(data: LowStockData): Promise<boolean> {
   } catch (error) {
     console.error('Error sending low stock alert:', error);
     return false;
+  }
+}
+
+export async function sendNewOrderNotification(data: OrderData): Promise<boolean> {
+  try {
+    const chatId = await getAdminChatId();
+    if (!chatId) {
+      console.warn('No admin with Telegram configured for order notification');
+      return false;
+    }
+    const message = buildNewOrderMessage(data);
+    return await sendMessage(chatId, message);
+  } catch (error) {
+    console.error('Error sending new order notification:', error);
+    return false;
+  }
+}
+
+export async function notifyStockAfterUpdate(product: { id: string; name: string; stock: number; category?: string; price?: number }): Promise<void> {
+  try {
+    await checkProductStock(product);
+  } catch (error) {
+    console.error('Error in notifyStockAfterUpdate:', error);
   }
 }
 

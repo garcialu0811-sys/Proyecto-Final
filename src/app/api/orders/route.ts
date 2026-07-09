@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { dbClient } from '@/lib/db/dbClient';
+import { sendNewOrderNotification } from '@/lib/telegram/notifications';
+import { checkProductStock } from '@/lib/stock/monitor';
 
 export async function GET(request: NextRequest) {
   try {
@@ -107,8 +109,23 @@ export async function POST(request: NextRequest) {
       if (product) {
         const newStock = Math.max(0, product.stock - item.quantity);
         await dbClient.products.update(item.productId, { stock: newStock });
+        checkProductStock({
+          id: product.id,
+          name: product.name,
+          stock: newStock,
+          category: product.category,
+          price: product.price,
+        }).catch(() => {});
       }
     }
+
+    sendNewOrderNotification({
+      orderNumber,
+      clientName: clientName || (session.user as any).name,
+      total: total || 0,
+      items: items.map((i: any) => `${i.productName} x${i.quantity}`).join(', '),
+      createdAt: new Date().toLocaleString('es-GT'),
+    }).catch(() => {});
 
     return NextResponse.json({ order, message: 'Pedido creado exitosamente.' }, { status: 201 });
   } catch (error) {

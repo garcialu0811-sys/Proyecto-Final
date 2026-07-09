@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { dbClient } from '@/lib/db/dbClient';
+import { sendNewOrderNotification } from '@/lib/telegram/notifications';
+import { checkProductStock } from '@/lib/stock/monitor';
 
 function generateOrderNumber(): string {
   const now = new Date();
@@ -39,8 +41,23 @@ export async function POST(request: NextRequest) {
       if (product) {
         const newStock = Math.max(0, product.stock - item.quantity);
         await dbClient.products.update(item.productId, { stock: newStock });
+        checkProductStock({
+          id: product.id,
+          name: product.name,
+          stock: newStock,
+          category: product.category,
+          price: product.price,
+        }).catch(() => {});
       }
     }
+
+    sendNewOrderNotification({
+      orderNumber,
+      clientName: guestInfo.name,
+      total: total || 0,
+      items: items.map((i: any) => `${i.productName} x${i.quantity}`).join(', '),
+      createdAt: new Date().toLocaleString('es-GT'),
+    }).catch(() => {});
 
     return NextResponse.json({
       id: order.id,

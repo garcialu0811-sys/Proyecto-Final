@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { dbClient } from '@/lib/db/dbClient';
+import { checkProductStock } from '@/lib/stock/monitor';
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,6 +46,16 @@ export async function POST(request: NextRequest) {
     }
 
     await dbClient.products.update(productId, { stock: newStock });
+
+    if (type === 'OUT' || type === 'ADJUSTMENT') {
+      checkProductStock({
+        id: product.id,
+        name: product.name,
+        stock: newStock,
+        category: product.category,
+        price: product.price,
+      }).catch(() => {});
+    }
 
     const userName = (session.user as any).name || 'Usuario';
 

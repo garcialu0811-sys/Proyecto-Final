@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/db/prisma';
+import { sendNewOrderNotification } from '@/lib/telegram/notifications';
+import { checkProductStock } from '@/lib/stock/monitor';
 
 function generateOrderNumber(): string {
   const now = new Date();
@@ -161,6 +163,29 @@ export async function POST(request: NextRequest) {
         history: true,
       },
     });
+
+    sendNewOrderNotification({
+      orderNumber,
+      clientName: bodyClientName || user.name || 'Cliente',
+      total: computedTotal,
+      items: items.map((i: any) => `${i.productName || i.name} x${i.quantity}`).join(', '),
+      createdAt: new Date().toLocaleString('es-GT'),
+    }).catch(() => {});
+
+    for (const item of items) {
+      const product = await prisma.product.findUnique({ where: { id: item.productId || item.id } });
+      if (product) {
+        const newStock = Math.max(0, product.stock - item.quantity);
+        await prisma.product.update({ where: { id: product.id }, data: { stock: newStock } });
+        checkProductStock({
+          id: product.id,
+          name: product.name,
+          stock: newStock,
+          category: product.category,
+          price: product.price,
+        }).catch(() => {});
+      }
+    }
 
     return NextResponse.json({ order, message: 'Pedido creado exitosamente.' }, { status: 201 });
   } catch (error) {
