@@ -77,14 +77,18 @@ export async function POST(request: Request) {
     });
 
     // 4. Registrar pedido en SQL para el flujo de entregas
+    const now = new Date();
+    const orderNumber = `VT-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}${String(now.getSeconds()).padStart(2,'0')}-${Math.floor(1000 + Math.random() * 9000)}`;
+
     await dbClient.orders.create({
+      orderNumber,
       productId,
       productName: product.name,
       quantity: qty,
       price: product.price,
       total,
       status: 'PENDIENTE',
-      clientName: clientName || 'Venta Rápida / Mostrador',
+      clientName: clientName || 'Venta Rapida / Mostrador',
       clientPhone: clientPhone || '',
       clientAddress: clientAddress || '',
       driverId: user.role === 'VENDEDOR' ? user.id : undefined,

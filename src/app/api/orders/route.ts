@@ -86,7 +86,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'El pedido debe contener al menos un producto.' }, { status: 400 });
     }
 
+    const now = new Date();
+    const orderNumber = `PED-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${Math.floor(1000 + Math.random() * 9000)}`;
+
     const order = await dbClient.orders.create({
+      orderNumber,
       productId: items[0].productId,
       productName: items.map((i: any) => i.productName).join(', '),
       quantity: items.reduce((sum: number, i: any) => sum + i.quantity, 0),
