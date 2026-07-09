@@ -11,7 +11,7 @@ export async function checkProductStock(product: {
   try {
     const admin = await dbClient.users.findFirst({
       where: { role: 'ADMIN', isActive: true },
-      select: { notificationSettings: true },
+      include: { notificationSettings: true },
     });
 
     const settings = (admin as any)?.notificationSettings;
@@ -22,6 +22,7 @@ export async function checkProductStock(product: {
     const threshold = settings?.lowStockThreshold || 5;
 
     if (product.stock <= threshold) {
+      console.log(`Low stock alert: ${product.name} has ${product.stock} units (threshold: ${threshold})`);
       await sendLowStockAlert({
         productName: product.name,
         productId: product.id,
