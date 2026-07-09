@@ -163,9 +163,14 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
 
   return (
     <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
-      <div className="sidebar-logo">
-        <img src="/logo.png" alt="Variedades Coatán" style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'contain' }} />
-        <span style={{ opacity: collapsed ? 0 : 1, transition: 'opacity 0.2s ease' }}>Variedades Coatán</span>
+      <div className="sidebar-logo" style={{ flexDirection: collapsed ? 'column' : 'row', gap: collapsed ? '4px' : '10px', alignItems: 'center' }}>
+        <img src="/logo.png" alt="Variedades Coatán" style={{ width: '32px', height: '32px', borderRadius: '8px', objectFit: 'contain', flexShrink: 0 }} />
+        {!collapsed && (
+          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1, opacity: 1, transition: 'opacity 0.2s ease' }}>
+            <span style={{ fontSize: '15px', fontWeight: 800, color: '#fff', letterSpacing: '-0.3px' }}>Variedades</span>
+            <span style={{ fontSize: '15px', fontWeight: 800, color: 'var(--accent)', letterSpacing: '-0.3px' }}>Coatán</span>
+          </div>
+        )}
       </div>
 
       <nav style={{ flex: 1, marginTop: '12px', paddingBottom: '24px' }}>

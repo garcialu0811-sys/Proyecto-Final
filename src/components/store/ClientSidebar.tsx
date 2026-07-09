@@ -76,7 +76,10 @@ function ClientSidebarInner({ isOpen, onClose }: ClientSidebarProps) {
         <div style={{ padding: '20px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <img src="/logo.png" alt="Variedades Coatán" style={{ width: '36px', height: '36px', borderRadius: '10px', objectFit: 'contain' }} />
-            <span style={{ fontWeight: 700, fontSize: '20px', color: '#fff' }}>Variedades Coatán</span>
+            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+              <span style={{ fontWeight: 800, fontSize: '16px', color: '#fff' }}>Variedades</span>
+              <span style={{ fontWeight: 800, fontSize: '16px', color: 'var(--accent)' }}>Coatán</span>
+            </div>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.5)', display: 'none' }} className="sidebar-close-btn">
             <X size={20} />
