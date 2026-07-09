@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendMessage, setWebhook } from '@/lib/telegram/client';
 import { buildWelcomeMessage } from '@/lib/telegram/messages';
-import prisma from '@/lib/db/prisma';
+import { dbClient } from '@/lib/db/dbClient';
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,21 +15,25 @@ export async function POST(request: NextRequest) {
     const chatId = String(message.chat.id);
     const text = message.text || '';
 
+    console.log(`Telegram webhook received: text="${text}", chatId=${chatId}`);
+
     if (text === '/start' || text === '/help') {
-      const existingAdmin = await (prisma as any).user.findFirst({
+      const existingAdmin = await dbClient.users.findFirst({
         where: { role: 'ADMIN', telegramChatId: chatId },
       });
 
+      console.log('Existing admin with this chatId:', existingAdmin?.id || 'none');
+
       if (!existingAdmin) {
-        const adminWithoutTelegram = await (prisma as any).user.findFirst({
+        const adminWithoutTelegram = await dbClient.users.findFirst({
           where: { role: 'ADMIN', telegramChatId: null, isActive: true },
         });
 
+        console.log('Admin without Telegram found:', adminWithoutTelegram?.id || 'none');
+
         if (adminWithoutTelegram) {
-          await (prisma as any).user.update({
-            where: { id: adminWithoutTelegram.id },
-            data: { telegramChatId: chatId },
-          });
+          await dbClient.users.update(adminWithoutTelegram.id, { telegramChatId: chatId });
+          console.log(`Linked chatId ${chatId} to admin ${adminWithoutTelegram.id}`);
           await sendMessage(chatId, buildWelcomeMessage(chatId));
         } else {
           await sendMessage(chatId, 'No se encontro administrador para vincular. Contacta al soporte.');
@@ -40,13 +44,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (text === '/status') {
-      const productCount = await (prisma as any).product.count();
-      const orderCount = await (prisma as any).order.count();
       await sendMessage(chatId, [
         '*Estado del Sistema*',
         '',
-        `*Productos:* ${productCount}`,
-        `*Pedidos:* ${orderCount}`,
         `*Chat ID:* ${chatId}`,
         '',
         'Sistema funcionando correctamente.',

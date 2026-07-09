@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
+import { dbClient } from '@/lib/db/dbClient';
 import prisma from '@/lib/db/prisma';
 
 export async function GET() {
@@ -10,32 +11,37 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (!prisma) {
-      return NextResponse.json({ error: 'Database error' }, { status: 500 });
-    }
-
-    const admin = await (prisma as any).user.findFirst({
+    const admin = await dbClient.users.findFirst({
       where: { role: 'ADMIN', isActive: true },
-      select: {
-        telegramChatId: true,
-        notificationSettings: true,
-      },
     });
 
     if (!admin) {
       return NextResponse.json({ error: 'Admin not found' }, { status: 404 });
     }
 
-    const settings = admin.notificationSettings || {
-      lowStockAlerts: true,
-      lowStockThreshold: 5,
-      newOrderAlerts: true,
-      sendToTelegram: true,
-      sendToEmail: false,
-    };
+    let settings: any = null;
+    if (prisma) {
+      try {
+        settings = await (prisma as any).notificationSettings.findUnique({
+          where: { userId: admin.id },
+        });
+      } catch {
+        // ignore
+      }
+    }
+
+    if (!settings) {
+      settings = {
+        lowStockAlerts: true,
+        lowStockThreshold: 5,
+        newOrderAlerts: true,
+        sendToTelegram: true,
+        sendToEmail: false,
+      };
+    }
 
     return NextResponse.json({
-      telegramChatId: admin.telegramChatId || '',
+      telegramChatId: (admin as any).telegramChatId || '',
       ...settings,
     });
   } catch (error) {
@@ -50,20 +56,19 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (!prisma) {
-      return NextResponse.json({ error: 'Database error' }, { status: 500 });
-    }
-
     const body = await request.json();
     const { lowStockAlerts, lowStockThreshold, newOrderAlerts, sendToTelegram, sendToEmail } = body;
 
-    const admin = await (prisma as any).user.findFirst({
+    const admin = await dbClient.users.findFirst({
       where: { role: 'ADMIN', isActive: true },
-      select: { id: true },
     });
 
     if (!admin) {
       return NextResponse.json({ error: 'Admin not found' }, { status: 404 });
+    }
+
+    if (!prisma) {
+      return NextResponse.json({ error: 'Database error' }, { status: 500 });
     }
 
     await (prisma as any).notificationSettings.upsert({

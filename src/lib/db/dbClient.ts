@@ -35,14 +35,25 @@ export const dbClient = {
         return fallbackDb.users.findById(id);
       }
     },
-    findMany: async () => {
+    findMany: async (options?: any) => {
       if (isFallbackActive() || !prisma) {
         return fallbackDb.users.findMany();
       }
       try {
-        return await prisma.user.findMany({ orderBy: { createdAt: 'desc' } });
+        return await prisma.user.findMany(options || { orderBy: { createdAt: 'desc' } });
       } catch {
         return fallbackDb.users.findMany();
+      }
+    },
+    findFirst: async (options?: any) => {
+      if (isFallbackActive() || !prisma) {
+        return null;
+      }
+      try {
+        return await prisma.user.findFirst(options || {});
+      } catch (error) {
+        console.error('Prisma user.findFirst failed:', error);
+        return null;
       }
     },
     create: async (data: any) => {

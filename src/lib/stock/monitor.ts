@@ -1,5 +1,5 @@
 import { sendLowStockAlert } from '@/lib/telegram/notifications';
-import prisma from '@/lib/db/prisma';
+import { dbClient } from '@/lib/db/dbClient';
 
 export async function checkProductStock(product: {
   id: string;
@@ -9,14 +9,12 @@ export async function checkProductStock(product: {
   price?: number;
 }): Promise<void> {
   try {
-    if (!prisma) return;
-
-    const admin = await (prisma as any).user.findFirst({
+    const admin = await dbClient.users.findFirst({
       where: { role: 'ADMIN', isActive: true },
       select: { notificationSettings: true },
     });
 
-    const settings = admin?.notificationSettings;
+    const settings = (admin as any)?.notificationSettings;
     if (!settings || !settings.lowStockAlerts || !settings.sendToTelegram) return;
 
     const threshold = settings.lowStockThreshold || 5;

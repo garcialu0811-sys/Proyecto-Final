@@ -1,5 +1,5 @@
 import axios from 'axios';
-import prisma from '@/lib/db/prisma';
+import { dbClient } from '@/lib/db/dbClient';
 
 const TELEGRAM_API = 'https://api.telegram.org/bot';
 
@@ -49,8 +49,7 @@ export async function setWebhook(url: string): Promise<boolean> {
 
 export async function getAdminChatId(): Promise<string | null> {
   try {
-    if (!prisma) return null;
-    const admin = await (prisma as any).user.findFirst({
+    const admin = await dbClient.users.findFirst({
       where: {
         role: 'ADMIN',
         telegramChatId: { not: null },
@@ -58,7 +57,7 @@ export async function getAdminChatId(): Promise<string | null> {
       },
       select: { telegramChatId: true },
     });
-    return admin?.telegramChatId || null;
+    return (admin as any)?.telegramChatId || null;
   } catch (error) {
     console.error('Error getting admin chat ID:', error);
     return null;
@@ -67,8 +66,7 @@ export async function getAdminChatId(): Promise<string | null> {
 
 export async function getAdminNotificationSettings(): Promise<any> {
   try {
-    if (!prisma) return null;
-    const admin = await (prisma as any).user.findFirst({
+    const admin = await dbClient.users.findFirst({
       where: { role: 'ADMIN', isActive: true },
       select: { telegramChatId: true, notificationSettings: true },
     });
