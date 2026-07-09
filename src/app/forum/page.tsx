@@ -9,6 +9,7 @@ import {
   Search, Filter, Tag,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
+import ClientLayout from '@/components/store/ClientLayout';
 
 interface ForumPost {
   id: string;
@@ -245,6 +246,7 @@ export default function ForumPage() {
   };
 
   return (
+    <ClientLayout title="Foro" subtitle="Comparte ideas, resuelve dudas o escribe resenas.">
     <div style={{ backgroundColor: 'var(--bg-primary)' }}>
       <div style={{ padding: '24px', maxWidth: '1000px', width: '100%', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
@@ -315,12 +317,12 @@ export default function ForumPage() {
           </div>
 
           {loading ? (
-            <div style={{ padding: '80px', textAlign: 'center' }}>
+            <div style={{ padding: '40px 16px', textAlign: 'center' }}>
               <div style={{ display: 'inline-block', width: '40px', height: '40px', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
               <p style={{ marginTop: '16px', color: 'var(--text-secondary)' }}>Cargando foro...</p>
             </div>
           ) : filteredPosts.length === 0 ? (
-            <div className="card" style={{ padding: '80px', textAlign: 'center' }}>
+            <div className="card" style={{ padding: '40px 16px', textAlign: 'center' }}>
               <MessageSquare size={48} style={{ color: 'var(--text-light)', margin: '0 auto 16px auto', display: 'block' }} />
               <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '8px' }}>No hay publicaciones</h3>
               <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Se el primero en iniciar un tema.</p>
@@ -408,5 +410,6 @@ export default function ForumPage() {
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
       `}</style>
     </div>
+    </ClientLayout>
   );
 }
