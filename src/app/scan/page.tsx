@@ -3,7 +3,10 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Camera, ShoppingBag, Save, Check, Clock, Trash2, Edit3, X } from 'lucide-react';
+import {
+  Camera, ShoppingBag, Save, Check, Clock, Trash2, Edit3, X,
+  AlertTriangle, Package, Plus, DollarSign, BoxSelect, Hash,
+} from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import confetti from 'canvas-confetti';
@@ -17,6 +20,7 @@ interface Product {
   category: string;
   imageUrl: string;
   qrCode: string;
+  minStock?: number;
 }
 
 interface ScanHistoryItem {
@@ -24,6 +28,7 @@ interface ScanHistoryItem {
   productName: string;
   action: string;
   timestamp: string;
+  details?: string;
 }
 
 export default function ScanPage() {
@@ -53,6 +58,15 @@ export default function ScanPage() {
   const [editModalPrice, setEditModalPrice] = useState('');
   const [editModalStock, setEditModalStock] = useState('');
   const [editModalCategory, setEditModalCategory] = useState('');
+  const [editModalMinStock, setEditModalMinStock] = useState('5');
+
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newProductName, setNewProductName] = useState('');
+  const [newProductDesc, setNewProductDesc] = useState('');
+  const [newProductPrice, setNewProductPrice] = useState('');
+  const [newProductStock, setNewProductStock] = useState('');
+  const [newProductCategory, setNewProductCategory] = useState('Perifericos');
+  const [newProductMinStock, setNewProductMinStock] = useState('5');
 
   useEffect(() => {
     if (status === 'unauthenticated') { router.push('/login'); return; }
@@ -80,14 +94,22 @@ export default function ScanPage() {
     if (scannerRef.current) { try { scannerRef.current.clear(); } catch {} scannerRef.current = null; }
   };
 
-  const addToHistory = (productId: string, productName: string, action: string) => {
-    const item: ScanHistoryItem = { productId, productName, action, timestamp: new Date().toISOString() };
-    const updated = [item, ...scanHistory].slice(0, 20);
+  const addToHistory = (productId: string, productName: string, action: string, details?: string) => {
+    const item: ScanHistoryItem = { productId, productName, action, timestamp: new Date().toISOString(), details };
+    const updated = [item, ...scanHistory].slice(0, 50);
     setScanHistory(updated);
     localStorage.setItem('qrshop-scan-history', JSON.stringify(updated));
   };
 
   const clearHistory = () => { setScanHistory([]); localStorage.removeItem('qrshop-scan-history'); showToast('Historial limpiado.', 'info'); };
+
+  const getStockStatus = (stock: number, minStock?: number) => {
+    const min = minStock || 5;
+    if (stock === 0) return { label: 'Sin stock', color: '#DC2626', bg: '#FEE2E2' };
+    if (stock <= min) return { label: 'Stock bajo', color: '#D97706', bg: '#FEF3C7' };
+    if (stock <= min * 2) return { label: 'Stock medio', color: '#2563EB', bg: '#DBEAFE' };
+    return { label: 'Stock alto', color: '#059669', bg: '#D1FAE5' };
+  };
 
   const handleScanSuccess = async (code: string) => {
     setLoadingSearch(true);
@@ -120,9 +142,13 @@ export default function ScanPage() {
         body: JSON.stringify({ price: Number(editPrice), stock: Number(editStock) })
       });
       const data = await res.json();
-      if (res.ok) { setScannedProduct(data); addToHistory(data.id, data.name, 'Editado'); showToast('Producto actualizado.', 'success'); }
+      if (res.ok) {
+        setScannedProduct(data);
+        addToHistory(data.id, data.name, 'Stock/Precio ajustado', `Precio: $${editPrice}, Stock: ${editStock}`);
+        showToast('Producto actualizado.', 'success');
+      }
       else { showToast(data.message || 'Error al actualizar.', 'error'); }
-    } catch { showToast('Error de conexión.', 'error'); }
+    } catch { showToast('Error de conexion.', 'error'); }
     finally { setActionLoading(false); }
   };
 
@@ -139,23 +165,28 @@ export default function ScanPage() {
       const data = await res.json();
       if (res.ok) {
         confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
-        addToHistory(scannedProduct.id, scannedProduct.name, `Vendido x${sellQty}`);
-        showToast('¡Venta realizada!', 'success');
+        const total = scannedProduct.price * Number(sellQty);
+        addToHistory(scannedProduct.id, scannedProduct.name, `Venta registrada`, `x${sellQty} - Q${total.toFixed(2)} - ${clientName || 'Cliente general'}`);
+        showToast('Venta realizada con exito.', 'success');
         handleScanSuccess(scannedProduct.id);
         setSellQty('1'); setClientName('');
       } else { showToast(data.message || 'Error al vender.', 'error'); }
-    } catch { showToast('Error de conexión.', 'error'); }
+    } catch { showToast('Error de conexion.', 'error'); }
     finally { setActionLoading(false); }
   };
 
   const handleDeleteProduct = async () => {
     if (!scannedProduct || role !== 'ADMIN') return;
-    if (!confirm(`¿Eliminar "${scannedProduct.name}"?`)) return;
+    if (!confirm(`Eliminar "${scannedProduct.name}"? Esta accion no se puede deshacer.`)) return;
     try {
       const res = await fetch(`/api/products/${scannedProduct.id}`, { method: 'DELETE' });
-      if (res.ok) { showToast('Producto eliminado.', 'success'); setScannedProduct(null); }
+      if (res.ok) {
+        addToHistory(scannedProduct.id, scannedProduct.name, 'Producto eliminado');
+        showToast('Producto eliminado.', 'success');
+        setScannedProduct(null);
+      }
       else { showToast('Error al eliminar.', 'error'); }
-    } catch { showToast('Error de conexión.', 'error'); }
+    } catch { showToast('Error de conexion.', 'error'); }
   };
 
   const handleOpenEditModal = () => {
@@ -165,6 +196,7 @@ export default function ScanPage() {
     setEditModalPrice(scannedProduct.price.toString());
     setEditModalStock(scannedProduct.stock.toString());
     setEditModalCategory(scannedProduct.category);
+    setEditModalMinStock(scannedProduct.minStock?.toString() || '5');
     setShowEditModal(true);
   };
 
@@ -174,32 +206,83 @@ export default function ScanPage() {
     try {
       const res = await fetch(`/api/products/${scannedProduct.id}`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: editModalName, description: editModalDesc, price: Number(editModalPrice), stock: Number(editModalStock), category: editModalCategory })
+        body: JSON.stringify({
+          name: editModalName, description: editModalDesc,
+          price: Number(editModalPrice), stock: Number(editModalStock),
+          category: editModalCategory, minStock: Number(editModalMinStock)
+        })
       });
       const data = await res.json();
-      if (res.ok) { setScannedProduct(data); setShowEditModal(false); addToHistory(data.id, data.name, 'Editado completo'); showToast('Producto actualizado.', 'success'); }
+      if (res.ok) {
+        setScannedProduct(data);
+        setShowEditModal(false);
+        addToHistory(data.id, data.name, 'Edicion completa', `Nombre: ${editModalName}, Precio: $${editModalPrice}, Stock: ${editModalStock}`);
+        showToast('Producto actualizado.', 'success');
+      }
       else { showToast(data.message || 'Error.', 'error'); }
-    } catch { showToast('Error de conexión.', 'error'); }
+    } catch { showToast('Error de conexion.', 'error'); }
     finally { setActionLoading(false); }
   };
+
+  const handleAddProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newProductName || !newProductPrice || !newProductStock) {
+      showToast('Completa los campos obligatorios.', 'warning'); return;
+    }
+    setActionLoading(true);
+    try {
+      const res = await fetch('/api/products', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newProductName, description: newProductDesc || newProductName,
+          price: Number(newProductPrice), stock: Number(newProductStock),
+          category: newProductCategory, minStock: Number(newProductMinStock) || 5
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        confetti({ particleCount: 100, spread: 60, origin: { y: 0.6 } });
+        addToHistory(data.id, data.name, 'Producto creado', `Precio: $${newProductPrice}, Stock: ${newProductStock}`);
+        showToast('Producto creado exitosamente.', 'success');
+        setShowAddModal(false);
+        setNewProductName(''); setNewProductDesc(''); setNewProductPrice('');
+        setNewProductStock(''); setNewProductCategory('Perifericos'); setNewProductMinStock('5');
+        if (data.id) handleScanSuccess(data.id);
+      } else {
+        showToast(data.message || 'Error al crear producto.', 'error');
+      }
+    } catch { showToast('Error de conexion.', 'error'); }
+    finally { setActionLoading(false); }
+  };
+
+  const stockStatus = scannedProduct ? getStockStatus(scannedProduct.stock, scannedProduct.minStock) : null;
 
   return (
     <div>
       <div className="flex-between" style={{ marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 700 }}>Escanear Códigos QR</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Escanea productos para editar, vender o ver detalles.</p>
+          <h1 style={{ fontSize: '24px', fontWeight: 700 }}>Escanear Codigos QR</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Escanea productos para vender, editar o verificar stock.</p>
         </div>
-        <button onClick={() => setShowHistory(!showHistory)} className="btn btn-secondary" style={{ display: 'flex', gap: '8px' }}>
-          <Clock size={18} />
-          <span>Historial ({scanHistory.length})</span>
-        </button>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          {role === 'ADMIN' && (
+            <button onClick={() => setShowAddModal(true)} className="btn btn-primary" style={{ display: 'flex', gap: '8px', fontSize: '13px' }}>
+              <Plus size={16} /> Agregar Producto
+            </button>
+          )}
+          <button onClick={() => setShowHistory(!showHistory)} className="btn btn-secondary" style={{ display: 'flex', gap: '8px', fontSize: '13px' }}>
+            <Clock size={16} />
+            <span>Historial ({scanHistory.length})</span>
+          </button>
+        </div>
       </div>
 
       {showHistory && (
         <div className="card" style={{ marginBottom: '24px' }}>
           <div className="flex-between" style={{ marginBottom: '12px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 600 }}>Historial de Escaneos</h3>
+            <h3 style={{ fontSize: '16px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Clock size={18} /> Historial de Actividad
+            </h3>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button onClick={clearHistory} className="btn btn-secondary" style={{ padding: '4px 10px', fontSize: '12px', color: 'var(--danger)' }}>
                 <Trash2 size={12} /> Limpiar
@@ -210,13 +293,36 @@ export default function ScanPage() {
             </div>
           </div>
           {scanHistory.length === 0 ? (
-            <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '20px', fontSize: '13px' }}>Sin escaneos recientes.</p>
+            <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '20px', fontSize: '13px' }}>Sin actividad reciente.</p>
           ) : (
-            <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+            <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
               {scanHistory.map((item, idx) => (
-                <div key={idx} style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px' }}>
-                  <div><span style={{ fontWeight: 600 }}>{item.productName}</span> — <span style={{ color: 'var(--text-secondary)' }}>{item.action}</span></div>
-                  <span style={{ fontSize: '11px', color: 'var(--text-light)' }}>{new Date(item.timestamp).toLocaleString('es-ES')}</span>
+                <div key={idx} style={{
+                  padding: '10px 14px', borderBottom: '1px solid var(--border)',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', fontSize: '13px', gap: '12px'
+                }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                      <span style={{ fontWeight: 600 }}>{item.productName}</span>
+                      <span style={{
+                        padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600,
+                        backgroundColor: item.action.includes('Venta') ? '#D1FAE5' :
+                          item.action.includes('eliminado') ? '#FEE2E2' :
+                          item.action.includes('creado') ? '#DBEAFE' : '#FEF3C7',
+                        color: item.action.includes('Venta') ? '#059669' :
+                          item.action.includes('eliminado') ? '#DC2626' :
+                          item.action.includes('creado') ? '#2563EB' : '#D97706'
+                      }}>
+                        {item.action}
+                      </span>
+                    </div>
+                    {item.details && (
+                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>{item.details}</p>
+                    )}
+                  </div>
+                  <span style={{ fontSize: '11px', color: 'var(--text-light)', whiteSpace: 'nowrap' }}>
+                    {new Date(item.timestamp).toLocaleString('es-ES')}
+                  </span>
                 </div>
               ))}
             </div>
@@ -253,64 +359,95 @@ export default function ScanPage() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                <img src={scannedProduct.imageUrl} alt={scannedProduct.name} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border)' }} />
-                <div>
+                <img src={scannedProduct.imageUrl || '/no-image.png'} alt={scannedProduct.name}
+                  style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border)' }} />
+                <div style={{ flex: 1 }}>
                   <h3 style={{ fontSize: '16px', fontWeight: 600 }}>{scannedProduct.name}</h3>
-                  <span className="role-tag vendedor">{scannedProduct.category}</span>
-                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>Stock: {scannedProduct.stock} | Precio: ${scannedProduct.price.toFixed(2)}</p>
+                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', marginTop: '4px' }}>
+                    <span className="role-tag vendedor" style={{ fontSize: '11px' }}>{scannedProduct.category}</span>
+                    {stockStatus && (
+                      <span style={{
+                        padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600,
+                        backgroundColor: stockStatus.bg, color: stockStatus.color
+                      }}>
+                        {stockStatus.label}
+                      </span>
+                    )}
+                  </div>
+                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                    <DollarSign size={12} style={{ display: 'inline' }} />${scannedProduct.price.toFixed(2)}
+                    <span style={{ margin: '0 6px', color: 'var(--border)' }}>|</span>
+                    <Package size={12} style={{ display: 'inline' }} />{scannedProduct.stock} unidades
+                  </p>
                 </div>
               </div>
 
+              {scannedProduct.stock <= (scannedProduct.minStock || 5) && scannedProduct.stock > 0 && (
+                <div style={{ padding: '10px 14px', backgroundColor: '#FEF3C7', borderLeft: '4px solid #D97706', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <AlertTriangle size={16} style={{ color: '#D97706', flexShrink: 0 }} />
+                  <span style={{ fontSize: '12px', color: '#92400E' }}>Stock bajo. Minimo recomendado: {scannedProduct.minStock || 5} unidades.</span>
+                </div>
+              )}
+              {scannedProduct.stock === 0 && (
+                <div style={{ padding: '10px 14px', backgroundColor: '#FEE2E2', borderLeft: '4px solid #DC2626', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <AlertTriangle size={16} style={{ color: '#DC2626', flexShrink: 0 }} />
+                  <span style={{ fontSize: '12px', color: '#991B1B' }}>Sin stock disponible. Reabastecer urgentemente.</span>
+                </div>
+              )}
+
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                <button onClick={handleOpenEditModal} className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '12px', gap: '4px' }}>
+                  <Edit3 size={12} /> Editar
+                </button>
                 {role === 'ADMIN' && (
-                  <>
-                    <button onClick={handleOpenEditModal} className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '12px', gap: '4px' }}>
-                      <Edit3 size={12} /> Editar
-                    </button>
-                    <button onClick={handleDeleteProduct} className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '12px', gap: '4px', color: 'var(--danger)' }}>
-                      <Trash2 size={12} /> Eliminar
-                    </button>
-                  </>
+                  <button onClick={handleDeleteProduct} className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '12px', gap: '4px', color: 'var(--danger)' }}>
+                    <Trash2 size={12} /> Eliminar
+                  </button>
                 )}
               </div>
 
-              {(role === 'ADMIN' || role === 'VENDEDOR') && (
-                <form onSubmit={handleQuickEdit} style={{ borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
-                  <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '12px', color: 'var(--accent)' }}>Ajuste Rápido</h4>
-                  <div className="grid-2">
-                    <div className="form-group" style={{ marginBottom: '10px' }}>
-                      <label className="form-label" style={{ fontSize: '11px' }}>Precio ($)</label>
-                      <input type="number" step="0.01" className="form-control" value={editPrice} onChange={e => setEditPrice(e.target.value)} disabled={actionLoading} />
-                    </div>
-                    <div className="form-group" style={{ marginBottom: '10px' }}>
-                      <label className="form-label" style={{ fontSize: '11px' }}>Stock</label>
-                      <input type="number" className="form-control" value={editStock} onChange={e => setEditStock(e.target.value)} disabled={actionLoading} />
-                    </div>
+              <form onSubmit={handleQuickEdit} style={{ borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
+                <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '12px', color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Save size={14} /> Ajuste Rapido
+                </h4>
+                <div className="grid-2">
+                  <div className="form-group" style={{ marginBottom: '10px' }}>
+                    <label className="form-label" style={{ fontSize: '11px' }}>Precio ($)</label>
+                    <input type="number" step="0.01" className="form-control" value={editPrice} onChange={e => setEditPrice(e.target.value)} disabled={actionLoading} />
                   </div>
-                  <button type="submit" className="btn btn-secondary" style={{ width: '100%', fontSize: '12px', gap: '4px' }} disabled={actionLoading}>
-                    <Save size={14} /> Guardar Cambios
-                  </button>
-                </form>
-              )}
+                  <div className="form-group" style={{ marginBottom: '10px' }}>
+                    <label className="form-label" style={{ fontSize: '11px' }}>Stock</label>
+                    <input type="number" className="form-control" value={editStock} onChange={e => setEditStock(e.target.value)} disabled={actionLoading} />
+                  </div>
+                </div>
+                <button type="submit" className="btn btn-secondary" style={{ width: '100%', fontSize: '12px', gap: '4px' }} disabled={actionLoading}>
+                  <Save size={14} /> Guardar Cambios
+                </button>
+              </form>
 
-              {role === 'VENDEDOR' && (
-                <form onSubmit={handleQuickSell} style={{ borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
-                  <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '12px', color: 'var(--success)' }}>Registrar Venta</h4>
-                  <div className="grid-2">
-                    <div className="form-group" style={{ marginBottom: '10px' }}>
-                      <label className="form-label" style={{ fontSize: '11px' }}>Cantidad</label>
-                      <input type="number" min="1" max={scannedProduct.stock} className="form-control" value={sellQty} onChange={e => setSellQty(e.target.value)} disabled={actionLoading} />
-                    </div>
-                    <div className="form-group" style={{ marginBottom: '10px' }}>
-                      <label className="form-label" style={{ fontSize: '11px' }}>Cliente</label>
-                      <input type="text" placeholder="Nombre" className="form-control" value={clientName} onChange={e => setClientName(e.target.value)} disabled={actionLoading} />
-                    </div>
+              <form onSubmit={handleQuickSell} style={{ borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
+                <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '12px', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Check size={14} /> Registrar Venta
+                </h4>
+                <div className="grid-2">
+                  <div className="form-group" style={{ marginBottom: '10px' }}>
+                    <label className="form-label" style={{ fontSize: '11px' }}>Cantidad</label>
+                    <input type="number" min="1" max={scannedProduct.stock} className="form-control" value={sellQty} onChange={e => setSellQty(e.target.value)} disabled={actionLoading} />
                   </div>
-                  <button type="submit" className="btn btn-primary" style={{ width: '100%', fontSize: '12px', gap: '4px' }} disabled={actionLoading || scannedProduct.stock <= 0}>
-                    <Check size={14} /> {scannedProduct.stock <= 0 ? 'Sin stock' : 'Vender'}
-                  </button>
-                </form>
-              )}
+                  <div className="form-group" style={{ marginBottom: '10px' }}>
+                    <label className="form-label" style={{ fontSize: '11px' }}>Cliente</label>
+                    <input type="text" placeholder="Nombre (opcional)" className="form-control" value={clientName} onChange={e => setClientName(e.target.value)} disabled={actionLoading} />
+                  </div>
+                </div>
+                {Number(sellQty) > 0 && scannedProduct.price > 0 && (
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                    Total: <strong style={{ color: 'var(--success)' }}>${(scannedProduct.price * Number(sellQty)).toFixed(2)}</strong>
+                  </p>
+                )}
+                <button type="submit" className="btn btn-primary" style={{ width: '100%', fontSize: '12px', gap: '4px' }} disabled={actionLoading || scannedProduct.stock <= 0}>
+                  <Check size={14} /> {scannedProduct.stock <= 0 ? 'Sin stock' : 'Registrar Venta'}
+                </button>
+              </form>
             </div>
           )}
         </div>
@@ -328,7 +465,7 @@ export default function ScanPage() {
               <input type="text" className="form-control" value={editModalName} onChange={e => setEditModalName(e.target.value)} />
             </div>
             <div className="form-group">
-              <label className="form-label">Descripción</label>
+              <label className="form-label">Descripcion</label>
               <textarea className="form-control" rows={3} value={editModalDesc} onChange={e => setEditModalDesc(e.target.value)} />
             </div>
             <div className="grid-2">
@@ -341,15 +478,21 @@ export default function ScanPage() {
                 <input type="number" className="form-control" value={editModalStock} onChange={e => setEditModalStock(e.target.value)} />
               </div>
             </div>
-            <div className="form-group">
-              <label className="form-label">Categoría</label>
-              <select className="form-control" value={editModalCategory} onChange={e => setEditModalCategory(e.target.value)}>
-                <option value="Periféricos">Periféricos</option>
-                <option value="Monitores">Monitores</option>
-                <option value="Componentes">Componentes</option>
-                <option value="Audio">Audio</option>
-                <option value="Otros">Otros</option>
-              </select>
+            <div className="grid-2">
+              <div className="form-group">
+                <label className="form-label">Categoria</label>
+                <select className="form-control" value={editModalCategory} onChange={e => setEditModalCategory(e.target.value)}>
+                  <option value="Perifericos">Perifericos</option>
+                  <option value="Monitores">Monitores</option>
+                  <option value="Componentes">Componentes</option>
+                  <option value="Audio">Audio</option>
+                  <option value="Otros">Otros</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Stock Minimo</label>
+                <input type="number" className="form-control" value={editModalMinStock} onChange={e => setEditModalMinStock(e.target.value)} />
+              </div>
             </div>
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '16px' }}>
               <button onClick={() => setShowEditModal(false)} className="btn btn-secondary">Cancelar</button>
@@ -357,6 +500,61 @@ export default function ScanPage() {
                 {actionLoading ? 'Guardando...' : 'Guardar'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showAddModal && (
+        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+          <div className="modal-content" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 style={{ fontSize: '18px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Plus size={20} /> Agregar Nuevo Producto
+              </h2>
+              <button className="modal-close" onClick={() => setShowAddModal(false)}><X size={20} /></button>
+            </div>
+            <form onSubmit={handleAddProduct}>
+              <div className="form-group">
+                <label className="form-label">Nombre *</label>
+                <input type="text" className="form-control" value={newProductName} onChange={e => setNewProductName(e.target.value)} placeholder="Nombre del producto" required />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Descripcion</label>
+                <textarea className="form-control" rows={2} value={newProductDesc} onChange={e => setNewProductDesc(e.target.value)} placeholder="Descripcion breve" />
+              </div>
+              <div className="grid-2">
+                <div className="form-group">
+                  <label className="form-label">Precio ($) *</label>
+                  <input type="number" step="0.01" className="form-control" value={newProductPrice} onChange={e => setNewProductPrice(e.target.value)} placeholder="0.00" required />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Stock Inicial *</label>
+                  <input type="number" className="form-control" value={newProductStock} onChange={e => setNewProductStock(e.target.value)} placeholder="0" required />
+                </div>
+              </div>
+              <div className="grid-2">
+                <div className="form-group">
+                  <label className="form-label">Categoria</label>
+                  <select className="form-control" value={newProductCategory} onChange={e => setNewProductCategory(e.target.value)}>
+                    <option value="Perifericos">Perifericos</option>
+                    <option value="Monitores">Monitores</option>
+                    <option value="Componentes">Componentes</option>
+                    <option value="Audio">Audio</option>
+                    <option value="Otros">Otros</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Stock Minimo</label>
+                  <input type="number" className="form-control" value={newProductMinStock} onChange={e => setNewProductMinStock(e.target.value)} placeholder="5" />
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '16px' }}>
+                <button type="button" onClick={() => setShowAddModal(false)} className="btn btn-secondary">Cancelar</button>
+                <button type="submit" className="btn btn-primary" disabled={actionLoading}>
+                  {actionLoading ? 'Creando...' : 'Crear Producto'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
