@@ -363,11 +363,10 @@ function StorePageInner() {
               </div>
 
               {/* BENEFITS */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }} className="home-benefits-grid">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px' }} className="home-benefits-grid">
                 {[
                   { icon: ShieldCheck, title: 'Compra segura', desc: 'Tu compra esta protegida', color: '#3B82F6' },
                   { icon: BadgeCheck, title: 'Productos verificados', desc: 'Calidad garantizada en cada producto', color: '#10B981' },
-                  { icon: Headphones, title: 'Soporte 24/7', desc: 'Escanea aqui para ayudarte', color: '#8B5CF6' },
                   { icon: CreditCard, title: 'Pagos seguros', desc: 'Multiples metodos de pago', color: '#F59E0B' },
                 ].map((b, i) => {
                   const Icon = b.icon;

@@ -1497,7 +1497,7 @@ button, input, select, textarea {
   grid-template-columns: repeat(5, 1fr) !important;
 }
 .home-benefits-grid {
-  grid-template-columns: repeat(4, 1fr) !important;
+  grid-template-columns: repeat(3, 1fr) !important;
 }
 .hero-qr-wrap {
   flex: 0 0 280px !important;
