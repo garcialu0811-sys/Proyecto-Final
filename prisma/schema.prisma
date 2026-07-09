@@ -21,6 +21,7 @@ model User {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   sales     Sale[]
+  orders    Order[]
 }
 
 model Role {
@@ -41,8 +42,8 @@ model Permission {
   id        String   @id @default(uuid())
   roleId    String
   role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  module    String   // dashboard, products, categories, inventory, sales, orders, deliveries, users, forum, settings
-  action    String   // view, create, edit, delete, export, moderate, manage_roles
+  module    String
+  action    String
   isEnabled Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -52,7 +53,7 @@ model Permission {
 
 model Sale {
   id          String   @id @default(uuid())
-  productId   String   // ID del producto en MongoDB
+  productId   String
   productName String
   quantity    Int
   price       Float
@@ -64,17 +65,55 @@ model Sale {
 
 model Order {
   id            String   @id @default(uuid())
-  productId     String   // ID del producto en MongoDB
+  orderNumber   String   @unique @default("")
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id])
+  productId     String
   productName   String
   quantity      Int
   price         Float
   total         Float
-  status        String   @default("PENDIENTE") // PENDING, PROCESSING, IN_ROUTE, DELIVERED, CANCELLED
+  status        String   @default("PENDIENTE")
   clientName    String
   clientPhone   String?
   clientAddress String?
-  driverId      String?  // Vendedor o transportista asignado
+  phone         String?
+  address       String?
+  city          String?
+  zone          String?
+  reference     String?
+  paymentMethod String?
+  subtotal      Float?
+  shipping      Float?    @default(0)
+  discount      Float?    @default(0)
+  driverId      String?
   driverName    String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  notes         String?
+  deliveredAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  items         OrderItem[]
+  history       OrderHistory[]
+}
+
+model OrderItem {
+  id          String  @id @default(uuid())
+  orderId     String
+  order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String
+  productName String
+  sku         String?
+  price       Float
+  quantity    Int
+  subtotal    Float
+  image       String?
+}
+
+model OrderHistory {
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status    String
+  note      String?
+  createdAt DateTime @default(now())
 }
