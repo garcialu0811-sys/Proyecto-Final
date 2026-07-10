@@ -151,34 +151,77 @@ function LoginContent() {
             zIndex: 1,
             marginTop: '36px',
             background: '#fff',
-            borderRadius: '14px',
-            padding: '16px',
-            boxShadow: '0 12px 32px rgba(0,0,0,0.12)',
-            maxWidth: '340px'
+            borderRadius: '16px',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.15)',
+            maxWidth: '380px',
+            overflow: 'hidden',
+            border: '1px solid rgba(255,255,255,0.6)'
           }}>
-            {/* Window dots */}
-            <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444' }} />
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b' }} />
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e' }} />
-            </div>
-            {/* Content */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-              <div style={{ background: '#f0fdfa', borderRadius: '8px', padding: '10px' }}>
-                <p style={{ fontSize: '9px', color: '#6b7280', marginBottom: '2px' }}>Ventas del dia</p>
-                <p style={{ fontSize: '15px', fontWeight: 700, color: '#111827' }}>$18,750.00</p>
-                <p style={{ fontSize: '9px', color: '#22c55e', fontWeight: 600 }}>+12.5%</p>
+            {/* Title bar */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderBottom: '1px solid #f1f5f9' }}>
+              <div style={{ display: 'flex', gap: '5px' }}>
+                <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#ef4444' }} />
+                <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#f59e0b' }} />
+                <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e' }} />
               </div>
-              <div style={{ background: '#f0fdfa', borderRadius: '8px', padding: '10px' }}>
-                <p style={{ fontSize: '9px', color: '#6b7280', marginBottom: '2px' }}>Pedidos</p>
-                <p style={{ fontSize: '15px', fontWeight: 700, color: '#111827' }}>124</p>
-                <p style={{ fontSize: '9px', color: '#22c55e', fontWeight: 600 }}>+8.1%</p>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <div style={{ width: '16px', height: '16px', borderRadius: '4px', background: '#0891b2' }} />
+                <div style={{ width: '16px', height: '16px', borderRadius: '4px', background: '#e2e8f0' }} />
+                <div style={{ width: '16px', height: '16px', borderRadius: '4px', background: '#e2e8f0' }} />
               </div>
             </div>
-            <div style={{ marginTop: '10px', background: '#f0fdfa', borderRadius: '8px', padding: '10px' }}>
-              <p style={{ fontSize: '9px', color: '#6b7280', marginBottom: '2px' }}>Clientes</p>
-              <p style={{ fontSize: '15px', fontWeight: 700, color: '#111827' }}>89</p>
-              <p style={{ fontSize: '9px', color: '#22c55e', fontWeight: 600 }}>+5.4%</p>
+            {/* Body */}
+            <div style={{ display: 'flex', minHeight: '180px' }}>
+              {/* Sidebar */}
+              <div style={{ width: '52px', background: '#f8fafc', borderRight: '1px solid #f1f5f9', padding: '12px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: '#0891b2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#fff' }} />
+                </div>
+                {[1,2,3,4,5].map(i => (
+                  <div key={i} style={{ width: '22px', height: '22px', borderRadius: '6px', background: i === 1 ? '#e0f7fa' : '#f1f5f9' }} />
+                ))}
+              </div>
+              {/* Main content */}
+              <div style={{ flex: 1, padding: '14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                {/* Ventas */}
+                <div style={{ background: '#f0fdfa', borderRadius: '10px', padding: '12px' }}>
+                  <p style={{ fontSize: '8px', color: '#6b7280', marginBottom: '4px', fontWeight: 500 }}>Ventas del dia</p>
+                  <p style={{ fontSize: '14px', fontWeight: 700, color: '#111827', marginBottom: '2px' }}>$18,750.00</p>
+                  <p style={{ fontSize: '8px', color: '#22c55e', fontWeight: 600, marginBottom: '6px' }}>+12.5%</p>
+                  {/* Line chart */}
+                  <svg viewBox="0 0 120 30" style={{ width: '100%', height: '24px' }}>
+                    <polyline fill="none" stroke="#0891b2" strokeWidth="1.5" points="0,25 15,20 30,22 45,15 60,18 75,10 90,12 105,5 120,8" />
+                    <polyline fill="url(#grad)" stroke="none" points="0,25 15,20 30,22 45,15 60,18 75,10 90,12 105,5 120,8 120,30 0,30" />
+                    <defs><linearGradient id="grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#0891b2" stopOpacity="0.2"/><stop offset="100%" stopColor="#0891b2" stopOpacity="0"/></linearGradient></defs>
+                  </svg>
+                </div>
+                {/* Pedidos */}
+                <div style={{ background: '#f0fdfa', borderRadius: '10px', padding: '12px' }}>
+                  <p style={{ fontSize: '8px', color: '#6b7280', marginBottom: '4px', fontWeight: 500 }}>Pedidos</p>
+                  <p style={{ fontSize: '14px', fontWeight: 700, color: '#111827', marginBottom: '2px' }}>124</p>
+                  <p style={{ fontSize: '8px', color: '#22c55e', fontWeight: 600, marginBottom: '6px' }}>+8.1%</p>
+                  {/* Bar chart */}
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: '24px' }}>
+                    {[40, 55, 35, 65, 50, 70, 45].map((h, i) => (
+                      <div key={i} style={{ flex: 1, height: `${h}%`, borderRadius: '2px', background: i >= 5 ? '#0891b2' : '#b2ebf2' }} />
+                    ))}
+                  </div>
+                </div>
+                {/* Clientes */}
+                <div style={{ gridColumn: '1 / -1', background: '#f0fdfa', borderRadius: '10px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div>
+                    <p style={{ fontSize: '8px', color: '#6b7280', marginBottom: '4px', fontWeight: 500 }}>Clientes</p>
+                    <p style={{ fontSize: '14px', fontWeight: 700, color: '#111827', marginBottom: '2px' }}>89</p>
+                    <p style={{ fontSize: '8px', color: '#22c55e', fontWeight: 600 }}>+5.4%</p>
+                  </div>
+                  {/* Pie chart */}
+                  <svg viewBox="0 0 36 36" style={{ width: '40px', height: '40px' }}>
+                    <circle cx="18" cy="18" r="14" fill="none" stroke="#e2e8f0" strokeWidth="4" />
+                    <circle cx="18" cy="18" r="14" fill="none" stroke="#0891b2" strokeWidth="4" strokeDasharray="65 100" strokeDashoffset="25" strokeLinecap="round" />
+                    <circle cx="18" cy="18" r="14" fill="none" stroke="#06b6d4" strokeWidth="4" strokeDasharray="25 100" strokeDashoffset="60" strokeLinecap="round" />
+                  </svg>
+                </div>
+              </div>
             </div>
           </div>
         </div>
