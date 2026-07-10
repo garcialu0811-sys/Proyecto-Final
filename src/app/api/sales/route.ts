@@ -3,88 +3,95 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { dbClient } from '@/lib/db/dbClient';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ message: 'No autorizado.' }, { status: 401 });
     }
 
+    const { searchParams } = new URL(request.url);
+    const startParam = searchParams.get('start');
+    const endParam = searchParams.get('end');
+
     const user = session.user as any;
     const allSales = await dbClient.sales.findMany();
     const allOrders = await dbClient.orders.findMany();
     const allUsers = await dbClient.users.findMany();
 
-    const sales = user.role === 'ADMIN'
-      ? allSales
-      : allSales.filter((s: any) => s.sellerId === user.id);
-
     const sellerMap: Record<string, any> = {};
     allUsers.forEach((u: any) => { sellerMap[u.id] = u; });
 
-    // Group individual sale records by sellerId + time window (5s) to reconstruct transactions
-    const sorted = [...sales].sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-    const groups: any[][] = [];
-    let currentGroup: any[] = [];
-    let lastKey = '';
+    const relevantOrders = user.role === 'ADMIN'
+      ? allOrders
+      : allOrders.filter((o: any) => o.driverId === user.id);
 
-    for (const sale of sorted) {
-      const ts = new Date(sale.createdAt).getTime();
-      const key = `${sale.sellerId}-${Math.floor(ts / 5000)}`;
-      if (key !== lastKey && currentGroup.length > 0) {
-        groups.push(currentGroup);
-        currentGroup = [];
-      }
-      currentGroup.push(sale);
-      lastKey = key;
-    }
-    if (currentGroup.length > 0) groups.push(currentGroup);
-
-    // For each group, find matching order for client info
-    const grouped = groups.map((group, idx) => {
-      const first = group[0];
-      const last = group[group.length - 1];
-      const createdAt = new Date(first.createdAt);
-
-      // Find the most recent order from this seller within 10s window
-      const matchingOrder: any = allOrders
-        .filter((o: any) => {
-          const oTime = new Date(o.createdAt).getTime();
-          return o.driverId === first.sellerId &&
-            oTime >= new Date(first.createdAt).getTime() - 2000 &&
-            oTime <= new Date(last.createdAt).getTime() + 10000;
-        })
-        .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0] || null;
-
-      const items = group.map((s: any) => ({
-        productName: s.productName,
-        sku: '',
-        quantity: s.quantity,
-        price: s.price,
-        subtotal: s.total,
-        image: ''
-      }));
-
-      const total = items.reduce((sum: number, i: any) => sum + i.subtotal, 0);
-
-      return {
-        id: first.id,
-        folio: `VTA-${String(idx + 1).padStart(5, '0')}`,
-        date: createdAt.toLocaleDateString('es-GT', { day: '2-digit', month: '2-digit', year: 'numeric' }),
-        time: createdAt.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' }),
-        createdAt: createdAt.toISOString(),
-        sellerName: sellerMap[first.sellerId]?.name || 'Vendedor',
-        sellerId: first.sellerId,
-        clientName: matchingOrder?.clientName || '',
-        clientPhone: matchingOrder?.clientPhone || '',
-        items,
-        subtotal: total,
-        discount: matchingOrder?.discount || 0,
-        total: total - (matchingOrder?.discount || 0),
-        paymentMethod: matchingOrder?.paymentMethod || 'Efectivo',
-        status: 'Completada'
-      };
+    // Filter by date range if provided
+    const filteredOrders = relevantOrders.filter((o: any) => {
+      if (!startParam && !endParam) return true;
+      const orderDate = new Date(o.createdAt);
+      const orderDateStr = `${orderDate.getFullYear()}-${String(orderDate.getMonth() + 1).padStart(2, '0')}-${String(orderDate.getDate()).padStart(2, '0')}`;
+      if (startParam && orderDateStr < startParam) return false;
+      if (endParam && orderDateStr > endParam) return false;
+      return true;
     });
+
+    // Group by Order — each Order represents one transaction
+    const grouped = filteredOrders
+      .filter((o: any) => o.status === 'COMPLETADA' || o.status === 'PENDIENTE')
+      .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .map((order: any, idx: number) => {
+        const orderTime = new Date(order.createdAt);
+
+        // Find Sale records that belong to this Order (same seller, within 30s window)
+        const matchedSales = allSales.filter((s: any) => {
+          const sTime = new Date(s.createdAt).getTime();
+          return s.sellerId === order.driverId &&
+            sTime >= orderTime.getTime() - 2000 &&
+            sTime <= orderTime.getTime() + 30000;
+        });
+
+        // If no matched sales, build items from order data itself
+        const items = matchedSales.length > 0
+          ? matchedSales.map((s: any) => ({
+              productName: s.productName,
+              sku: '',
+              quantity: s.quantity,
+              price: s.price,
+              subtotal: s.total,
+              image: ''
+            }))
+          : [{
+              productName: order.productName,
+              sku: '',
+              quantity: order.quantity,
+              price: order.price,
+              total: order.total,
+              subtotal: order.total,
+              image: ''
+            }];
+
+        const calculatedTotal = items.reduce((sum: number, i: any) => sum + (i.subtotal || 0), 0);
+        const discount = Number(order.discount) || 0;
+
+        return {
+          id: order.id,
+          folio: `VTA-${String(idx + 1).padStart(5, '0')}`,
+          date: orderTime.toLocaleDateString('es-GT', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+          time: orderTime.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' }),
+          createdAt: orderTime.toISOString(),
+          sellerName: sellerMap[order.driverId]?.name || 'Vendedor',
+          sellerId: order.driverId || '',
+          clientName: order.clientName || '',
+          clientPhone: order.clientPhone || '',
+          items,
+          subtotal: calculatedTotal,
+          discount,
+          total: calculatedTotal - discount,
+          paymentMethod: order.paymentMethod || 'Efectivo',
+          status: order.status === 'COMPLETADA' ? 'Completada' : order.status
+        };
+      });
 
     return NextResponse.json(grouped);
   } catch (error) {
@@ -151,7 +158,7 @@ export async function POST(request: Request) {
       createdSales.push(sale);
     }
 
-    // Create a single Order with items relation
+    // Create a single Order
     const now = new Date();
     const orderNumber = `VT-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}${String(now.getSeconds()).padStart(2,'0')}-${Math.floor(1000 + Math.random() * 9000)}`;
 
