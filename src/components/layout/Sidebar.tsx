@@ -15,11 +15,14 @@ import {
   Truck,
   Users,
   ShieldCheck,
-
+  FileText,
+  Receipt,
   Settings,
   LogOut,
   QrCode,
   Bell,
+  PlusCircle,
+  History,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -89,15 +92,21 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
       title: 'VENTAS',
       items: [
         {
-          name: 'Ventas',
-          path: '/sales',
-          icon: DollarSign,
+          name: 'Nueva Venta',
+          path: '/sales/new',
+          icon: PlusCircle,
           roles: ['ADMIN', 'VENDEDOR']
         },
         {
-          name: 'Pedidos',
-          path: '/orders',
-          icon: ShoppingCart,
+          name: 'Historial de Ventas',
+          path: '/sales',
+          icon: History,
+          roles: ['ADMIN', 'VENDEDOR']
+        },
+        {
+          name: 'Recibos',
+          path: '/sales/receipts',
+          icon: Receipt,
           roles: ['ADMIN', 'VENDEDOR']
         },
         {
