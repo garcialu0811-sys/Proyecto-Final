@@ -1,193 +1,330 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { signIn, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { signIn } from 'next-auth/react';
-import { QrCode, Mail, Lock, User as UserIcon, UserPlus } from 'lucide-react';
+import {
+  Mail, Lock, Eye, EyeOff, User, Phone, Shield, Zap, BarChart3,
+  UserPlus, AlertCircle, ShoppingBag
+} from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
 
-export default function RegisterPage() {
+function GoogleIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
+      <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
+      <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
+      <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
+      <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
+    </svg>
+  );
+}
+
+function RegisterContent() {
+  const { data: session, status } = useSession();
   const router = useRouter();
   const { showToast } = useToast();
-  
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (status === 'authenticated' && session) {
+      router.push('/dashboard');
+    }
+  }, [status, session, router]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !email || !password || !confirmPassword) {
-      showToast('Por favor, completa todos los campos.', 'warning');
+    if (!form.name || !form.email || !form.password) {
+      showToast('Por favor, completa todos los campos obligatorios.', 'warning');
       return;
     }
-
-    if (password !== confirmPassword) {
-      showToast('Las contraseñas no coinciden.', 'error');
+    if (form.password.length < 6) {
+      showToast('La contrasena debe tener al menos 6 caracteres.', 'warning');
       return;
     }
-
-    if (password.length < 4) {
-      showToast('La contraseña debe tener al menos 4 caracteres.', 'warning');
+    if (form.password !== form.confirmPassword) {
+      showToast('Las contrasenas no coinciden.', 'warning');
       return;
     }
-
-    setLoading(true);
+    setIsLoading(true);
+    setError('');
     try {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name: form.name, email: form.email, password: form.password }),
       });
-
       const data = await res.json();
-
       if (!res.ok) {
-        showToast(data.message || 'Error en el registro', 'error');
+        setError(data.message || 'Error al registrar.');
+        showToast(data.message || 'Error al registrar', 'error');
+        return;
+      }
+      showToast('Cuenta creada exitosamente!', 'success');
+      const signInResult = await signIn('credentials', {
+        email: form.email,
+        password: form.password,
+        redirect: false,
+        callbackUrl: '/dashboard',
+      });
+      if (signInResult?.ok) {
+        showToast('Inicio de sesion exitoso!', 'success');
+        router.push('/dashboard');
       } else {
-        showToast('¡Registro exitoso! Ya puedes iniciar sesión.', 'success');
         router.push('/login');
       }
-    } catch (err) {
-      showToast('Ocurrió un error al registrarse.', 'error');
+    } catch {
+      setError('Error al conectar con el servidor.');
+      showToast('Error al conectar con el servidor', 'error');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleSignIn = () => {
     signIn('google', { callbackUrl: '/dashboard' });
   };
 
-  return (
-    <div className="auth-wrapper">
-      <div className="auth-card" style={{ maxWidth: '480px' }}>
-        <div className="auth-logo" style={{ flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
-          <img src="/logo.png" alt="Variedades Coatán" style={{ width: '64px', height: '64px', borderRadius: '14px', objectFit: 'contain' }} />
-          <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--accent)', whiteSpace: 'nowrap' }}>Variedades Coatán</span>
-        </div>
-
-        <h1 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '8px', textAlign: 'center' }}>
-          Crear una cuenta
-        </h1>
-        <p style={{ fontSize: '14px', color: 'var(--text-secondary)', textAlign: 'center', marginBottom: '24px' }}>
-          Registrate para comenzar a pedir o comprar.
-        </p>
-
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label" htmlFor="name">Nombre Completo</label>
-            <div style={{ position: 'relative' }}>
-              <UserIcon size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-light)' }} />
-              <input
-                id="name"
-                type="text"
-                className="form-control"
-                placeholder="Juan Pérez"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                style={{ paddingLeft: '40px' }}
-                disabled={loading}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label" htmlFor="email">Correo Electrónico</label>
-            <div style={{ position: 'relative' }}>
-              <Mail size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-light)' }} />
-              <input
-                id="email"
-                type="email"
-                className="form-control"
-                placeholder="correo@ejemplo.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                style={{ paddingLeft: '40px' }}
-                disabled={loading}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label" htmlFor="password">Contraseña</label>
-            <div style={{ position: 'relative' }}>
-              <Lock size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-light)' }} />
-              <input
-                id="password"
-                type="password"
-                className="form-control"
-                placeholder="Mínimo 4 caracteres"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{ paddingLeft: '40px' }}
-                disabled={loading}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label" htmlFor="confirmPassword">Confirmar Contraseña</label>
-            <div style={{ position: 'relative' }}>
-              <Lock size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-light)' }} />
-              <input
-                id="confirmPassword"
-                type="password"
-                className="form-control"
-                placeholder="Repite tu contraseña"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                style={{ paddingLeft: '40px' }}
-                disabled={loading}
-                required
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className="btn btn-primary"
-            style={{ width: '100%', marginTop: '10px' }}
-            disabled={loading}
-          >
-            {loading ? 'Registrando...' : 'Registrarse'}
-            {!loading && <UserPlus size={18} />}
-          </button>
-        </form>
-
-        <div style={{ margin: '20px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-          <div style={{ height: '1px', backgroundColor: 'var(--border)', flex: 1 }}></div>
-          <span style={{ fontSize: '12px', color: 'var(--text-light)' }}>O CONTINÚA CON</span>
-          <div style={{ height: '1px', backgroundColor: 'var(--border)', flex: 1 }}></div>
-        </div>
-
-        <button
-          onClick={handleGoogleLogin}
-          className="btn btn-secondary"
-          style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '8px' }}
-          disabled={loading}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
-          </svg>
-          Google
-        </button>
-
-        <p style={{ fontSize: '14px', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '24px' }}>
-          ¿Ya tienes cuenta?{' '}
-          <Link href="/login" style={{ color: 'var(--accent)', fontWeight: 600 }}>
-            Inicia sesión aquí
-          </Link>
-        </p>
+  if (status === 'loading') {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)' }}>
+        <div style={{ width: '40px', height: '40px', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
       </div>
+    );
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #f0f9ff 0%, #ffffff 50%, #eff6ff 100%)', padding: '16px' }}>
+      <div className="auth-grid" style={{ width: '100%', maxWidth: '1050px', background: '#fff', borderRadius: '24px', boxShadow: '0 25px 60px rgba(0,0,0,0.08)', overflow: 'hidden', display: 'grid', gridTemplateColumns: '1fr 1fr', border: '1px solid #e5e7eb' }}>
+        {/* Hero Left */}
+        <div className="auth-hero" style={{ background: 'linear-gradient(160deg, #f0fdfa 0%, #e0f7fa 30%, #b2ebf2 70%, #0891b2 100%)', padding: '48px 40px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', overflow: 'hidden', minHeight: '720px' }}>
+          <div style={{ position: 'absolute', top: '-60px', right: '-60px', width: '200px', height: '200px', borderRadius: '50%', background: 'rgba(8,145,178,0.08)' }} />
+          <div style={{ position: 'absolute', bottom: '-40px', left: '-40px', width: '160px', height: '160px', borderRadius: '50%', background: 'rgba(8,145,178,0.06)' }} />
+
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <img src="/logo.png" alt="Variedades Coatan" style={{ width: '72px', height: '72px', borderRadius: '16px', objectFit: 'contain', marginBottom: '24px', background: '#fff', padding: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }} />
+            <h1 style={{ fontSize: '15px', color: '#374151', fontWeight: 500, marginBottom: '4px' }}>Bienvenido a</h1>
+            <h2 style={{ fontSize: '30px', fontWeight: 800, color: '#0891b2', marginBottom: '16px', lineHeight: 1.2 }}>Variedades Coatan</h2>
+            <p style={{ fontSize: '14px', color: '#4b5563', lineHeight: 1.7, maxWidth: '320px' }}>Crea tu cuenta y empieza a gestionar tu negocio de forma inteligente con nuestra plataforma.</p>
+
+            <div style={{ display: 'flex', gap: '16px', marginTop: '32px' }}>
+              {[
+                { icon: <Shield size={22} />, title: 'Seguridad', desc: 'Protegemos tu informacion' },
+                { icon: <Zap size={22} />, title: 'Rapidez', desc: 'Todo al alcance de un clic' },
+                { icon: <BarChart3 size={22} />, title: 'Eficiencia', desc: 'Gestiona y haz crecer tu negocio' },
+              ].map((b, i) => (
+                <div key={i} style={{ flex: 1, background: 'rgba(255,255,255,0.7)', borderRadius: '12px', padding: '16px 12px', textAlign: 'center', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.5)' }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#e0f7fa', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px', color: '#0891b2' }}>{b.icon}</div>
+                  <p style={{ fontSize: '12px', fontWeight: 700, color: '#111827', marginBottom: '2px' }}>{b.title}</p>
+                  <p style={{ fontSize: '10px', color: '#6b7280' }}>{b.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ position: 'relative', zIndex: 1, marginTop: '32px', background: '#fff', borderRadius: '12px', padding: '16px', boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444' }} />
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b' }} />
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e' }} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              <div style={{ background: '#f0fdfa', borderRadius: '8px', padding: '10px' }}>
+                <p style={{ fontSize: '9px', color: '#6b7280' }}>Ventas del dia</p>
+                <p style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>Q18,750.00</p>
+              </div>
+              <div style={{ background: '#f0fdfa', borderRadius: '8px', padding: '10px' }}>
+                <p style={{ fontSize: '9px', color: '#6b7280' }}>Pedidos</p>
+                <p style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>124</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Form Right */}
+        <div className="auth-form" style={{ padding: '48px 40px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div style={{ maxWidth: '380px', margin: '0 auto', width: '100%' }}>
+            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+              <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#e0f7fa', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                <UserPlus size={26} style={{ color: '#0891b2' }} />
+              </div>
+              <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#111827', marginBottom: '4px' }}>Crear cuenta</h2>
+              <p style={{ fontSize: '13px', color: '#6b7280' }}>Completa el formulario para registrarte</p>
+            </div>
+
+            {error && (
+              <div style={{ marginBottom: '16px', padding: '12px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                <AlertCircle size={16} style={{ color: '#ef4444', flexShrink: 0, marginTop: '2px' }} />
+                <p style={{ fontSize: '13px', color: '#dc2626' }}>{error}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit}>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Nombre *</label>
+                <div style={{ position: 'relative' }}>
+                  <User size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
+                  <input
+                    type="text"
+                    name="name"
+                    value={form.name}
+                    onChange={handleChange}
+                    placeholder="Tu nombre completo"
+                    required
+                    style={{ width: '100%', paddingLeft: '38px', paddingRight: '12px', paddingTop: '10px', paddingBottom: '10px', border: '1px solid #d1d5db', borderRadius: '10px', fontSize: '14px', outline: 'none', transition: 'border 0.2s', boxSizing: 'border-box' }}
+                    onFocus={(e) => e.currentTarget.style.borderColor = '#0891b2'}
+                    onBlur={(e) => e.currentTarget.style.borderColor = '#d1d5db'}
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Correo electronico *</label>
+                <div style={{ position: 'relative' }}>
+                  <Mail size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
+                  <input
+                    type="email"
+                    name="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    placeholder="tu@email.com"
+                    required
+                    style={{ width: '100%', paddingLeft: '38px', paddingRight: '12px', paddingTop: '10px', paddingBottom: '10px', border: '1px solid #d1d5db', borderRadius: '10px', fontSize: '14px', outline: 'none', transition: 'border 0.2s', boxSizing: 'border-box' }}
+                    onFocus={(e) => e.currentTarget.style.borderColor = '#0891b2'}
+                    onBlur={(e) => e.currentTarget.style.borderColor = '#d1d5db'}
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Telefono</label>
+                <div style={{ position: 'relative' }}>
+                  <Phone size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={form.phone}
+                    onChange={handleChange}
+                    placeholder="1234-5678"
+                    style={{ width: '100%', paddingLeft: '38px', paddingRight: '12px', paddingTop: '10px', paddingBottom: '10px', border: '1px solid #d1d5db', borderRadius: '10px', fontSize: '14px', outline: 'none', transition: 'border 0.2s', boxSizing: 'border-box' }}
+                    onFocus={(e) => e.currentTarget.style.borderColor = '#0891b2'}
+                    onBlur={(e) => e.currentTarget.style.borderColor = '#d1d5db'}
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Contrasena *</label>
+                <div style={{ position: 'relative' }}>
+                  <Lock size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    value={form.password}
+                    onChange={handleChange}
+                    placeholder="Minimo 6 caracteres"
+                    required
+                    style={{ width: '100%', paddingLeft: '38px', paddingRight: '40px', paddingTop: '10px', paddingBottom: '10px', border: '1px solid #d1d5db', borderRadius: '10px', fontSize: '14px', outline: 'none', transition: 'border 0.2s', boxSizing: 'border-box' }}
+                    onFocus={(e) => e.currentTarget.style.borderColor = '#0891b2'}
+                    onBlur={(e) => e.currentTarget.style.borderColor = '#d1d5db'}
+                  />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: '4px' }}>
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Confirmar contrasena *</label>
+                <div style={{ position: 'relative' }}>
+                  <Lock size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    name="confirmPassword"
+                    value={form.confirmPassword}
+                    onChange={handleChange}
+                    placeholder="Repite tu contrasena"
+                    required
+                    style={{ width: '100%', paddingLeft: '38px', paddingRight: '40px', paddingTop: '10px', paddingBottom: '10px', border: '1px solid #d1d5db', borderRadius: '10px', fontSize: '14px', outline: 'none', transition: 'border 0.2s', boxSizing: 'border-box' }}
+                    onFocus={(e) => e.currentTarget.style.borderColor = '#0891b2'}
+                    onBlur={(e) => e.currentTarget.style.borderColor = '#d1d5db'}
+                  />
+                  <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: '4px' }}>
+                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                style={{
+                  width: '100%', padding: '12px', background: 'linear-gradient(135deg, #0891b2, #06b6d4)', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: 600, cursor: isLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: isLoading ? 0.7 : 1, transition: 'all 0.2s',
+                }}
+              >
+                {isLoading ? (
+                  <div style={{ width: '18px', height: '18px', border: '2px solid #fff', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                ) : (
+                  <>
+                    Crear mi cuenta
+                    <UserPlus size={16} />
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '20px 0' }}>
+              <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
+              <span style={{ fontSize: '12px', color: '#9ca3af' }}>o continua con</span>
+              <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
+            </div>
+
+            <button
+              onClick={handleGoogleSignIn}
+              disabled={isLoading}
+              style={{
+                width: '100%', padding: '11px', background: '#fff', border: '1px solid #d1d5db', borderRadius: '10px', fontSize: '14px', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', color: '#374151', transition: 'background 0.2s',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
+              onMouseLeave={(e) => e.currentTarget.style.background = '#fff'}
+            >
+              <GoogleIcon size={18} />
+              Continuar con Google
+            </button>
+
+            <p style={{ textAlign: 'center', fontSize: '13px', color: '#6b7280', marginTop: '20px' }}>
+              Ya tienes cuenta?{' '}
+              <Link href="/login" style={{ color: '#0891b2', fontWeight: 600, textDecoration: 'none' }}>Inicia sesion aqui</Link>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+      `}</style>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: '40px', height: '40px', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+      </div>
+    }>
+      <RegisterContent />
+    </Suspense>
   );
 }

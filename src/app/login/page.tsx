@@ -1,32 +1,45 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
 import { signIn, useSession } from 'next-auth/react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { QrCode, Mail, Lock, LogIn } from 'lucide-react';
+import {
+  Mail, Lock, Eye, EyeOff, Shield, Zap, BarChart3,
+  LogIn, AlertCircle, ShoppingBag, KeyRound
+} from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
 
+function GoogleIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
+      <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
+      <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
+      <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
+      <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
+    </svg>
+  );
+}
+
 function LoginContent() {
+  const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: session, status } = useSession();
   const { showToast } = useToast();
-  
+  const callbackUrl = searchParams?.get('callbackUrl') || '/dashboard';
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    if (status === 'authenticated') {
+    if (status === 'authenticated' && session) {
       router.push('/dashboard');
     }
-    
-    const error = searchParams.get('error');
-    if (error) {
-      showToast('Credenciales incorrectas o error de inicio de sesión.', 'error');
-    }
-  }, [status, router, searchParams, showToast]);
+  }, [status, session, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,142 +47,256 @@ function LoginContent() {
       showToast('Por favor, completa todos los campos.', 'warning');
       return;
     }
-
-    setLoading(true);
+    setIsLoading(true);
+    setError('');
     try {
-      const res = await signIn('credentials', {
+      const result = await signIn('credentials', {
         email,
         password,
         redirect: false,
+        callbackUrl,
       });
-
-      if (res?.error) {
-        showToast(res.error || 'Credenciales inválidas', 'error');
-      } else {
-        showToast('¡Inicio de sesión exitoso!', 'success');
-        router.push('/dashboard');
-        router.refresh();
+      if (result?.error) {
+        setError('Credenciales invalidas. Verifica tu email y contrasena.');
+        showToast('Credenciales invalidas', 'error');
+      } else if (result?.ok) {
+        showToast('Inicio de sesion exitoso!', 'success');
+        router.push(callbackUrl);
       }
-    } catch (err) {
-      showToast('Ocurrió un error inesperado.', 'error');
+    } catch {
+      setError('Error al iniciar sesion. Intenta nuevamente.');
+      showToast('Error al iniciar sesion', 'error');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleSignIn = () => {
     signIn('google', { callbackUrl: '/dashboard' });
   };
 
+  const handleDemoLogin = (demoEmail: string, demoPassword: string) => {
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+  };
+
+  if (status === 'loading') {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)' }}>
+        <div style={{ width: '40px', height: '40px', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+      </div>
+    );
+  }
+
   return (
-    <div className="auth-card">
-      <div className="auth-logo" style={{ flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
-        <img src="/logo.png" alt="Variedades Coatán" style={{ width: '64px', height: '64px', borderRadius: '14px', objectFit: 'contain' }} />
-        <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--accent)', whiteSpace: 'nowrap' }}>Variedades Coatán</span>
-      </div>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #f0f9ff 0%, #ffffff 50%, #eff6ff 100%)', padding: '16px' }}>
+      <div className="auth-grid" style={{ width: '100%', maxWidth: '1050px', background: '#fff', borderRadius: '24px', boxShadow: '0 25px 60px rgba(0,0,0,0.08)', overflow: 'hidden', display: 'grid', gridTemplateColumns: '1fr 1fr', border: '1px solid #e5e7eb' }}>
+        {/* Hero Left */}
+        <div className="auth-hero" style={{ background: 'linear-gradient(160deg, #f0fdfa 0%, #e0f7fa 30%, #b2ebf2 70%, #0891b2 100%)', padding: '48px 40px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', overflow: 'hidden', minHeight: '680px' }}>
+          {/* Decorations */}
+          <div style={{ position: 'absolute', top: '-60px', right: '-60px', width: '200px', height: '200px', borderRadius: '50%', background: 'rgba(8,145,178,0.08)' }} />
+          <div style={{ position: 'absolute', bottom: '-40px', left: '-40px', width: '160px', height: '160px', borderRadius: '50%', background: 'rgba(8,145,178,0.06)' }} />
 
-      <h1 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '8px', textAlign: 'center' }}>
-        ¡Bienvenido de nuevo!
-      </h1>
-      <p style={{ fontSize: '14px', color: 'var(--text-secondary)', textAlign: 'center', marginBottom: '24px' }}>
-        Ingresa tus credenciales para acceder al sistema.
-      </p>
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <img src="/logo.png" alt="Variedades Coatan" style={{ width: '72px', height: '72px', borderRadius: '16px', objectFit: 'contain', marginBottom: '24px', background: '#fff', padding: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }} />
+            <h1 style={{ fontSize: '15px', color: '#374151', fontWeight: 500, marginBottom: '4px' }}>Bienvenido a</h1>
+            <h2 style={{ fontSize: '30px', fontWeight: 800, color: '#0891b2', marginBottom: '16px', lineHeight: 1.2 }}>Variedades Coatan</h2>
+            <p style={{ fontSize: '14px', color: '#4b5563', lineHeight: 1.7, maxWidth: '320px' }}>Tu plataforma inteligente para gestionar productos, pedidos y clientes de forma facil, rapida y segura.</p>
 
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label className="form-label" htmlFor="email">Correo Electrónico</label>
-          <div style={{ position: 'relative' }}>
-            <Suspense fallback={null}>
-              <Mail size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-light)' }} />
-            </Suspense>
-            <input
-              id="email"
-              type="email"
-              className="form-control"
-              placeholder="ejemplo@qrshop.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              style={{ paddingLeft: '40px' }}
-              disabled={loading}
-              required
-            />
+            {/* Benefits */}
+            <div style={{ display: 'flex', gap: '16px', marginTop: '32px' }}>
+              {[
+                { icon: <Shield size={22} />, title: 'Seguridad', desc: 'Protegemos tu informacion' },
+                { icon: <Zap size={22} />, title: 'Rapidez', desc: 'Todo al alcance de un clic' },
+                { icon: <BarChart3 size={22} />, title: 'Eficiencia', desc: 'Gestiona y haz crecer tu negocio' },
+              ].map((b, i) => (
+                <div key={i} style={{ flex: 1, background: 'rgba(255,255,255,0.7)', borderRadius: '12px', padding: '16px 12px', textAlign: 'center', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.5)' }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#e0f7fa', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px', color: '#0891b2' }}>{b.icon}</div>
+                  <p style={{ fontSize: '12px', fontWeight: 700, color: '#111827', marginBottom: '2px' }}>{b.title}</p>
+                  <p style={{ fontSize: '10px', color: '#6b7280' }}>{b.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Dashboard preview mockup */}
+          <div style={{ position: 'relative', zIndex: 1, marginTop: '32px', background: '#fff', borderRadius: '12px', padding: '16px', boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444' }} />
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b' }} />
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e' }} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              <div style={{ background: '#f0fdfa', borderRadius: '8px', padding: '10px' }}>
+                <p style={{ fontSize: '9px', color: '#6b7280' }}>Ventas del dia</p>
+                <p style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>Q18,750.00</p>
+              </div>
+              <div style={{ background: '#f0fdfa', borderRadius: '8px', padding: '10px' }}>
+                <p style={{ fontSize: '9px', color: '#6b7280' }}>Pedidos</p>
+                <p style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>124</p>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="form-group">
-          <label className="form-label" htmlFor="password">Contraseña</label>
-          <div style={{ position: 'relative' }}>
-            <Suspense fallback={null}>
-              <Lock size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-light)' }} />
-            </Suspense>
-            <input
-              id="password"
-              type="password"
-              className="form-control"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              style={{ paddingLeft: '40px' }}
-              disabled={loading}
-              required
-            />
+        {/* Form Right */}
+        <div className="auth-form" style={{ padding: '48px 40px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div style={{ maxWidth: '380px', margin: '0 auto', width: '100%' }}>
+            {/* Icon */}
+            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+              <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#e0f7fa', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                <KeyRound size={26} style={{ color: '#0891b2' }} />
+              </div>
+              <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#111827', marginBottom: '4px' }}>Iniciar sesion</h2>
+              <p style={{ fontSize: '13px', color: '#6b7280' }}>Ingresa tus credenciales para acceder al sistema</p>
+            </div>
+
+            {/* Error */}
+            {error && (
+              <div style={{ marginBottom: '16px', padding: '12px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                <AlertCircle size={16} style={{ color: '#ef4444', flexShrink: 0, marginTop: '2px' }} />
+                <p style={{ fontSize: '13px', color: '#dc2626' }}>{error}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit}>
+              {/* Email */}
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Correo electronico</label>
+                <div style={{ position: 'relative' }}>
+                  <Mail size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="vendedor@qrshop.com"
+                    required
+                    style={{ width: '100%', paddingLeft: '38px', paddingRight: '12px', paddingTop: '10px', paddingBottom: '10px', border: '1px solid #d1d5db', borderRadius: '10px', fontSize: '14px', outline: 'none', transition: 'border 0.2s', boxSizing: 'border-box' }}
+                    onFocus={(e) => e.currentTarget.style.borderColor = '#0891b2'}
+                    onBlur={(e) => e.currentTarget.style.borderColor = '#d1d5db'}
+                  />
+                </div>
+              </div>
+
+              {/* Password */}
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Contrasena</label>
+                <div style={{ position: 'relative' }}>
+                  <Lock size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    style={{ width: '100%', paddingLeft: '38px', paddingRight: '40px', paddingTop: '10px', paddingBottom: '10px', border: '1px solid #d1d5db', borderRadius: '10px', fontSize: '14px', outline: 'none', transition: 'border 0.2s', boxSizing: 'border-box' }}
+                    onFocus={(e) => e.currentTarget.style.borderColor = '#0891b2'}
+                    onBlur={(e) => e.currentTarget.style.borderColor = '#d1d5db'}
+                  />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: '4px' }}>
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Remember + Forgot */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#4b5563', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    style={{ width: '16px', height: '16px', accentColor: '#0891b2', cursor: 'pointer' }}
+                  />
+                  Recordarme
+                </label>
+                <Link href="/forgot-password" style={{ fontSize: '13px', color: '#0891b2', textDecoration: 'none', fontWeight: 500 }}>
+                  Olvidaste tu contrasena?
+                </Link>
+              </div>
+
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={isLoading}
+                style={{
+                  width: '100%', padding: '12px', background: 'linear-gradient(135deg, #0891b2, #06b6d4)', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: 600, cursor: isLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: isLoading ? 0.7 : 1, transition: 'all 0.2s',
+                }}
+              >
+                {isLoading ? (
+                  <div style={{ width: '18px', height: '18px', border: '2px solid #fff', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                ) : (
+                  <>
+                    Iniciar sesion
+                    <LogIn size={16} />
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* Divider */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '20px 0' }}>
+              <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
+              <span style={{ fontSize: '12px', color: '#9ca3af' }}>o continua con</span>
+              <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
+            </div>
+
+            {/* Google */}
+            <button
+              onClick={handleGoogleSignIn}
+              disabled={isLoading}
+              style={{
+                width: '100%', padding: '11px', background: '#fff', border: '1px solid #d1d5db', borderRadius: '10px', fontSize: '14px', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', color: '#374151', transition: 'background 0.2s',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
+              onMouseLeave={(e) => e.currentTarget.style.background = '#fff'}
+            >
+              <GoogleIcon size={18} />
+              Continuar con Google
+            </button>
+
+            {/* Register link */}
+            <p style={{ textAlign: 'center', fontSize: '13px', color: '#6b7280', marginTop: '20px' }}>
+              No tienes cuenta?{' '}
+              <Link href="/register" style={{ color: '#0891b2', fontWeight: 600, textDecoration: 'none' }}>Registrate aqui</Link>
+            </p>
+
+            {/* Demo credentials */}
+            <div style={{ marginTop: '24px', padding: '16px', background: '#f0fdfa', border: '1px solid #ccfbf1', borderRadius: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: '#ccfbf1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <KeyRound size={14} style={{ color: '#0891b2' }} />
+                </div>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: '#0f766e' }}>Credenciales de prueba</span>
+              </div>
+              <div style={{ fontSize: '12px', color: '#4b5563', lineHeight: 1.8 }}>
+                <button onClick={() => handleDemoLogin('admin@qrshop.com', 'admin123')} style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#4b5563', padding: '2px 0', fontFamily: 'inherit' }}>
+                  <strong>Admin:</strong> admin@qrshop.com / admin123
+                </button>
+                <button onClick={() => handleDemoLogin('vendedor@qrshop.com', 'vendedor123')} style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#4b5563', padding: '2px 0', fontFamily: 'inherit' }}>
+                  <strong>Vendedor:</strong> vendedor@qrshop.com / vendedor123
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-
-        <button
-          type="submit"
-          className="btn btn-primary"
-          style={{ width: '100%', marginTop: '10px' }}
-          disabled={loading}
-        >
-          {loading ? 'Cargando...' : 'Iniciar Sesión'}
-          {!loading && <LogIn size={18} />}
-        </button>
-      </form>
-
-      <div style={{ margin: '20px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-        <div style={{ height: '1px', backgroundColor: 'var(--border)', flex: 1 }}></div>
-        <span style={{ fontSize: '12px', color: 'var(--text-light)' }}>O CONTINÚA CON</span>
-        <div style={{ height: '1px', backgroundColor: 'var(--border)', flex: 1 }}></div>
       </div>
 
-      <button
-        onClick={handleGoogleLogin}
-        className="btn btn-secondary"
-        style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '8px' }}
-        disabled={loading}
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
-          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
-        </svg>
-        Google
-      </button>
-
-      <p style={{ fontSize: '14px', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '24px' }}>
-        ¿No tienes cuenta?{' '}
-        <Link href="/register" style={{ color: 'var(--accent)', fontWeight: 600 }}>
-          Regístrate aquí
-        </Link>
-      </p>
-
-      <div style={{ marginTop: '16px', padding: '12px', backgroundColor: 'var(--bg-primary)', borderRadius: 'var(--radius-sm)', fontSize: '11px' }}>
-        <p style={{ fontWeight: 600, marginBottom: '4px' }}>Credenciales de prueba:</p>
-        <p>• Admin: <b>admin@qrshop.com</b> / <b>admin123</b></p>
-        <p>• Vendedor: <b>vendedor@qrshop.com</b> / <b>vendedor123</b></p>
-      </div>
+      <style>{`
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+      `}</style>
     </div>
   );
 }
 
 export default function LoginPage() {
   return (
-    <div className="auth-wrapper">
-      <Suspense fallback={<div className="text-center">Cargando...</div>}>
-        <LoginContent />
-      </Suspense>
-    </div>
+    <Suspense fallback={
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: '40px', height: '40px', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }

@@ -1398,6 +1398,17 @@ button, input, select, textarea {
     padding: 24px;
   }
 
+  /* Auth 2-col responsive */
+  .auth-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .auth-grid .auth-hero {
+    display: none !important;
+  }
+  .auth-grid .auth-form {
+    padding: 32px 24px !important;
+  }
+
   /* Form 2-col stack */
   .form-grid-2 {
     grid-template-columns: 1fr !important;
