@@ -42,7 +42,7 @@ export default function CategoriesPage() {
   const router = useRouter();
   const { showToast } = useToast();
   const user = session?.user as any;
-  const role = user?.role || 'CLIENTE';
+  const role = user?.role || 'VENDEDOR';
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [metrics, setMetrics] = useState({ totalCategories: 0, activeCategories: 0, totalProducts: 0, mostUsedCategory: 'N/A', mostUsedCount: 0 });
@@ -80,7 +80,7 @@ export default function CategoriesPage() {
 
   useEffect(() => {
     if (status === 'unauthenticated') { router.push('/login'); return; }
-    if (status === 'authenticated' && role === 'CLIENTE') { router.push('/store'); return; }
+    
     if (session) fetchCategories();
   }, [session, status, role, fetchCategories]);
 

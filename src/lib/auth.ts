@@ -66,7 +66,7 @@ export const authOptions: AuthOptions = {
             email,
             name: user.name || email.split('@')[0],
             password: '',
-            role: 'CLIENTE',
+            role: 'VENDEDOR',
           });
           (user as any).id = newUser.id;
           (user as any).role = newUser.role;

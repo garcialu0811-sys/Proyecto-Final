@@ -14,7 +14,6 @@
 *   **Control de Acceso por Roles (RBAC)**:
     *   `ADMIN`: Control total. CRUD de productos (con eliminación), moderación del foro, gestión y reasignación de roles y visualización de analíticas globales.
     *   `VENDEDOR`: Puede escanear códigos QR, actualizar el precio y las existencias (pero no eliminar productos), registrar ventas, gestionar entregas y ver sus propias analíticas de ventas.
-    *   `CLIENTE`: Acceso únicamente al catálogo público de productos y participación activa en el foro comunitario.
 *   **Arquitectura Dual de Base de Datos (Producción vs Local Fallback)**:
     *   **SQL (PostgreSQL)**: Gestiona usuarios, ventas y pedidos (Prisma ORM).
     *   **NoSQL (MongoDB)**: Gestiona productos, inventario y comentarios/respuestas del foro (Mongoose).
@@ -44,7 +43,6 @@ El sistema viene precargado con tres usuarios para probar los diferentes niveles
 | :--- | :--- | :--- | :--- |
 | **Administrador** | `admin@qrshop.com` | `admin123` | Control total, CRUD productos, gestión de roles y moderación. |
 | **Vendedor** | `vendedor@qrshop.com` | `vendedor123` | Escanear QR, registrar ventas, cambiar precios/stock, entregas. |
-| **Cliente** | `cliente@qrshop.com` | `cliente123` | Ver catálogo de productos, descargar QR, escribir en el foro. |
 
 ---
 
@@ -99,7 +97,6 @@ cp .env.example .env
 ```
 *Nota: Por defecto, `LOCAL_DEV_FALLBACK=true` está configurado para que no necesites conectar bases de datos externas de Supabase o MongoDB Atlas inmediatamente.*
 
-### 4. Generar el Cliente de Prisma
 Compila los modelos del ORM para utilizarlos localmente:
 ```bash
 npx prisma generate

@@ -14,7 +14,7 @@ model User {
   email           String    @unique
   password        String
   name            String
-  role            String    @default("VENDEDOR") // ADMIN, VENDEDOR, CLIENTE
+  role            String    @default("VENDEDOR") // ADMIN, VENDEDOR
   phone           String?
   isActive        Boolean   @default(true)
   lastLogin       DateTime?

@@ -15,14 +15,6 @@
       "name": "Carlos Vendedor",
       "role": "VENDEDOR",
       "createdAt": "2026-07-07T17:17:02.268Z"
-    },
-    {
-      "id": "user-cliente",
-      "email": "cliente@qrshop.com",
-      "password": "cliente123",
-      "name": "Juan Cliente",
-      "role": "CLIENTE",
-      "createdAt": "2026-07-07T17:17:02.268Z"
     }
   ],
   "sales": [
@@ -317,8 +309,8 @@
       "title": "Excelente servicio y productos",
       "content": "Acabo de comprar el monitor de 27 pulgadas y es increíble. La tasa de refresco se nota de inmediato. ¿Alguien más lo ha probado?",
       "category": "RESENA",
-      "authorId": "user-cliente",
-      "authorName": "Juan Cliente",
+      "authorId": "user-vendedor",
+      "authorName": "Carlos Vendedor",
       "createdAt": "2026-07-05T17:17:02.269Z",
       "isHidden": false,
       "likes": [
@@ -361,8 +353,8 @@
     {
       "postId": "post-4dges6c0q",
       "content": "Mejorar tiempo",
-      "authorId": "user-cliente",
-      "authorName": "Juan Cliente",
+      "authorId": "user-vendedor",
+      "authorName": "Carlos Vendedor",
       "id": "rep-m47hxykcl",
       "isHidden": false,
       "createdAt": "2026-07-07T21:58:02.523Z"

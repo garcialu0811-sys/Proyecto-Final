@@ -5,14 +5,13 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { User, Mail, Lock, Shield, Save, Bell, Palette, Globe, Settings } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
-import ClientLayout from '@/components/store/ClientLayout';
 
 export default function ProfilePage() {
   const { data: session, status, update } = useSession();
   const router = useRouter();
   const { showToast } = useToast();
   const currentUser = session?.user as any;
-  const role = currentUser?.role || 'CLIENTE';
+  const role = currentUser?.role || 'VENDEDOR';
 
   const [profileName, setProfileName] = useState('');
   const [profileEmail, setProfileEmail] = useState('');
@@ -110,11 +109,9 @@ export default function ProfilePage() {
 
   if (status === 'loading') {
     return (
-      <ClientLayout>
-        <div style={{ padding: '40px 16px', textAlign: 'center' }}>
-          <div style={{ display: 'inline-block', width: '40px', height: '40px', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-        </div>
-      </ClientLayout>
+      <div style={{ padding: '40px 16px', textAlign: 'center' }}>
+        <div style={{ display: 'inline-block', width: '40px', height: '40px', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+      </div>
     );
   }
 
@@ -123,7 +120,11 @@ export default function ProfilePage() {
     : { editProfile: 'Editar Perfil', changePassword: 'Cambiar Contraseña', preferences: 'Preferencias', fullName: 'Nombre Completo', email: 'Correo Electrónico', role: 'Rol', saveProfile: 'Guardar Perfil', currentPass: 'Contraseña Actual', newPass: 'Nueva Contraseña', confirmPass: 'Confirmar Nueva Contraseña', changePass: 'Cambiar Contraseña', notifs: 'Notificaciones por Email', activated: 'Activadas', deactivated: 'Desactivadas', themeLabel: 'Tema', light: 'Claro', dark: 'Oscuro', languageLabel: 'Idioma', savePrefs: 'Guardar Preferencias', emailCantChange: 'El correo no se puede cambiar.' };
 
   return (
-    <ClientLayout title={language === 'en' ? 'Account Settings' : 'Configuracion de Cuenta'} subtitle={language === 'en' ? 'Manage your profile, password and preferences.' : 'Gestiona tu perfil, contrasena y preferencias.'}>
+    <div style={{ padding: '24px', maxWidth: '900px', margin: '0 auto' }}>
+      <div style={{ marginBottom: '24px' }}>
+        <h1 style={{ fontSize: '26px', fontWeight: 700, marginBottom: '4px' }}>{language === 'en' ? 'Account Settings' : 'Configuracion de Cuenta'}</h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>{language === 'en' ? 'Manage your profile, password and preferences.' : 'Gestiona tu perfil, contrasena y preferencias.'}</p>
+      </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '24px', alignItems: 'start' }}>
         <div className="card">
           <h2 className="card-title" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
@@ -185,6 +186,6 @@ export default function ProfilePage() {
       </div>
 
       <style jsx global>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-    </ClientLayout>
+    </div>
   );
 }

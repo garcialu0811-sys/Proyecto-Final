@@ -59,7 +59,7 @@ export default function AdminOrdersPage() {
 
   useEffect(() => {
     if (authStatus === 'unauthenticated') router.push('/login');
-    else if (authStatus === 'authenticated' && user?.role === 'CLIENTE') router.push('/orders/client');
+    
   }, [authStatus, user, router]);
 
   const [orders, setOrders] = useState<Order[]>([]);
@@ -102,7 +102,7 @@ export default function AdminOrdersPage() {
     finally { setLoading(false); }
   }, [page, search, statusFilter, dateRange]);
 
-  useEffect(() => { if (authStatus === 'authenticated' && user?.role !== 'CLIENTE') fetchData(); }, [fetchData, authStatus, user]);
+  useEffect(() => { if (authStatus === 'authenticated') fetchData(); }, [fetchData, authStatus, user]);
   useEffect(() => { setPage(1); }, [search, statusFilter, dateRange]);
   useEffect(() => { const t = setTimeout(() => setSearch(searchInput), 300); return () => clearTimeout(t); }, [searchInput]);
 
@@ -146,7 +146,7 @@ export default function AdminOrdersPage() {
     return pages;
   };
 
-  if (authStatus === 'loading' || (authStatus === 'authenticated' && user?.role === 'CLIENTE')) {
+  if (authStatus === 'loading') {
     return <div style={{ padding: '40px 16px', textAlign: 'center' }}><div style={{ display: 'inline-block', width: '40px', height: '40px', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div></div>;
   }
 

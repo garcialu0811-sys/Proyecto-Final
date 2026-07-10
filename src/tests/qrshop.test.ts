@@ -56,14 +56,6 @@ describe('QRShop - Pruebas Unitarias Integradas (Vitest)', () => {
         role: 'VENDEDOR',
         createdAt: new Date().toISOString(),
       },
-      {
-        id: 'user-cliente',
-        email: 'cliente@qrshop.com',
-        password: 'cliente123',
-        name: 'Juan Cliente',
-        role: 'CLIENTE',
-        createdAt: new Date().toISOString(),
-      }
     ];
     db.sales = [];
     db.orders = [];

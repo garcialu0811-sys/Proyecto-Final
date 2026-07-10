@@ -42,15 +42,13 @@ interface Pagination {
 const ROLE_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   ADMIN: { label: 'Administrador', color: '#EF4444', bg: '#FEE2E2' },
   VENDEDOR: { label: 'Vendedor', color: '#3B82F6', bg: '#DBEAFE' },
-  CLIENTE: { label: 'Cliente', color: '#8B5CF6', bg: '#F3E8FF' },
-  CLIENT: { label: 'Cliente', color: '#8B5CF6', bg: '#F3E8FF' },
+
 };
 
 const PERMISSIONS: Record<string, string[]> = {
   ADMIN: ['Gestionar ventas', 'Crear pedidos', 'Ver inventario', 'Gestionar clientes', 'Administrar usuarios', 'Configuracion del sistema'],
   VENDEDOR: ['Gestionar ventas', 'Crear pedidos', 'Ver inventario', 'Gestionar clientes'],
-  CLIENTE: ['Realizar compras', 'Ver pedidos', 'Gestionar favoritos'],
-  CLIENT: ['Realizar compras', 'Ver pedidos', 'Gestionar favoritos'],
+
 };
 
 function timeAgo(dateStr: string | null | undefined): string {
@@ -113,7 +111,7 @@ export default function UsersPage() {
   const [formEmail, setFormEmail] = useState('');
   const [formPassword, setFormPassword] = useState('');
   const [formPhone, setFormPhone] = useState('');
-  const [formRole, setFormRole] = useState('CLIENTE');
+  const [formRole, setFormRole] = useState('VENDEDOR');
   const [formIsActive, setFormIsActive] = useState(true);
   const [editId, setEditId] = useState('');
   const [editName, setEditName] = useState('');
@@ -343,7 +341,7 @@ export default function UsersPage() {
           <button onClick={handleExport} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 16px', borderRadius: '8px', fontWeight: 500 }}>
             <Download size={16} /> Exportar
           </button>
-          <button onClick={() => { setFormName(''); setFormEmail(''); setFormPassword(''); setFormPhone(''); setFormRole('CLIENTE'); setFormIsActive(true); setModal('create'); }} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 20px', borderRadius: '8px', fontWeight: 600 }}>
+          <button onClick={() => { setFormName(''); setFormEmail(''); setFormPassword(''); setFormPhone(''); setFormRole('VENDEDOR'); setFormIsActive(true); setModal('create'); }} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 20px', borderRadius: '8px', fontWeight: 600 }}>
             <UserPlus size={16} /> Nuevo usuario
           </button>
         </div>
@@ -356,8 +354,7 @@ export default function UsersPage() {
             { title: 'Usuarios activos', value: stats.active, sub: stats.total > 0 ? `${((stats.active / stats.total) * 100).toFixed(1)}% del total` : '0%', icon: <UserCheck size={24} style={{ color: '#10B981' }} />, iconBg: '#ECFDF5' },
             { title: 'Administradores', value: stats.admins, sub: stats.total > 0 ? `${((stats.admins / stats.total) * 100).toFixed(1)}% del total` : '0%', icon: <Shield size={24} style={{ color: '#8B5CF6' }} />, iconBg: '#F5F3FF' },
             { title: 'Vendedores', value: stats.sellers, sub: stats.total > 0 ? `${((stats.sellers / stats.total) * 100).toFixed(1)}% del total` : '0%', icon: <ShoppingBag size={24} style={{ color: '#F59E0B' }} />, iconBg: '#FFFBEB' },
-            { title: 'Clientes', value: stats.clients, sub: stats.total > 0 ? `${((stats.clients / stats.total) * 100).toFixed(1)}% del total` : '0%', icon: <Users size={24} style={{ color: '#EC4899' }} />, iconBg: '#FDF2F8' },
-          ].map((m, i) => (
+                      ].map((m, i) => (
             <div key={i} className="stat-card">
               <div className="stat-icon" style={{ backgroundColor: m.iconBg }}>{m.icon}</div>
               <div>
@@ -379,7 +376,7 @@ export default function UsersPage() {
           <option value="all">Todos los roles</option>
           <option value="ADMIN">Administrador</option>
           <option value="VENDEDOR">Vendedor</option>
-          <option value="CLIENTE">Cliente</option>
+
         </select>
         <select className="form-control filter-select" value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setPage(1); }}>
           <option value="all">Todos los estados</option>
@@ -591,7 +588,6 @@ export default function UsersPage() {
                   <div className="form-group">
                     <label className="form-label">Rol</label>
                     <select className="form-control" value={formRole} onChange={e => setFormRole(e.target.value)} disabled={actionLoading}>
-                      <option value="CLIENTE">Cliente</option>
                       <option value="VENDEDOR">Vendedor</option>
                       <option value="ADMIN">Administrador</option>
                     </select>
@@ -643,7 +639,6 @@ export default function UsersPage() {
                   <div className="form-group">
                     <label className="form-label">Rol</label>
                     <select className="form-control" value={editRole} onChange={e => setEditRole(e.target.value)} disabled={actionLoading}>
-                      <option value="CLIENTE">Cliente</option>
                       <option value="VENDEDOR">Vendedor</option>
                       <option value="ADMIN">Administrador</option>
                     </select>
@@ -683,7 +678,7 @@ export default function UsersPage() {
               </p>
               <div className="form-group">
                 <select className="form-control" value={roleValue} onChange={e => setRoleValue(e.target.value)} disabled={actionLoading}>
-                  <option value="CLIENTE">Cliente</option>
+        
                   <option value="VENDEDOR">Vendedor</option>
                   <option value="ADMIN">Administrador</option>
                 </select>

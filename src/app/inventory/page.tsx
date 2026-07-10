@@ -70,7 +70,7 @@ export default function InventoryPage() {
   const router = useRouter();
   const { showToast } = useToast();
   const user = session?.user as any;
-  const role = user?.role || 'CLIENTE';
+  const role = user?.role || 'VENDEDOR';
 
   const [products, setProducts] = useState<Product[]>([]);
   const [metrics, setMetrics] = useState<Metrics | null>(null);
@@ -682,7 +682,7 @@ export default function InventoryPage() {
             )}
 
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px', borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
-              {role !== 'CLIENTE' && (
+              {true && (
                 <button onClick={() => { setModal('edit'); }} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Pencil size={16} /> Editar
                 </button>

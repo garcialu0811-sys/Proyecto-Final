@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (role && role !== 'all') {
-      allUsers = allUsers.filter((u: any) => u.role === role || (role === 'CLIENT' && u.role === 'CLIENTE'));
+      allUsers = allUsers.filter((u: any) => u.role === role);
     }
 
     if (status === 'active') {
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
       name: u.name || '',
       email: u.email || '',
       phone: u.phone || '',
-      role: u.role || 'CLIENTE',
+      role: u.role || 'VENDEDOR',
       isActive: u.isActive !== false,
       lastLogin: u.lastLogin || u.updatedAt || null,
       createdAt: u.createdAt,
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
       active: allUsers.filter((u: any) => u.isActive !== false).length,
       admins: allUsers.filter((u: any) => u.role === 'ADMIN').length,
       sellers: allUsers.filter((u: any) => u.role === 'VENDEDOR').length,
-      clients: allUsers.filter((u: any) => u.role === 'CLIENTE' || u.role === 'CLIENT').length,
+      clients: 0,
     };
 
     return NextResponse.json({
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
       name,
       email,
       password: hashedPassword,
-      role: role || 'CLIENTE',
+      role: role || 'VENDEDOR',
       phone: phone || null,
       isActive: isActive !== false,
       createdBy: (session.user as any).id,

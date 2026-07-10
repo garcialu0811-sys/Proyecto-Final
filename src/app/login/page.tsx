@@ -159,7 +159,6 @@ function LoginContent() {
         <p style={{ fontWeight: 600, marginBottom: '4px' }}>Credenciales de prueba:</p>
         <p>• Admin: <b>admin@qrshop.com</b> / <b>admin123</b></p>
         <p>• Vendedor: <b>vendedor@qrshop.com</b> / <b>vendedor123</b></p>
-        <p>• Cliente: <b>cliente@qrshop.com</b> / <b>cliente123</b></p>
       </div>
     </div>
   );

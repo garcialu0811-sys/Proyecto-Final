@@ -9,7 +9,6 @@ import {
   Search, Filter, Tag,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
-import ClientLayout from '@/components/store/ClientLayout';
 
 interface ForumPost {
   id: string;
@@ -39,7 +38,7 @@ export default function ForumPage() {
   const router = useRouter();
   const { showToast } = useToast();
   const currentUser = session?.user as any;
-  const role = currentUser?.role || 'CLIENTE';
+  const role = currentUser?.role || 'VENDEDOR';
 
   const [posts, setPosts] = useState<ForumPost[]>([]);
   const [replies, setReplies] = useState<ForumReply[]>([]);
@@ -246,7 +245,6 @@ export default function ForumPage() {
   };
 
   return (
-    <ClientLayout title="Foro" subtitle="Comparte ideas, resuelve dudas o escribe resenas.">
     <div style={{ backgroundColor: 'var(--bg-primary)' }}>
       <div style={{ padding: '24px', maxWidth: '1000px', width: '100%', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
@@ -410,6 +408,5 @@ export default function ForumPage() {
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
       `}</style>
     </div>
-    </ClientLayout>
   );
 }

@@ -9,7 +9,7 @@ export interface User {
   email: string;
   password?: string; // stored as plain or hashed, for fallback plain is easy for verification
   name: string;
-  role: 'ADMIN' | 'VENDEDOR' | 'CLIENTE';
+  role: 'ADMIN' | 'VENDEDOR';
   phone?: string;
   isActive?: boolean;
   lastLogin?: string;
@@ -162,14 +162,6 @@ function initDb(): LocalSchema {
         password: 'vendedor123',
         name: 'Carlos Vendedor',
         role: 'VENDEDOR',
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: 'user-cliente',
-        email: 'cliente@qrshop.com',
-        password: 'cliente123',
-        name: 'Juan Cliente',
-        role: 'CLIENTE',
         createdAt: new Date().toISOString(),
       }
     ],
@@ -406,8 +398,8 @@ function initDb(): LocalSchema {
         title: 'Excelente servicio y productos',
         content: 'Acabo de comprar el monitor de 27 pulgadas y es increíble. La tasa de refresco se nota de inmediato. ¿Alguien más lo ha probado?',
         category: 'RESENA',
-        authorId: 'user-cliente',
-        authorName: 'Juan Cliente',
+        authorId: 'user-vendedor',
+        authorName: 'Carlos Vendedor',
         createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
         isHidden: false,
         likes: ['user-vendedor'],

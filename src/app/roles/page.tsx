@@ -53,11 +53,11 @@ const ACTION_LABELS: Record<string, string> = {
 };
 
 const ROLE_ICONS: Record<string, any> = {
-  ADMIN: Crown, VENDEDOR: ShoppingBag, CLIENTE: User,
+  ADMIN: Crown, VENDEDOR: ShoppingBag,
 };
 
 const ROLE_COLORS: Record<string, string> = {
-  ADMIN: '#EF4444', VENDEDOR: '#3B82F6', CLIENTE: '#10B981',
+  ADMIN: '#EF4444', VENDEDOR: '#3B82F6',
 };
 
 const ACCESS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: any }> = {
@@ -395,7 +395,7 @@ export default function RolesPage() {
             </ul>
             <div style={{ padding: '10px 12px', backgroundColor: '#FEF3C7', borderRadius: '8px', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
               <AlertTriangle size={14} style={{ color: '#D97706', flexShrink: 0, marginTop: '2px' }} />
-              <p style={{ fontSize: '12px', color: '#92400E', margin: 0 }}>Los roles del sistema (Administrador, Vendedor y Cliente) no pueden ser eliminados.</p>
+              <p style={{ fontSize: '12px', color: '#92400E', margin: 0 }}>Los roles del sistema (Administrador y Vendedor) no pueden ser eliminados.</p>
             </div>
           </div>
         </div>

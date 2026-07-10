@@ -39,17 +39,7 @@ const DEFAULT_ROLE_PERMISSIONS: Record<string, Record<string, boolean>> = {
     'forum:view': true, 'forum:create': true, 'forum:edit': true, 'forum:delete': false, 'forum:moderate': false,
     'settings:view': true, 'settings:edit': false,
   },
-  CLIENTE: {
-    'dashboard:view': false, 'products:view': true, 'products:create': false, 'products:edit': false, 'products:delete': false,
-    'categories:view': true, 'categories:create': false, 'categories:edit': false, 'categories:delete': false,
-    'inventory:view': false, 'inventory:edit': false, 'inventory:export': false,
-    'sales:view': false, 'sales:create': false, 'sales:edit': false, 'sales:delete': false,
-    'orders:view': true, 'orders:create': true, 'orders:edit': false, 'orders:delete': false,
-    'deliveries:view': true, 'deliveries:create': false, 'deliveries:edit': false, 'deliveries:delete': false,
-    'users:view': false, 'users:create': false, 'users:edit': false, 'users:delete': false, 'users:manage_roles': false,
-    'forum:view': true, 'forum:create': true, 'forum:edit': true, 'forum:delete': true, 'forum:moderate': false,
-    'settings:view': true, 'settings:edit': true,
-  },
+
 };
 
 export async function GET(request: NextRequest) {
@@ -82,11 +72,10 @@ export async function GET(request: NextRequest) {
           const descriptions: Record<string, string> = {
             ADMIN: 'Tiene acceso completo a todas las funciones y configuraciones del sistema.',
             VENDEDOR: 'Gestiona productos, ventas, pedidos y entregas. No tiene acceso a la configuracion del sistema.',
-            CLIENTE: 'Puede realizar compras, ver su historial y gestionar su perfil.',
           };
           await dbClient.roles.create({
             name: roleName,
-            displayName: roleName === 'ADMIN' ? 'Administrador' : roleName === 'VENDEDOR' ? 'Vendedor' : 'Cliente',
+            displayName: roleName === 'ADMIN' ? 'Administrador' : 'Vendedor',
             description: descriptions[roleName] || '',
             isSystem: true,
             permissions: allPerms,
@@ -105,7 +94,7 @@ export async function GET(request: NextRequest) {
 
     const roleUserCounts: Record<string, number> = {};
     for (const u of allUsers) {
-      const r = u.role || 'CLIENTE';
+      const r = u.role || 'VENDEDOR';
       roleUserCounts[r] = (roleUserCounts[r] || 0) + 1;
     }
 

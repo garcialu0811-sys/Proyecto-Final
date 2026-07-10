@@ -119,7 +119,7 @@ y pedidos en linea, y administrar usuarios con diferentes roles de acceso.
 | email | String | Unico |
 | password | String | Hash bcrypt |
 | name | String | Nombre completo |
-| role | String | ADMIN, VENDEDOR, CLIENTE |
+| role | String | ADMIN, VENDEDOR |
 | phone | String? | Telefono |
 | isActive | Boolean | Activo/inactivo |
 | lastLogin | DateTime? | Ultimo acceso |
@@ -324,7 +324,7 @@ dbClient.notifications.* → fallback JSON
 |---|---|
 | **ADMIN** | Acceso total: CRUD usuarios, roles, productos, ventas, pedidos, dashboard, inventario, categorias, foro, configuracion |
 | **VENDEDOR** | Dashboard, ventas, inventario, categorias, escaneo QR, entregas, pedidos, foro |
-| **CLIENTE** | Tienda, pedidos propios, favoritos, foro, perfil |
+
 
 ### Middleware de Proteccion de Rutas
 
@@ -416,12 +416,12 @@ Rutas publicas (sin auth):
 ### Google OAuth
 - **Libreria:** NextAuth GoogleProvider
 - **Variables:** GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
-- **Rol por defecto:** CLIENTE
+- **Rol por defecto:** VENDEDOR
 - **Auto-creacion:** Crea usuario al primer login con Google
 
 ---
 
-## 11. Estado del Cliente (Zustand)
+## 11. Estado del Carrito (Zustand)
 
 | Store | Archivo | Funciones |
 |---|---|---|

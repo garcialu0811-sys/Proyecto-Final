@@ -5,7 +5,6 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Heart, Package, ShoppingBag } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
-import ClientLayout from '@/components/store/ClientLayout';
 import { useFavoritesStore } from '@/lib/store/favoritesStore';
 
 export default function FavoritosPage() {
@@ -24,7 +23,11 @@ export default function FavoritosPage() {
   };
 
   return (
-    <ClientLayout title="Favoritos" subtitle="Tus productos guardados.">
+    <div style={{ padding: '24px', maxWidth: '1000px', margin: '0 auto' }}>
+      <div style={{ marginBottom: '24px' }}>
+        <h1 style={{ fontSize: '26px', fontWeight: 700, marginBottom: '4px' }}>Favoritos</h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Tus productos guardados.</p>
+      </div>
       {status === 'loading' ? (
         <div style={{ padding: '40px 16px', textAlign: 'center' }}>
           <div style={{ display: 'inline-block', width: '40px', height: '40px', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
@@ -65,6 +68,6 @@ export default function FavoritosPage() {
       )}
 
       <style jsx global>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-    </ClientLayout>
+    </div>
   );
 }

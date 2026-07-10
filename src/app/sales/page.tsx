@@ -39,7 +39,7 @@ export default function SalesPage() {
   const router = useRouter();
   const { showToast } = useToast();
   const currentUser = session?.user as any;
-  const role = currentUser?.role || 'CLIENTE';
+  const role = currentUser?.role || 'VENDEDOR';
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);

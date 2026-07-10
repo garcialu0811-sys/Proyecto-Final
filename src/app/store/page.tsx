@@ -15,7 +15,6 @@ import { useCartStore } from '@/lib/store/cartStore';
 import { useFavoritesStore } from '@/lib/store/favoritesStore';
 import { useToast } from '@/components/ui/ToastContext';
 import LoginModal from '@/components/store/LoginModal';
-import ClientSidebar from '@/components/store/ClientSidebar';
 
 interface Product {
   id: string;
@@ -155,8 +154,6 @@ function StorePageInner() {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-primary)' }}>
-      <ClientSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
       <div style={{ flex: 1, marginLeft: '260px', display: 'flex', flexDirection: 'column', minWidth: 0 }} className="main-area">
         {/* Header */}
         <header style={{ height: '64px', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', position: 'sticky', top: 0, zIndex: 100 }}>
@@ -186,7 +183,7 @@ function StorePageInner() {
                   </div>
                   <div style={{ lineHeight: 1.2, textAlign: 'left' }}>
                     <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{user?.name}</p>
-                    <p style={{ fontSize: '10px', color: 'var(--text-light)' }}>Cliente</p>
+                    <p style={{ fontSize: '10px', color: 'var(--text-light)' }}>{user?.role || 'Miembro'}</p>
                   </div>
                   <ChevronDown size={14} style={{ color: 'var(--text-light)', transition: 'transform 0.2s', transform: profileOpen ? 'rotate(180deg)' : 'none' }} />
                 </button>

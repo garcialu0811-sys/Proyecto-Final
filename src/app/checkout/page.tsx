@@ -154,7 +154,7 @@ export default function CheckoutPage() {
             address: deliveryAddress,
           };
 
-      const apiUrl = guestCheckout ? '/api/orders/guest' : '/api/orders/client';
+      const apiUrl = '/api/orders/guest';
       const res = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

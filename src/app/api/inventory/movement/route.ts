@@ -7,7 +7,7 @@ import { checkProductStock } from '@/lib/stock/monitor';
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || (session.user as any).role === 'CLIENTE') {
+    if (!session) {
       return NextResponse.json({ message: 'No autorizado.' }, { status: 403 });
     }
 

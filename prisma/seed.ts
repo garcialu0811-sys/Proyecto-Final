@@ -11,7 +11,7 @@ async function main() {
 
   const hash = await bcrypt.hash("admin123", 10);
   const hashV = await bcrypt.hash("vendedor123", 10);
-  const hashC = await bcrypt.hash("cliente123", 10);
+  
 
   const admin = await prisma.user.upsert({
     where: { email: "admin@qrshop.com" },
@@ -37,19 +37,7 @@ async function main() {
     },
   });
 
-  const cliente = await prisma.user.upsert({
-    where: { email: "cliente@qrshop.com" },
-    update: {},
-    create: {
-      id: "user-cliente",
-      email: "cliente@qrshop.com",
-      password: hashC,
-      name: "Juan Cliente",
-      role: "CLIENTE",
-    },
-  });
-
-  console.log("Users:", { admin: admin.id, vendedor: vendedor.id, cliente: cliente.id });
+  console.log("Users:", { admin: admin.id, vendedor: vendedor.id });
 
   const sale1 = await prisma.sale.upsert({
     where: { id: "sale-aj2pjze5y" },

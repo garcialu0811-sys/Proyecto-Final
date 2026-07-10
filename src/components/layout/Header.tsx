@@ -81,7 +81,7 @@ export function Header({ collapsed, setCollapsed }: HeaderProps) {
   };
 
   const user = session?.user as any;
-  const roleText = user?.role === 'ADMIN' ? 'Administrador' : user?.role === 'VENDEDOR' ? 'Vendedor' : 'Cliente';
+  const roleText = user?.role === 'ADMIN' ? 'Administrador' : 'Vendedor';
 
   return (
     <header className="header">

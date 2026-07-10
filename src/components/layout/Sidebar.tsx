@@ -43,7 +43,7 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const user = session?.user as any;
-  const role = user?.role || 'CLIENTE';
+  const role = user?.role || 'VENDEDOR';
 
   const groups: MenuGroup[] = [
     {
@@ -63,7 +63,7 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
           name: 'Productos',
           path: '/products',
           icon: ShoppingBag,
-          roles: ['ADMIN', 'VENDEDOR', 'CLIENTE']
+          roles: ['ADMIN', 'VENDEDOR']
         },
         {
           name: 'Categorías',
@@ -132,7 +132,7 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
           name: 'Foro',
           path: '/forum',
           icon: MessageSquare,
-          roles: ['ADMIN', 'VENDEDOR', 'CLIENTE']
+          roles: ['ADMIN', 'VENDEDOR']
         }
       ]
     },
@@ -155,7 +155,7 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
           name: 'Ajustes',
           path: '/profile',
           icon: Settings,
-          roles: ['CLIENTE']
+          roles: ['VENDEDOR']
         }
       ]
     }

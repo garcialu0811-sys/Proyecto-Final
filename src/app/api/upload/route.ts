@@ -6,7 +6,7 @@ import { uploadImage } from '@/lib/cloudinary';
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || (session.user as any).role === 'CLIENTE') {
+    if (!session) {
       return NextResponse.json({ message: 'No autorizado.' }, { status: 403 });
     }
 

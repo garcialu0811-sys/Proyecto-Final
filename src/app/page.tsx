@@ -35,13 +35,13 @@ export default function CatalogPage() {
   const router = useRouter();
   const { showToast } = useToast();
   const user = session?.user as any;
-  const role = user?.role || 'CLIENTE';
+  const role = user?.role || 'VENDEDOR';
 
   useEffect(() => {
     if (status === 'loading') return;
-    if (session && (role === 'ADMIN' || role === 'VENDEDOR')) {
+    if (session) {
       router.replace('/dashboard');
-    } else if (!session || role === 'CLIENTE') {
+    } else {
       router.replace('/store');
     }
   }, [session, status, role, router]);

@@ -43,7 +43,7 @@ export default function ProductsPage() {
   const router = useRouter();
   const { showToast } = useToast();
   const user = session?.user as any;
-  const role = user?.role || 'CLIENTE';
+  const role = user?.role || 'VENDEDOR';
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -396,7 +396,7 @@ export default function ProductsPage() {
                       </td>
                       <td style={{ padding: '14px 16px', textAlign: 'center' }}>
                         <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
-                          {role !== 'CLIENTE' && (
+                          {true && (
                             <button
                               onClick={() => openEdit(product)}
                               title="Editar"
@@ -407,7 +407,7 @@ export default function ProductsPage() {
                               <Pencil size={15} />
                             </button>
                           )}
-                          {role !== 'CLIENTE' && (
+                          {true && (
                             <button
                               onClick={() => { setSelectedProduct(product); setStockEntryQty(''); setStockEntryReason(''); setModal('stockEntry'); }}
                               title="Agregar stock (Entrada)"

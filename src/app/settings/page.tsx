@@ -13,7 +13,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const { showToast } = useToast();
   const currentUser = session?.user as any;
-  const role = currentUser?.role || 'CLIENTE';
+  const role = currentUser?.role || 'VENDEDOR';
 
   const [name, setName] = useState(currentUser?.name || '');
   const [email, setEmail] = useState(currentUser?.email || '');

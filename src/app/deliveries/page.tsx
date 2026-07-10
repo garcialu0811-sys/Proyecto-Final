@@ -26,7 +26,7 @@ export default function DeliveriesPage() {
   const router = useRouter();
   const { showToast } = useToast();
   const user = session?.user as any;
-  const role = user?.role || 'CLIENTE';
+  const role = user?.role || 'VENDEDOR';
 
   const [deliveries, setDeliveries] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
