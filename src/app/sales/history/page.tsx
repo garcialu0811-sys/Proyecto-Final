@@ -52,6 +52,8 @@ function HistorialContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
   const [isMobile, setIsMobile] = useState(false);
+  const [sellerFilter, setSellerFilter] = useState('');
+  const [sellers, setSellers] = useState<{ id: string; name: string; role: string }[]>([]);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -95,14 +97,18 @@ function HistorialContent() {
     fetchSales(todayStr, todayStr);
   }, []);
 
-  const fetchSales = async (start: string, end: string) => {
+  const fetchSales = async (start: string, end: string, sellerId?: string) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/sales?start=${start}&end=${end}`);
+      let url = `/api/sales?start=${start}&end=${end}`;
+      if (sellerId) url += `&sellerId=${sellerId}`;
+      const res = await fetch(url);
       const data = await res.json();
-      const salesList = Array.isArray(data) ? data : (data.sales || []);
+      const salesList = Array.isArray(data?.sales) ? data.sales : (Array.isArray(data) ? data : []);
+      const sellersList = Array.isArray(data?.sellers) ? data.sellers : [];
       setSales(salesList);
       setFilteredSales(salesList);
+      setSellers(sellersList);
       calculateMetrics(salesList);
     } catch {
       setSales([]);
@@ -146,7 +152,7 @@ function HistorialContent() {
     const e = formatDate(end);
     setStartDate(s);
     setEndDate(e);
-    fetchSales(s, e);
+    fetchSales(s, e, sellerFilter || undefined);
   };
 
   const handleSearch = (term: string) => {
@@ -175,7 +181,12 @@ function HistorialContent() {
     const ne = formatDate(e);
     setStartDate(ns);
     setEndDate(ne);
-    fetchSales(ns, ne);
+    fetchSales(ns, ne, sellerFilter || undefined);
+  };
+
+  const handleSellerFilter = (sellerId: string) => {
+    setSellerFilter(sellerId);
+    fetchSales(startDate, endDate, sellerId || undefined);
   };
 
   const handleDownloadPDF = async () => {
@@ -303,6 +314,17 @@ function HistorialContent() {
             <span style={{ color: 'var(--text-secondary)' }}>-{'>'}</span>
             <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ padding: '6px 10px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '13px', background: 'var(--bg-primary)', color: 'var(--text-primary)' }} />
           </div>
+          {(session?.user as any)?.role === 'ADMIN' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Filter size={14} style={{ color: 'var(--text-secondary)' }} />
+              <select value={sellerFilter} onChange={e => handleSellerFilter(e.target.value)} style={{ padding: '6px 10px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '13px', background: 'var(--bg-primary)', color: 'var(--text-primary)', minHeight: isMobile ? '36px' : 'auto' }}>
+                <option value="">Todos los vendedores</option>
+                {sellers.filter(s => s.role === 'VENDEDOR').map(s => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>Rapido:</span>
             {quickFilters.map(f => (

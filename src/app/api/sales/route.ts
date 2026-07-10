@@ -13,6 +13,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const startParam = searchParams.get('start');
     const endParam = searchParams.get('end');
+    const filterSellerId = searchParams.get('sellerId');
 
     const user = session.user as any;
     const allSales = await dbClient.sales.findMany();
@@ -23,14 +24,24 @@ export async function GET(request: Request) {
     allUsers.forEach((u: any) => { sellerMap[u.id] = u; });
 
     // Filter sales by user role
-    const mySales = user.role === 'ADMIN'
+    let mySales = user.role === 'ADMIN'
       ? allSales
       : allSales.filter((s: any) => s.sellerId === user.id);
 
+    // Filter by specific seller if requested (admin only)
+    if (filterSellerId && user.role === 'ADMIN') {
+      mySales = mySales.filter((s: any) => s.sellerId === filterSellerId);
+    }
+
     // Filter orders by user role
-    const myOrders = user.role === 'ADMIN'
+    let myOrders = user.role === 'ADMIN'
       ? allOrders
       : allOrders.filter((o: any) => o.driverId === user.id);
+
+    // Filter orders by specific seller if requested (admin only)
+    if (filterSellerId && user.role === 'ADMIN') {
+      myOrders = myOrders.filter((o: any) => o.driverId === filterSellerId);
+    }
 
     // Group Sales by sellerId + time proximity (60s window)
     const sortedSales = [...mySales].sort((a: any, b: any) => {
@@ -169,16 +180,19 @@ export async function GET(request: Request) {
       });
     }
 
-    // Sort by date descending
-    grouped.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    // Sort by date ASCENDING for chronological folio numbers
+    grouped.sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
-    // Add folio numbers
+    // Add folio numbers (VTA-00001 = oldest, highest = newest)
     const result = grouped.filter(Boolean).map((item: any, idx: number) => ({
       ...item,
       folio: `VTA-${String(idx + 1).padStart(5, '0')}`
     }));
 
-    return NextResponse.json(result);
+    return NextResponse.json({
+      sales: result,
+      sellers: allUsers.map((u: any) => ({ id: u.id, name: u.name, role: u.role })),
+    });
   } catch (error) {
     console.error('Error al obtener ventas:', error);
     return NextResponse.json({ message: 'Error interno del servidor.' }, { status: 500 });
