@@ -3,9 +3,8 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { X, Mail, Lock, User, LogIn } from 'lucide-react';
+import { X, Mail, Lock, LogIn } from 'lucide-react';
 import { useCartStore } from '@/lib/store/cartStore';
-import GuestCheckoutForm from './GuestCheckoutForm';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -17,19 +16,10 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showGuestForm, setShowGuestForm] = useState(false);
   const { pendingProduct, addItem, setPendingProduct } = useCartStore();
   const router = useRouter();
 
   if (!isOpen) return null;
-
-  if (showGuestForm) {
-    return (
-      <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', backdropFilter: 'blur(4px)' }}>
-        <GuestCheckoutForm onBack={() => setShowGuestForm(false)} />
-      </div>
-    );
-  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,10 +129,6 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
             Registrate
           </button>
         </div>
-
-        <button onClick={() => setShowGuestForm(true)} style={{ width: '100%', marginTop: '12px', textAlign: 'center', fontSize: '13px', color: 'var(--text-light)', background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
-          Continuar como invitado
-        </button>
       </div>
     </div>
   );

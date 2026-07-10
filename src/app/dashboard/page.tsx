@@ -7,10 +7,9 @@ import {
   TrendingUp, 
   Package, 
   AlertTriangle, 
-  DollarSign, 
-  ShoppingCart,
   Calendar,
   AlertCircle,
+  DollarSign,
   FileText
 } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
@@ -155,20 +154,6 @@ export default function DashboardPage() {
             </div>
             <div className="metric-icon-box green">
               <DollarSign size={24} />
-            </div>
-          </div>
-
-          {/* Card 2: Pedidos Pendientes */}
-          <div className="metric-card">
-            <div className="metric-info">
-              <h3>Pedidos Pendientes</h3>
-              <div className="value">{stats.pendingOrders}</div>
-              <p style={{ fontSize: '11px', color: 'var(--text-light)', marginTop: '4px' }}>
-                Preparando o en almacén
-              </p>
-            </div>
-            <div className="metric-icon-box orange">
-              <ShoppingCart size={24} />
             </div>
           </div>
 
