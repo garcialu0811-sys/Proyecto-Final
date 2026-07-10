@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   Mail, Lock, Eye, EyeOff, Shield, Zap, BarChart3,
-  LogIn, AlertCircle, ShoppingBag, KeyRound
+  LogIn, AlertCircle, KeyRound
 } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
 
@@ -91,36 +91,99 @@ function LoginContent() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #f0f9ff 0%, #ffffff 50%, #eff6ff 100%)', padding: '16px' }}>
       <div className="auth-grid" style={{ width: '100%', maxWidth: '1050px', background: '#fff', borderRadius: '24px', boxShadow: '0 25px 60px rgba(0,0,0,0.08)', overflow: 'hidden', display: 'grid', gridTemplateColumns: '1fr 1fr', border: '1px solid #e5e7eb' }}>
+
         {/* Hero Left */}
-        <div className="auth-hero" style={{ background: 'linear-gradient(160deg, #f0fdfa 0%, #e0f7fa 30%, #b2ebf2 70%, #0891b2 100%)', padding: '48px 40px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', overflow: 'hidden', minHeight: '680px' }}>
-          {/* Decorations */}
-          <div style={{ position: 'absolute', top: '-60px', right: '-60px', width: '200px', height: '200px', borderRadius: '50%', background: 'rgba(8,145,178,0.08)' }} />
-          <div style={{ position: 'absolute', bottom: '-40px', left: '-40px', width: '160px', height: '160px', borderRadius: '50%', background: 'rgba(8,145,178,0.06)' }} />
+        <div className="auth-hero" style={{
+          background: 'linear-gradient(160deg, #e8f4f8 0%, #d1ecf1 30%, #a8d8ea 60%, #0891b2 100%)',
+          padding: '48px 40px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          position: 'relative',
+          overflow: 'hidden',
+          minHeight: '680px'
+        }}>
+          {/* Decorative circles */}
+          <div style={{ position: 'absolute', top: '-80px', right: '-80px', width: '280px', height: '280px', borderRadius: '50%', background: 'rgba(255,255,255,0.15)' }} />
+          <div style={{ position: 'absolute', top: '40px', right: '60px', width: '12px', height: '12px', borderRadius: '50%', background: 'rgba(255,255,255,0.3)' }} />
+          <div style={{ position: 'absolute', top: '80px', right: '120px', width: '8px', height: '8px', borderRadius: '50%', background: 'rgba(255,255,255,0.25)' }} />
+          <div style={{ position: 'absolute', top: '20px', right: '180px', width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)' }} />
+          <div style={{ position: 'absolute', bottom: '-40px', left: '-40px', width: '200px', height: '200px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
 
           <div style={{ position: 'relative', zIndex: 1 }}>
-            <img src="/logo.png" alt="Variedades Coatan" style={{ width: '96px', height: '96px', objectFit: 'contain', marginBottom: '24px' }} />
-            <h1 style={{ fontSize: '15px', color: '#374151', fontWeight: 500, marginBottom: '4px' }}>Bienvenido a</h1>
-            <h2 style={{ fontSize: '30px', fontWeight: 800, color: '#0891b2', marginBottom: '16px', lineHeight: 1.2 }}>Variedades Coatan</h2>
-            <p style={{ fontSize: '14px', color: '#4b5563', lineHeight: 1.7, maxWidth: '320px' }}>Tu plataforma inteligente para gestionar productos, pedidos y clientes de forma facil, rapida y segura.</p>
+            {/* Logo - transparent, no background */}
+            <img src="/logo.png" alt="Variedades Coatan" style={{ width: '90px', height: '90px', objectFit: 'contain', marginBottom: '28px' }} />
 
-            {/* Benefits */}
-            <div style={{ display: 'flex', gap: '16px', marginTop: '32px' }}>
+            {/* Title */}
+            <h1 style={{ fontSize: '15px', color: '#1e3a5f', fontWeight: 500, marginBottom: '6px' }}>Bienvenido a</h1>
+            <h2 style={{ fontSize: '34px', fontWeight: 800, color: '#0891b2', marginBottom: '20px', lineHeight: 1.15 }}>Variedades Coatan</h2>
+
+            {/* Subtitle */}
+            <p style={{ fontSize: '15px', color: '#4a6d8c', lineHeight: 1.7, maxWidth: '400px' }}>
+              Tu plataforma inteligente para gestionar productos, pedidos y clientes de forma facil, rapida y segura.
+            </p>
+
+            {/* Benefits - glass cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginTop: '36px' }}>
               {[
                 { icon: <Shield size={22} />, title: 'Seguridad', desc: 'Protegemos tu informacion' },
                 { icon: <Zap size={22} />, title: 'Rapidez', desc: 'Todo al alcance de un clic' },
                 { icon: <BarChart3 size={22} />, title: 'Eficiencia', desc: 'Gestiona y haz crecer tu negocio' },
               ].map((b, i) => (
-                <div key={i} style={{ flex: 1, background: 'rgba(255,255,255,0.7)', borderRadius: '12px', padding: '16px 12px', textAlign: 'center', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.5)' }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#e0f7fa', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px', color: '#0891b2' }}>{b.icon}</div>
-                  <p style={{ fontSize: '12px', fontWeight: 700, color: '#111827', marginBottom: '2px' }}>{b.title}</p>
-                  <p style={{ fontSize: '10px', color: '#6b7280' }}>{b.desc}</p>
+                <div key={i} style={{
+                  padding: '18px 14px',
+                  borderRadius: '14px',
+                  background: 'rgba(255,255,255,0.25)',
+                  backdropFilter: 'blur(12px)',
+                  border: '1px solid rgba(255,255,255,0.35)',
+                }}>
+                  <div style={{ color: '#0e7490', marginBottom: '10px' }}>{b.icon}</div>
+                  <p style={{ fontSize: '13px', fontWeight: 700, color: '#1e3a5f', marginBottom: '4px' }}>{b.title}</p>
+                  <p style={{ fontSize: '11px', color: '#4a6d8c', lineHeight: 1.4 }}>{b.desc}</p>
                 </div>
               ))}
             </div>
           </div>
+
+          {/* Dashboard preview mockup */}
+          <div style={{
+            position: 'relative',
+            zIndex: 1,
+            marginTop: '36px',
+            background: '#fff',
+            borderRadius: '14px',
+            padding: '16px',
+            boxShadow: '0 12px 32px rgba(0,0,0,0.12)',
+            maxWidth: '340px'
+          }}>
+            {/* Window dots */}
+            <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444' }} />
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b' }} />
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e' }} />
+            </div>
+            {/* Content */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div style={{ background: '#f0fdfa', borderRadius: '8px', padding: '10px' }}>
+                <p style={{ fontSize: '9px', color: '#6b7280', marginBottom: '2px' }}>Ventas del dia</p>
+                <p style={{ fontSize: '15px', fontWeight: 700, color: '#111827' }}>$18,750.00</p>
+                <p style={{ fontSize: '9px', color: '#22c55e', fontWeight: 600 }}>+12.5%</p>
+              </div>
+              <div style={{ background: '#f0fdfa', borderRadius: '8px', padding: '10px' }}>
+                <p style={{ fontSize: '9px', color: '#6b7280', marginBottom: '2px' }}>Pedidos</p>
+                <p style={{ fontSize: '15px', fontWeight: 700, color: '#111827' }}>124</p>
+                <p style={{ fontSize: '9px', color: '#22c55e', fontWeight: 600 }}>+8.1%</p>
+              </div>
+            </div>
+            <div style={{ marginTop: '10px', background: '#f0fdfa', borderRadius: '8px', padding: '10px' }}>
+              <p style={{ fontSize: '9px', color: '#6b7280', marginBottom: '2px' }}>Clientes</p>
+              <p style={{ fontSize: '15px', fontWeight: 700, color: '#111827' }}>89</p>
+              <p style={{ fontSize: '9px', color: '#22c55e', fontWeight: 600 }}>+5.4%</p>
+            </div>
+          </div>
         </div>
 
-        {/* Form Right */}
+        {/* Form Right - UNCHANGED */}
         <div className="auth-form" style={{ padding: '48px 40px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <div style={{ maxWidth: '380px', margin: '0 auto', width: '100%' }}>
             {/* Icon */}
