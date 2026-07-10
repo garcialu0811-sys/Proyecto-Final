@@ -213,7 +213,7 @@ function ConfirmacionContent() {
       {/* Success Banner */}
       <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '12px', padding: isMobile ? '16px' : '20px', marginBottom: isMobile ? '16px' : '24px', textAlign: 'center', position: 'relative' }}>
         <button
-          onClick={() => router.push('/sales')}
+          onClick={() => router.push('/sales/new')}
           style={{ position: 'absolute', top: '12px', right: '12px', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
           <X size={20} />
@@ -395,7 +395,7 @@ function ConfirmacionContent() {
 
           {/* Cerrar */}
           <button
-            onClick={() => router.push('/sales')}
+            onClick={() => router.push('/sales/new')}
             style={{ width: '100%', padding: isMobile ? '14px' : '12px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-secondary)', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '14px', fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', minHeight: isMobile ? '48px' : 'auto' }}
           >
             <X size={16} />

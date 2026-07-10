@@ -390,13 +390,6 @@ export default function NuevaVentaPage() {
               Sesion activa
             </div>
           )}
-          <button
-            onClick={() => router.push('/sales')}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: isMobile ? '10px 14px' : '8px 16px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-secondary)', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: isMobile ? '14px' : '13px', minHeight: isMobile ? '44px' : 'auto' }}
-          >
-            <X size={16} />
-            {isMobile ? 'Cancelar' : 'Cancelar Venta'}
-          </button>
         </div>
       </div>
 
@@ -643,7 +636,7 @@ export default function NuevaVentaPage() {
                 onChange={(e) => setDiscountType(e.target.value as any)}
                 style={{ padding: '4px 6px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '12px', background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
               >
-                <option value="fixed">$</option>
+                <option value="fixed">Q</option>
                 <option value="percent">%</option>
               </select>
             </div>
