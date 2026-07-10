@@ -42,7 +42,7 @@ export default function CatalogPage() {
     if (session) {
       router.replace('/dashboard');
     } else {
-      router.replace('/store');
+      router.replace('/login');
     }
   }, [session, status, role, router]);
 

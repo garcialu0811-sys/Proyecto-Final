@@ -48,6 +48,11 @@ function StorePageInner() {
   const cart = useCartStore();
   const favorites = useFavoritesStore();
 
+  useEffect(() => {
+    if (status === 'loading') return;
+    router.replace('/login');
+  }, [status, router]);
+
   const viewParam = searchParams.get('view') || 'inicio';
   const categoryParam = searchParams.get('category') || '';
 
