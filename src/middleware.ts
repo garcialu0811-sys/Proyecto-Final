@@ -16,7 +16,7 @@ export default withAuth(
     const staffPaths = ['/dashboard', '/sales', '/categories', '/inventory', '/scan', '/deliveries'];
     if (staffPaths.some(p => path.startsWith(p))) {
       if (role !== 'ADMIN' && role !== 'VENDEDOR') {
-        return NextResponse.redirect(new URL('/', req.url));
+        return NextResponse.redirect(new URL('/login', req.url));
       }
     }
 
@@ -42,6 +42,7 @@ export const config = {
   matcher: [
     '/dashboard/:path*', 
     '/sales/:path*', 
+    '/products/:path*',
     '/categories/:path*', 
     '/inventory/:path*', 
     '/scan/:path*', 
@@ -50,6 +51,8 @@ export const config = {
     '/users/:path*', 
     '/roles/:path*', 
     '/profile/:path*', 
-    '/forum/:path*'
+    '/forum/:path*',
+    '/settings/:path*',
+    '/favoritos/:path*'
   ],
 };

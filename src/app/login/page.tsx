@@ -19,7 +19,7 @@ function LoginContent() {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      router.push('/');
+      router.push('/dashboard');
     }
     
     const error = searchParams.get('error');
@@ -47,7 +47,7 @@ function LoginContent() {
         showToast(res.error || 'Credenciales inválidas', 'error');
       } else {
         showToast('¡Inicio de sesión exitoso!', 'success');
-        router.push('/');
+        router.push('/dashboard');
         router.refresh();
       }
     } catch (err) {
@@ -58,7 +58,7 @@ function LoginContent() {
   };
 
   const handleGoogleLogin = () => {
-    signIn('google', { callbackUrl: '/' });
+    signIn('google', { callbackUrl: '/dashboard' });
   };
 
   return (
