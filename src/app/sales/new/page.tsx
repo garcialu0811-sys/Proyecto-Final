@@ -9,6 +9,7 @@ import {
   Save, Search, Package, Scan, RefreshCw, AlertCircle
 } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
+import { QRScanner } from '@/components/pos/QRScanner';
 
 interface CartItem {
   id: string;
@@ -43,6 +44,7 @@ export default function NuevaVentaPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [discount, setDiscount] = useState(0);
   const [discountType, setDiscountType] = useState<'fixed' | 'percent'>('fixed');
+  const [showQRScanner, setShowQRScanner] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
   const totals = {
@@ -321,10 +323,7 @@ export default function NuevaVentaPage() {
               )}
             </h2>
             <button
-              onClick={() => {
-                const code = prompt('Ingresa el codigo QR o SKU del producto:');
-                if (code) handleScanQR(code);
-              }}
+              onClick={() => setShowQRScanner(true)}
               style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', border: '1px solid var(--border)', borderRadius: '6px', background: 'var(--bg-secondary)', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '12px' }}
             >
               <Scan size={14} />
@@ -605,6 +604,15 @@ export default function NuevaVentaPage() {
           </div>
         </div>
       )}
+
+      {/* QR Scanner Modal */}
+      <QRScanner
+        isOpen={showQRScanner}
+        onScanSuccess={(code) => {
+          handleScanQR(code);
+        }}
+        onClose={() => setShowQRScanner(false)}
+      />
 
       <style>{`
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
