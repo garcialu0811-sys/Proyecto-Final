@@ -38,12 +38,18 @@ function ConfirmacionContent() {
   const [loading, setLoading] = useState(false);
   const [saleData, setSaleData] = useState<SaleData | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [showBanner, setShowBanner] = useState(true);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowBanner(false), 5000);
+    return () => clearTimeout(timer);
   }, []);
 
   const storeData = {
@@ -211,9 +217,10 @@ function ConfirmacionContent() {
   return (
     <div>
       {/* Success Banner */}
+      {showBanner && (
       <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '12px', padding: isMobile ? '16px' : '20px', marginBottom: isMobile ? '16px' : '24px', textAlign: 'center', position: 'relative' }}>
         <button
-          onClick={() => router.push('/sales/new')}
+          onClick={() => setShowBanner(false)}
           style={{ position: 'absolute', top: '12px', right: '12px', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
           <X size={20} />
@@ -222,6 +229,7 @@ function ConfirmacionContent() {
         <h1 style={{ fontSize: isMobile ? '18px' : '22px', fontWeight: 700, color: '#065f46', marginBottom: '4px' }}>Venta registrada con exito!</h1>
         <p style={{ fontSize: '14px', color: '#047857' }}>Tu venta ha sido guardada correctamente.</p>
       </div>
+      )}
 
       {/* Main Content */}
       <div className="confirmation-grid">
