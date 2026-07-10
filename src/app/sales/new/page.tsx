@@ -95,7 +95,7 @@ export default function NuevaVentaPage() {
         price: product.price,
         quantity: 1,
         subtotal: product.price,
-        image: product.image,
+        image: product.imageUrl || product.image,
         stock: product.stock || 0
       };
       setCartItems([...cartItems, newItem]);
@@ -359,8 +359,8 @@ export default function NuevaVentaPage() {
                     onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                   >
                     <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
-                      {product.image ? (
-                        <img src={product.image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      {(product.imageUrl || product.image) ? (
+                        <img src={product.imageUrl || product.image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
                         <Package size={18} style={{ color: 'var(--text-secondary)' }} />
                       )}
