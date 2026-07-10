@@ -29,37 +29,6 @@ export async function GET() {
       });
     });
 
-    // 2. Pedidos pendientes (solo para ADMIN)
-    if (user.role === 'ADMIN') {
-      const orders = await dbClient.orders.findMany();
-      const pendingOrders = orders.filter((o: any) => o.status === 'PENDIENTE');
-      pendingOrders.forEach((o: any) => {
-        notifications.push({
-          id: `order-${o.id}`,
-          type: 'info',
-          message: `Nuevo pedido de Q${o.total.toFixed(2)} por ${o.clientName} está pendiente.`,
-          createdAt: o.createdAt || new Date().toISOString()
-        });
-      });
-    }
-
-    // 3. Pedidos asignados a mí como repartidor (procesando/en ruta)
-    if (user.role === 'VENDEDOR') {
-      const allOrders = await dbClient.orders.findMany();
-      const myAssignedOrders = allOrders.filter(
-        (o: any) => o.driverId === user.id && (o.status === 'PROCESANDO' || o.status === 'EN_RUTA')
-      );
-      myAssignedOrders.forEach((o: any) => {
-        const statusLabel = o.status === 'PROCESANDO' ? 'procesando' : 'en ruta para entrega';
-        notifications.push({
-          id: `assigned-${o.id}`,
-          type: 'success',
-          message: `Tienes un pedido ${statusLabel}: ${o.productName} para ${o.clientName} (Q${o.total.toFixed(2)}).`,
-          createdAt: o.updatedAt || o.createdAt || new Date().toISOString()
-        });
-      });
-    }
-
     notifications.sort((a, b) => {
       if (a.type === 'warning' && b.type !== 'warning') return -1;
       if (a.type !== 'warning' && b.type === 'warning') return 1;

@@ -388,61 +388,6 @@ export const dbClient = {
     }
   },
 
-  orders: {
-    findMany: async () => {
-      if (isFallbackActive() || !prisma) {
-        return fallbackDb.orders.findMany();
-      }
-      try {
-        return await prisma.order.findMany({ orderBy: { createdAt: 'desc' } });
-      } catch {
-        return fallbackDb.orders.findMany();
-      }
-    },
-    findUnique: async (id: string) => {
-      if (isFallbackActive() || !prisma) {
-        return fallbackDb.orders.findUnique(id);
-      }
-      try {
-        return await prisma.order.findUnique({ where: { id } });
-      } catch {
-        return fallbackDb.orders.findUnique(id);
-      }
-    },
-    create: async (data: any) => {
-      if (isFallbackActive() || !prisma) {
-        return fallbackDb.orders.create(data);
-      }
-      try {
-        return await prisma.order.create({ data });
-      } catch (error) {
-        console.error('Prisma order create failed, using fallback:', error);
-        return fallbackDb.orders.create(data);
-      }
-    },
-    update: async (id: string, data: any) => {
-      if (isFallbackActive() || !prisma) {
-        return fallbackDb.orders.update(id, data);
-      }
-      try {
-        return await prisma.order.update({ where: { id }, data });
-      } catch {
-        return fallbackDb.orders.update(id, data);
-      }
-    },
-    delete: async (id: string) => {
-      if (isFallbackActive() || !prisma) {
-        return fallbackDb.orders.delete(id);
-      }
-      try {
-        const res = await prisma.order.delete({ where: { id } });
-        return !!res;
-      } catch {
-        return fallbackDb.orders.delete(id);
-      }
-    }
-  },
-
   forumPosts: {
     findMany: async () => {
       if (isFallbackActive()) {
