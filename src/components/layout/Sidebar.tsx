@@ -99,7 +99,7 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
         },
         {
           name: 'Historial de Ventas',
-          path: '/sales',
+          path: '/sales/history',
           icon: History,
           roles: ['ADMIN', 'VENDEDOR']
         },
