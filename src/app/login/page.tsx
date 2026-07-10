@@ -98,7 +98,7 @@ function LoginContent() {
           <div style={{ position: 'absolute', bottom: '-40px', left: '-40px', width: '160px', height: '160px', borderRadius: '50%', background: 'rgba(8,145,178,0.06)' }} />
 
           <div style={{ position: 'relative', zIndex: 1 }}>
-            <img src="/logo.png" alt="Variedades Coatan" style={{ width: '72px', height: '72px', borderRadius: '16px', objectFit: 'contain', marginBottom: '24px', background: '#fff', padding: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }} />
+            <img src="/logo.png" alt="Variedades Coatan" style={{ width: '96px', height: '96px', objectFit: 'contain', marginBottom: '24px' }} />
             <h1 style={{ fontSize: '15px', color: '#374151', fontWeight: 500, marginBottom: '4px' }}>Bienvenido a</h1>
             <h2 style={{ fontSize: '30px', fontWeight: 800, color: '#0891b2', marginBottom: '16px', lineHeight: 1.2 }}>Variedades Coatan</h2>
             <p style={{ fontSize: '14px', color: '#4b5563', lineHeight: 1.7, maxWidth: '320px' }}>Tu plataforma inteligente para gestionar productos, pedidos y clientes de forma facil, rapida y segura.</p>
@@ -116,25 +116,6 @@ function LoginContent() {
                   <p style={{ fontSize: '10px', color: '#6b7280' }}>{b.desc}</p>
                 </div>
               ))}
-            </div>
-          </div>
-
-          {/* Dashboard preview mockup */}
-          <div style={{ position: 'relative', zIndex: 1, marginTop: '32px', background: '#fff', borderRadius: '12px', padding: '16px', boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }}>
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444' }} />
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b' }} />
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e' }} />
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              <div style={{ background: '#f0fdfa', borderRadius: '8px', padding: '10px' }}>
-                <p style={{ fontSize: '9px', color: '#6b7280' }}>Ventas del dia</p>
-                <p style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>Q18,750.00</p>
-              </div>
-              <div style={{ background: '#f0fdfa', borderRadius: '8px', padding: '10px' }}>
-                <p style={{ fontSize: '9px', color: '#6b7280' }}>Pedidos</p>
-                <p style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>124</p>
-              </div>
             </div>
           </div>
         </div>
