@@ -30,6 +30,7 @@ interface Sale {
   clientName: string;
   clientPhone?: string;
   items: SaleItem[];
+  itemCount: number;
   subtotal: number;
   discount: number;
   total: number;
@@ -364,7 +365,7 @@ function HistorialContent() {
                         <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>{sale.folio}</td>
                         <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-secondary)' }}>{sale.date} {sale.time}</td>
                         <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-primary)' }}>{sale.clientName || 'Cliente General'}</td>
-                        <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-secondary)', textAlign: 'center' }}>{sale.items?.length || 0} prod.</td>
+                        <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-secondary)', textAlign: 'center' }}>{sale.itemCount || sale.items?.length || 0} prod.</td>
                         <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: 'var(--accent)', textAlign: 'right' }}>{formatCurrency(sale.total)}</td>
                         <td style={{ padding: '12px 16px', textAlign: 'center' }}>
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#16a34a', fontWeight: 500 }}>
@@ -427,11 +428,8 @@ function HistorialContent() {
             <div style={{ marginBottom: '16px' }}>
               {selectedSale.items?.map((item, idx) => (
                 <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
-                  <div style={{ width: '32px', height: '32px', borderRadius: '6px', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
-                    {item.image ? <img src={item.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Package size={14} style={{ color: 'var(--text-secondary)' }} />}
-                  </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.productName}</p>
+                    <p style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-primary)' }}>{item.productName}</p>
                     <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{item.quantity} x {formatCurrency(item.price)}</p>
                   </div>
                   <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>{formatCurrency(item.subtotal)}</span>
