@@ -331,7 +331,7 @@ export default function NuevaVentaPage() {
           </div>
 
           {/* Search */}
-          <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)' }} ref={searchRef}>
+          <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', position: 'relative' }} ref={searchRef}>
             <div style={{ position: 'relative' }}>
               <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
               <input
@@ -344,7 +344,7 @@ export default function NuevaVentaPage() {
               />
             </div>
             {showSearch && searchResults.length > 0 && (
-              <div style={{ position: 'absolute', zIndex: 10, marginTop: '4px', width: 'calc(100% - 32px)', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', maxHeight: '200px', overflow: 'auto' }}>
+              <div style={{ position: 'absolute', zIndex: 20, left: '16px', right: '16px', marginTop: '4px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', maxHeight: '240px', overflow: 'auto' }}>
                 {searchResults.map((product: any) => (
                   <button
                     key={product.id}
@@ -354,12 +354,16 @@ export default function NuevaVentaPage() {
                       setSearchResults([]);
                       setShowSearch(false);
                     }}
-                    style={{ width: '100%', padding: '10px 12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', borderBottom: '1px solid var(--border)' }}
+                    style={{ width: '100%', padding: '10px 12px', textAlign: 'left', background: 'transparent', border: 'none', borderBottom: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}
                     onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-primary)'}
                     onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                   >
-                    <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <Package size={16} style={{ color: 'var(--text-secondary)' }} />
+                    <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+                      {product.image ? (
+                        <img src={product.image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <Package size={18} style={{ color: 'var(--text-secondary)' }} />
+                      )}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{product.name}</p>
