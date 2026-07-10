@@ -380,7 +380,7 @@ export default function ScanPage() {
                     )}
                   </div>
                   <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                    <DollarSign size={12} style={{ display: 'inline' }} />${scannedProduct.price.toFixed(2)}
+                    <DollarSign size={12} style={{ display: 'inline' }} />Q{scannedProduct.price.toFixed(2)}
                     <span style={{ margin: '0 6px', color: 'var(--border)' }}>|</span>
                     <Package size={12} style={{ display: 'inline' }} />{scannedProduct.stock} unidades
                   </p>
@@ -446,7 +446,7 @@ export default function ScanPage() {
                 </div>
                 {Number(sellQty) > 0 && scannedProduct.price > 0 && (
                   <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
-                    Total: <strong style={{ color: 'var(--success)' }}>${(scannedProduct.price * Number(sellQty)).toFixed(2)}</strong>
+                    Total: <strong style={{ color: 'var(--success)' }}>Q{(scannedProduct.price * Number(sellQty)).toFixed(2)}</strong>
                   </p>
                 )}
                 <button type="submit" className="btn btn-primary" style={{ width: '100%', fontSize: '12px', gap: '4px' }} disabled={actionLoading || scannedProduct.stock <= 0}>

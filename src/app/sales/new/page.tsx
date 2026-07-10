@@ -360,7 +360,7 @@ export default function NuevaVentaPage() {
     }
   };
 
-  const formatCurrency = (val: number) => `$${val.toFixed(2)}`;
+  const formatCurrency = (val: number) => `Q${val.toFixed(2)}`;
 
   if (status === 'loading') {
     return (

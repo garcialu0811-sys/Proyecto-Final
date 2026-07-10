@@ -241,7 +241,7 @@ function HistorialContent() {
     }
   };
 
-  const formatCurrency = (v: number) => `$${(v || 0).toFixed(2)}`;
+  const formatCurrency = (v: number) => `Q${(v || 0).toFixed(2)}`;
   const totalPages = Math.ceil(filteredSales.length / itemsPerPage);
   const paginatedSales = filteredSales.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 

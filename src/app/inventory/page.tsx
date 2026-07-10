@@ -330,8 +330,7 @@ export default function InventoryPage() {
   };
 
   const formatCurrency = (val: number) => {
-    const symbol = typeof window !== 'undefined' ? (localStorage.getItem('qrshop-currency') || 'Q') : 'Q';
-    return `${symbol}${val.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `Q${val.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   return (

@@ -152,7 +152,7 @@ export default function DashboardPage() {
           <div className="metric-card">
             <div className="metric-info">
               <h3>Ventas de Hoy</h3>
-              <div className="value">${stats.todayRevenue.toFixed(2)}</div>
+              <div className="value">Q{stats.todayRevenue.toFixed(2)}</div>
               <p style={{ fontSize: '11px', color: 'var(--text-light)', marginTop: '4px' }}>
                 {stats.todaySalesCount} transacciones registradas
               </p>
@@ -241,7 +241,7 @@ export default function DashboardPage() {
                 <Area 
                   type="monotone" 
                   dataKey="ventas" 
-                  name="Ventas ($)" 
+                  name="Ventas (Q)" 
                   stroke="var(--accent)" 
                   fillOpacity={1} 
                   fill="url(#colorVentas)" 
@@ -327,14 +327,14 @@ export default function DashboardPage() {
               className={`btn ${salesFilter === 'HighValue' ? 'btn-primary' : 'btn-secondary'}`}
               style={{ padding: '4px 10px', fontSize: '12px', borderRadius: '4px' }}
             >
-              Alto Valor (≥$100)
+              Alto Valor (≥Q100)
             </button>
             <button
               onClick={() => setSalesFilter('LowValue')}
               className={`btn ${salesFilter === 'LowValue' ? 'btn-primary' : 'btn-secondary'}`}
               style={{ padding: '4px 10px', fontSize: '12px', borderRadius: '4px' }}
             >
-              Bajo Valor (&lt;$100)
+              Bajo Valor (&lt;Q100)
             </button>
           </div>
         </div>
@@ -364,8 +364,8 @@ export default function DashboardPage() {
                     <td style={{ fontFamily: 'monospace', fontWeight: 500 }}>{sale.id}</td>
                     <td style={{ fontWeight: 600 }}>{sale.productName}</td>
                     <td>{sale.quantity}</td>
-                    <td>${sale.price.toFixed(2)}</td>
-                    <td style={{ fontWeight: 700, color: 'var(--success)' }}>${sale.total.toFixed(2)}</td>
+                    <td>Q{sale.price.toFixed(2)}</td>
+                    <td style={{ fontWeight: 700, color: 'var(--success)' }}>Q{sale.total.toFixed(2)}</td>
                     <td style={{ fontSize: '12px', color: 'var(--text-light)' }}>
                       {new Date(sale.createdAt).toLocaleString('es-ES')}
                     </td>

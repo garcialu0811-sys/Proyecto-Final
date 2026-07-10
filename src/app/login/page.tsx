@@ -186,7 +186,7 @@ function LoginContent() {
                 {/* Ventas */}
                 <div style={{ background: '#f0fdfa', borderRadius: '10px', padding: '12px' }}>
                   <p style={{ fontSize: '8px', color: '#6b7280', marginBottom: '4px', fontWeight: 500 }}>Ventas del dia</p>
-                  <p style={{ fontSize: '14px', fontWeight: 700, color: '#111827', marginBottom: '2px' }}>$18,750.00</p>
+                   <p style={{ fontSize: '14px', fontWeight: 700, color: '#111827', marginBottom: '2px' }}>Q18,750.00</p>
                   <p style={{ fontSize: '8px', color: '#22c55e', fontWeight: 600, marginBottom: '6px' }}>+12.5%</p>
                   {/* Line chart */}
                   <svg viewBox="0 0 120 30" style={{ width: '100%', height: '24px' }}>
