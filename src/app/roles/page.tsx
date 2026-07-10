@@ -40,8 +40,6 @@ const MODULES = [
   { key: 'categories', label: 'Categorias', icon: 'tag', actions: ['view', 'create', 'edit', 'delete'] },
   { key: 'inventory', label: 'Inventario', icon: 'box', actions: ['view', 'edit', 'export'] },
   { key: 'sales', label: 'Ventas', icon: 'dollar', actions: ['view', 'create', 'edit', 'delete'] },
-  { key: 'orders', label: 'Pedidos', icon: 'file', actions: ['view', 'create', 'edit', 'delete'] },
-  { key: 'deliveries', label: 'Entregas', icon: 'truck', actions: ['view', 'create', 'edit', 'delete'] },
   { key: 'users', label: 'Usuarios', icon: 'users', actions: ['view', 'create', 'edit', 'delete', 'manage_roles'] },
   { key: 'settings', label: 'Configuracion', icon: 'settings', actions: ['view', 'edit'] },
 ];

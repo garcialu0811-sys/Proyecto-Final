@@ -12,7 +12,6 @@ import {
   Camera,
   DollarSign,
   ShoppingCart,
-  Truck,
   Users,
   ShieldCheck,
   FileText,
@@ -107,12 +106,6 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
           name: 'Recibos',
           path: '/sales/receipts',
           icon: Receipt,
-          roles: ['ADMIN', 'VENDEDOR']
-        },
-        {
-          name: 'Entregas',
-          path: '/deliveries',
-          icon: Truck,
           roles: ['ADMIN', 'VENDEDOR']
         }
       ]

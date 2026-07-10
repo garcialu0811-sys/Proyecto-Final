@@ -22,7 +22,6 @@ model User {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   sales           Sale[]
-  orders          Order[]
   posSessions     PosSession[]
   notificationSettings NotificationSettings?
 }
@@ -33,7 +32,6 @@ model NotificationSettings {
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   lowStockAlerts    Boolean  @default(true)
   lowStockThreshold Int      @default(5)
-  newOrderAlerts    Boolean  @default(true)
   sendToTelegram    Boolean  @default(true)
   sendToEmail       Boolean  @default(false)
   createdAt         DateTime @default(now())
@@ -77,61 +75,6 @@ model Sale {
   sellerId    String
   seller      User     @relation(fields: [sellerId], references: [id])
   createdAt   DateTime @default(now())
-}
-
-model Order {
-  id            String   @id @default(uuid())
-  orderNumber   String   @unique @default("")
-  userId        String?
-  user          User?    @relation(fields: [userId], references: [id])
-  productId     String
-  productName   String
-  quantity      Int
-  price         Float
-  total         Float
-  status        String   @default("PENDIENTE")
-  clientName    String
-  clientPhone   String?
-  clientAddress String?
-  phone         String?
-  address       String?
-  city          String?
-  zone          String?
-  reference     String?
-  paymentMethod String?
-  subtotal      Float?
-  shipping      Float?    @default(0)
-  discount      Float?    @default(0)
-  driverId      String?
-  driverName    String?
-  notes         String?
-  deliveredAt   DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  items         OrderItem[]
-  history       OrderHistory[]
-}
-
-model OrderItem {
-  id          String  @id @default(uuid())
-  orderId     String
-  order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId   String
-  productName String
-  sku         String?
-  price       Float
-  quantity    Int
-  subtotal    Float
-  image       String?
-}
-
-model OrderHistory {
-  id        String   @id @default(uuid())
-  orderId   String
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  status    String
-  note      String?
-  createdAt DateTime @default(now())
 }
 
 model Product {

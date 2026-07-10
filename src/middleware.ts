@@ -13,7 +13,7 @@ export default withAuth(
     const role = token.role as string;
 
     // Proteger rutas de gestión de inventario y ventas (ADMIN y VENDEDOR)
-    const staffPaths = ['/dashboard', '/sales', '/categories', '/inventory', '/scan', '/deliveries'];
+    const staffPaths = ['/dashboard', '/sales', '/categories', '/inventory', '/scan'];
     if (staffPaths.some(p => path.startsWith(p))) {
       if (role !== 'ADMIN' && role !== 'VENDEDOR') {
         return NextResponse.redirect(new URL('/login', req.url));
@@ -46,8 +46,6 @@ export const config = {
     '/categories/:path*', 
     '/inventory/:path*', 
     '/scan/:path*', 
-    '/orders/:path*', 
-    '/deliveries/:path*', 
     '/users/:path*', 
     '/roles/:path*', 
     '/profile/:path*', 

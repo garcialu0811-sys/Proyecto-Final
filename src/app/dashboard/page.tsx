@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { 
   TrendingUp, 
   Package, 
-  Truck, 
   AlertTriangle, 
   DollarSign, 
   ShoppingCart,
@@ -30,8 +29,6 @@ interface DashboardStats {
   todaySalesCount: number;
   todayRevenue: number;
   lowStockCount: number;
-  ordersInRoute: number;
-  pendingOrders: number;
 }
 
 interface RecentSale {
@@ -53,7 +50,6 @@ interface LowStockAlert {
 interface ChartItem {
   name: string;
   ventas: number;
-  pedidos: number;
   fecha: string;
 }
 
@@ -176,21 +172,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Card 3: En ruta */}
-          <div className="metric-card">
-            <div className="metric-info">
-              <h3>En Ruta de Entrega</h3>
-              <div className="value">{stats.ordersInRoute}</div>
-              <p style={{ fontSize: '11px', color: 'var(--text-light)', marginTop: '4px' }}>
-                Asignados a repartidores
-              </p>
-            </div>
-            <div className="metric-icon-box blue">
-              <Truck size={24} />
-            </div>
-          </div>
-
-          {/* Card 4: Stock bajo */}
+          {/* Card 3: Stock bajo */}
           <div className="metric-card">
             <div className="metric-info">
               <h3>Alertas de Inventario</h3>
@@ -214,7 +196,7 @@ export default function DashboardPage() {
         {/* Weekly sales graph */}
         <div className="card">
           <h2 className="card-title">
-            <span>Rendimiento Semanal (Ventas y Pedidos)</span>
+            <span>Rendimiento Semanal (Ventas)</span>
             <TrendingUp size={20} style={{ color: 'var(--accent)' }} />
           </h2>
           <div style={{ width: '100%', height: '300px' }}>
