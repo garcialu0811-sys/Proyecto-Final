@@ -51,6 +51,14 @@ function HistorialContent() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   const [metrics, setMetrics] = useState({
     totalSales: 0,
@@ -266,69 +274,69 @@ function HistorialContent() {
       </div>
 
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <BarChart3 size={20} style={{ color: '#2563eb' }} />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: isMobile ? '16px' : '24px', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '10px' : '12px' }}>
+          <div style={{ width: isMobile ? '36px' : '40px', height: isMobile ? '36px' : '40px', borderRadius: '10px', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <BarChart3 size={isMobile ? 18 : 20} style={{ color: '#2563eb' }} />
           </div>
           <div>
-            <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)' }}>Historial de Ventas</h1>
-            <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Consulta y administra todas las ventas realizadas.</p>
+            <h1 style={{ fontSize: isMobile ? '17px' : '20px', fontWeight: 700, color: 'var(--text-primary)' }}>Historial de Ventas</h1>
+            {!isMobile && <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Consulta y administra todas las ventas realizadas.</p>}
           </div>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button onClick={handleDownloadExcel} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', border: '1px solid #16a34a', borderRadius: '8px', background: '#f0fdf4', color: '#16a34a', cursor: 'pointer', fontSize: '13px', fontWeight: 500 }}>
-            <FileSpreadsheet size={15} /> Exportar Excel
+          <button onClick={handleDownloadExcel} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: isMobile ? '10px 12px' : '8px 14px', border: '1px solid #16a34a', borderRadius: '8px', background: '#f0fdf4', color: '#16a34a', cursor: 'pointer', fontSize: isMobile ? '13px' : '13px', fontWeight: 500, minHeight: isMobile ? '44px' : 'auto' }}>
+            <FileSpreadsheet size={15} /> {isMobile ? 'Excel' : 'Exportar Excel'}
           </button>
-          <button onClick={handleDownloadPDF} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', border: '1px solid #dc2626', borderRadius: '8px', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontSize: '13px', fontWeight: 500 }}>
-            <FileText size={15} /> Exportar PDF
+          <button onClick={handleDownloadPDF} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: isMobile ? '10px 12px' : '8px 14px', border: '1px solid #dc2626', borderRadius: '8px', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontSize: isMobile ? '13px' : '13px', fontWeight: 500, minHeight: isMobile ? '44px' : 'auto' }}>
+            <FileText size={15} /> {isMobile ? 'PDF' : 'Exportar PDF'}
           </button>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="card" style={{ padding: '16px 20px', marginBottom: '20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+      <div className="card" style={{ padding: isMobile ? '12px' : '16px 20px', marginBottom: isMobile ? '12px' : '20px' }}>
+        <div className="history-filter-row">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>Rango de Fechas</span>
             <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ padding: '6px 10px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '13px', background: 'var(--bg-primary)', color: 'var(--text-primary)' }} />
             <span style={{ color: 'var(--text-secondary)' }}>-{'>'}</span>
             <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ padding: '6px 10px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '13px', background: 'var(--bg-primary)', color: 'var(--text-primary)' }} />
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>Rapido:</span>
             {quickFilters.map(f => (
-              <button key={f.value} onClick={() => applyQuickFilter(f.value)} style={{ padding: '5px 12px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '12px', background: 'var(--bg-secondary)', color: 'var(--text-primary)', cursor: 'pointer' }}>{f.label}</button>
+              <button key={f.value} onClick={() => applyQuickFilter(f.value)} style={{ padding: '5px 12px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '12px', background: 'var(--bg-secondary)', color: 'var(--text-primary)', cursor: 'pointer', minHeight: isMobile ? '36px' : 'auto' }}>{f.label}</button>
             ))}
           </div>
-          <div style={{ position: 'relative', marginLeft: 'auto' }}>
+          <div style={{ position: 'relative', marginLeft: isMobile ? '0' : 'auto' }}>
             <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
-            <input type="text" value={searchTerm} onChange={e => handleSearch(e.target.value)} placeholder="Buscar por folio, cliente o producto..." style={{ padding: '6px 10px 6px 32px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '13px', width: '260px', background: 'var(--bg-primary)', color: 'var(--text-primary)' }} />
+            <input type="text" value={searchTerm} onChange={e => handleSearch(e.target.value)} placeholder="Buscar por folio, cliente..." style={{ padding: '6px 10px 6px 32px', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '13px', width: '100%', background: 'var(--bg-primary)', color: 'var(--text-primary)' }} />
           </div>
         </div>
       </div>
 
       {/* Metrics */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '20px' }}>
+      <div className="history-metrics-grid" style={{ marginBottom: isMobile ? '12px' : '20px' }}>
         {[
           { label: 'Ventas', value: metrics.totalSales, sub: 'Ventas realizadas', icon: <ShoppingCart size={22} />, color: '#eff6ff', iconColor: '#2563eb' },
           { label: 'Total Ventas', value: formatCurrency(metrics.totalRevenue), sub: 'Ingresos totales', icon: <DollarSign size={22} />, color: '#f0fdf4', iconColor: '#16a34a' },
           { label: 'Ticket Promedio', value: formatCurrency(metrics.averageTicket), sub: 'Promedio por venta', icon: <BarChart3 size={22} />, color: '#eff6ff', iconColor: '#2563eb' },
-          { label: 'Productos Vendidos', value: metrics.totalProducts, sub: 'Total de productos', icon: <Package size={22} />, color: '#fff7ed', iconColor: '#ea580c' },
+          { label: 'Productos', value: metrics.totalProducts, sub: 'Total vendidos', icon: <Package size={22} />, color: '#fff7ed', iconColor: '#ea580c' },
         ].map((m, i) => (
-          <div key={i} className="card" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div key={i} className="card" style={{ padding: isMobile ? '12px' : '16px 20px', display: 'flex', alignItems: 'center', gap: isMobile ? '10px' : '14px' }}>
             <div style={{ flex: 1 }}>
-              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>{m.label}</p>
-              <p style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)' }}>{m.value}</p>
-              <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{m.sub}</p>
+              <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '2px' }}>{m.label}</p>
+              <p style={{ fontSize: isMobile ? '18px' : '22px', fontWeight: 700, color: 'var(--text-primary)' }}>{m.value}</p>
+              {!isMobile && <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{m.sub}</p>}
             </div>
-            <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: m.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: m.iconColor }}>{m.icon}</div>
+            <div style={{ width: isMobile ? '38px' : '44px', height: isMobile ? '38px' : '44px', borderRadius: '12px', background: m.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: m.iconColor, flexShrink: 0 }}>{m.icon}</div>
           </div>
         ))}
       </div>
 
       {/* Main Content */}
-      <div style={{ display: 'grid', gridTemplateColumns: selectedSale ? '1fr 360px' : '1fr', gap: '20px', alignItems: 'start' }}>
+      <div className={selectedSale ? 'history-main-grid history-with-panel' : 'history-main-grid'}>
         {/* Table */}
         <div className="card" style={{ overflow: 'hidden' }}>
           <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)' }}>
@@ -383,14 +391,14 @@ function HistorialContent() {
                 </table>
               </div>
               {/* Pagination */}
-              <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Mostrando {(currentPage - 1) * itemsPerPage + 1} a {Math.min(currentPage * itemsPerPage, filteredSales.length)} de {filteredSales.length} ventas</p>
+              <div style={{ padding: isMobile ? '10px 12px' : '12px 16px', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Mostrando {(currentPage - 1) * itemsPerPage + 1} a {Math.min(currentPage * itemsPerPage, filteredSales.length)} de {filteredSales.length}</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} style={{ width: '28px', height: '28px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-secondary)', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: currentPage === 1 ? 0.5 : 1 }}><ChevronLeft size={14} /></button>
+                  <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} style={{ width: isMobile ? '36px' : '28px', height: isMobile ? '36px' : '28px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-secondary)', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: currentPage === 1 ? 0.5 : 1 }}><ChevronLeft size={14} /></button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                    <button key={page} onClick={() => setCurrentPage(page)} style={{ width: '28px', height: '28px', borderRadius: '6px', border: page === currentPage ? '1px solid var(--accent)' : '1px solid var(--border)', background: page === currentPage ? 'var(--accent)' : 'var(--bg-secondary)', color: page === currentPage ? '#fff' : 'var(--text-primary)', cursor: 'pointer', fontSize: '12px', fontWeight: 500 }}>{page}</button>
+                    <button key={page} onClick={() => setCurrentPage(page)} style={{ width: isMobile ? '36px' : '28px', height: isMobile ? '36px' : '28px', borderRadius: '6px', border: page === currentPage ? '1px solid var(--accent)' : '1px solid var(--border)', background: page === currentPage ? 'var(--accent)' : 'var(--bg-secondary)', color: page === currentPage ? '#fff' : 'var(--text-primary)', cursor: 'pointer', fontSize: '12px', fontWeight: 500 }}>{page}</button>
                   ))}
-                  <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} style={{ width: '28px', height: '28px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-secondary)', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: currentPage === totalPages ? 0.5 : 1 }}><ChevronRight size={14} /></button>
+                  <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} style={{ width: isMobile ? '36px' : '28px', height: isMobile ? '36px' : '28px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-secondary)', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: currentPage === totalPages ? 0.5 : 1 }}><ChevronRight size={14} /></button>
                 </div>
               </div>
             </>
@@ -399,7 +407,7 @@ function HistorialContent() {
 
         {/* Detail Panel */}
         {selectedSale && (
-          <div className="card" style={{ padding: '20px', position: 'sticky', top: '80px' }}>
+          <div className="card" style={{ padding: isMobile ? '16px' : '20px', position: isMobile ? 'static' : 'sticky', top: isMobile ? 'auto' : '80px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>Detalle de la Venta</h3>
               <button onClick={() => setSelectedSale(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}><X size={18} /></button>
@@ -478,12 +486,6 @@ function HistorialContent() {
 
       <style>{`
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @media (max-width: 768px) {
-          .metrics-grid { grid-template-columns: 1fr 1fr !important; }
-        }
-        @media (max-width: 480px) {
-          .metrics-grid { grid-template-columns: 1fr !important; }
-        }
       `}</style>
     </div>
   );

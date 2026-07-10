@@ -37,6 +37,14 @@ function ConfirmacionContent() {
   const receiptRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(false);
   const [saleData, setSaleData] = useState<SaleData | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   const storeData = {
     name: 'Variedades Coatan',
@@ -203,20 +211,20 @@ function ConfirmacionContent() {
   return (
     <div>
       {/* Success Banner */}
-      <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '12px', padding: '20px', marginBottom: '24px', textAlign: 'center', position: 'relative' }}>
+      <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '12px', padding: isMobile ? '16px' : '20px', marginBottom: isMobile ? '16px' : '24px', textAlign: 'center', position: 'relative' }}>
         <button
           onClick={() => router.push('/sales')}
-          style={{ position: 'absolute', top: '12px', right: '12px', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}
+          style={{ position: 'absolute', top: '12px', right: '12px', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
           <X size={20} />
         </button>
-        <CheckCircle size={48} style={{ color: '#10b981', margin: '0 auto 12px' }} />
-        <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#065f46', marginBottom: '4px' }}>Venta registrada con exito!</h1>
+        <CheckCircle size={isMobile ? 40 : 48} style={{ color: '#10b981', margin: '0 auto 12px' }} />
+        <h1 style={{ fontSize: isMobile ? '18px' : '22px', fontWeight: 700, color: '#065f46', marginBottom: '4px' }}>Venta registrada con exito!</h1>
         <p style={{ fontSize: '14px', color: '#047857' }}>Tu venta ha sido guardada correctamente.</p>
       </div>
 
       {/* Main Content */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '24px', alignItems: 'start' }}>
+      <div className="confirmation-grid">
         {/* Receipt */}
         <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
           <div id="receipt-printable" ref={receiptRef} style={{ padding: '32px', maxWidth: '480px', margin: '0 auto' }}>
@@ -336,7 +344,7 @@ function ConfirmacionContent() {
             <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '12px' }}>Imprime el recibo de esta venta.</p>
             <button
               onClick={handlePrint}
-              style={{ width: '100%', padding: '10px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+              style={{ width: '100%', padding: isMobile ? '14px' : '10px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', minHeight: isMobile ? '48px' : 'auto' }}
             >
               <Printer size={15} />
               Imprimir
@@ -353,7 +361,7 @@ function ConfirmacionContent() {
             <button
               onClick={handleDownloadPDF}
               disabled={loading}
-              style={{ width: '100%', padding: '10px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', opacity: loading ? 0.7 : 1 }}
+              style={{ width: '100%', padding: isMobile ? '14px' : '10px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', opacity: loading ? 0.7 : 1, minHeight: isMobile ? '48px' : 'auto' }}
             >
               {loading ? (
                 <>
@@ -378,7 +386,7 @@ function ConfirmacionContent() {
             <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '12px' }}>Descarga los detalles de la venta en Excel.</p>
             <button
               onClick={handleDownloadExcel}
-              style={{ width: '100%', padding: '10px', background: '#16a34a', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+              style={{ width: '100%', padding: isMobile ? '14px' : '10px', background: '#16a34a', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', minHeight: isMobile ? '48px' : 'auto' }}
             >
               <Download size={15} />
               Descargar Excel
@@ -388,7 +396,7 @@ function ConfirmacionContent() {
           {/* Cerrar */}
           <button
             onClick={() => router.push('/sales')}
-            style={{ width: '100%', padding: '12px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-secondary)', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '14px', fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+            style={{ width: '100%', padding: isMobile ? '14px' : '12px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-secondary)', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '14px', fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', minHeight: isMobile ? '48px' : 'auto' }}
           >
             <X size={16} />
             Cerrar
@@ -398,9 +406,6 @@ function ConfirmacionContent() {
 
       <style>{`
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @media (max-width: 900px) {
-          .confirmation-grid { grid-template-columns: 1fr !important; }
-        }
       `}</style>
     </div>
   );

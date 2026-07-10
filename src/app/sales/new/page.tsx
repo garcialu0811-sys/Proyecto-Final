@@ -45,7 +45,15 @@ export default function NuevaVentaPage() {
   const [discount, setDiscount] = useState(0);
   const [discountType, setDiscountType] = useState<'fixed' | 'percent'>('fixed');
   const [showQRScanner, setShowQRScanner] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   const totals = {
     items: cartItems.reduce((sum, item) => sum + item.quantity, 0),
@@ -232,32 +240,32 @@ export default function NuevaVentaPage() {
   return (
     <div>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#ecfdf5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <DollarSign size={20} style={{ color: '#10b981' }} />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: isMobile ? '16px' : '24px', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '10px' : '12px' }}>
+          <div style={{ width: isMobile ? '36px' : '40px', height: isMobile ? '36px' : '40px', borderRadius: '10px', background: '#ecfdf5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <DollarSign size={isMobile ? 18 : 20} style={{ color: '#10b981' }} />
           </div>
           <div>
-            <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)' }}>Nueva Venta</h1>
-            <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Registra una nueva venta agregando productos e informacion del cliente.</p>
+            <h1 style={{ fontSize: isMobile ? '17px' : '20px', fontWeight: 700, color: 'var(--text-primary)' }}>Nueva Venta</h1>
+            {!isMobile && <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Registra una nueva venta agregando productos e informacion del cliente.</p>}
           </div>
         </div>
         <button
           onClick={() => router.push('/sales')}
-          style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-secondary)', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '13px' }}
+          style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: isMobile ? '10px 14px' : '8px 16px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-secondary)', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: isMobile ? '14px' : '13px', minHeight: isMobile ? '44px' : 'auto' }}
         >
           <X size={16} />
-          Cancelar Venta
+          {isMobile ? 'Cancelar' : 'Cancelar Venta'}
         </button>
       </div>
 
       {/* Customer Info */}
-      <div className="card" style={{ marginBottom: '20px' }}>
+      <div className="card" style={{ marginBottom: isMobile ? '12px' : '20px' }}>
         <h2 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <User size={16} style={{ color: 'var(--accent)' }} />
           Informacion del Cliente
         </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '12px', alignItems: 'end' }}>
+        <div className="pos-customer-grid">
           <div>
             <label style={{ display: 'block', fontSize: '12px', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '4px' }}>Cliente</label>
             <div style={{ position: 'relative' }}>
@@ -302,20 +310,20 @@ export default function NuevaVentaPage() {
           </div>
           <button
             onClick={() => setShowNewCustomerForm(true)}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', border: '1px dashed var(--accent)', borderRadius: '8px', background: 'transparent', color: 'var(--accent)', cursor: 'pointer', fontSize: '13px', fontWeight: 500, whiteSpace: 'nowrap' }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: isMobile ? '12px' : '8px 14px', border: '1px dashed var(--accent)', borderRadius: '8px', background: 'transparent', color: 'var(--accent)', cursor: 'pointer', fontSize: '13px', fontWeight: 500, whiteSpace: 'nowrap', minHeight: isMobile ? '44px' : 'auto' }}
           >
             <Plus size={14} />
-            Nuevo Cliente
+            {isMobile ? 'Nuevo Cliente' : 'Nuevo Cliente'}
           </button>
         </div>
       </div>
 
       {/* Main Content - Products + Summary */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '20px', alignItems: 'start' }}>
+      <div className="pos-grid">
         {/* Products Table */}
         <div className="card" style={{ overflow: 'hidden' }}>
-          <div style={{ padding: '16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h2 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="pos-product-header" style={{ padding: '16px', borderBottom: '1px solid var(--border)' }}>
+            <h2 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
               <Package size={16} style={{ color: 'var(--accent)' }} />
               Productos en la Venta
               {cartItems.length > 0 && (
@@ -324,10 +332,10 @@ export default function NuevaVentaPage() {
             </h2>
             <button
               onClick={() => setShowQRScanner(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', border: '1px solid var(--border)', borderRadius: '6px', background: 'var(--bg-secondary)', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '12px' }}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: isMobile ? '12px 16px' : '6px 12px', border: '1px solid var(--accent)', borderRadius: '8px', background: isMobile ? 'var(--accent)' : 'var(--bg-secondary)', color: isMobile ? '#fff' : 'var(--text-primary)', cursor: 'pointer', fontSize: isMobile ? '14px' : '12px', fontWeight: 500, minHeight: isMobile ? '44px' : 'auto' }}
             >
-              <Scan size={14} />
-              Escanear QR
+              <Scan size={isMobile ? 18 : 14} />
+              {isMobile ? 'Escanear QR' : 'Escanear QR'}
             </button>
           </div>
 
@@ -377,75 +385,80 @@ export default function NuevaVentaPage() {
           </div>
 
           {/* Products Table */}
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>Producto</th>
-                <th style={{ padding: '10px 16px', textAlign: 'right', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>Precio Unit.</th>
-                <th style={{ padding: '10px 16px', textAlign: 'center', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>Cantidad</th>
-                <th style={{ padding: '10px 16px', textAlign: 'right', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>Subtotal</th>
-                <th style={{ padding: '10px 16px', textAlign: 'center', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {cartItems.length === 0 ? (
-                <tr>
-                  <td colSpan={5} style={{ padding: '40px 16px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                    <ShoppingCart size={36} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
-                    <p style={{ fontSize: '14px' }}>No hay productos en esta venta</p>
-                    <p style={{ fontSize: '12px', marginTop: '4px' }}>Busca un producto o escanea un codigo QR</p>
-                  </td>
+          <div className="pos-table-wrapper">
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                  <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>Producto</th>
+                  <th style={{ padding: '10px 16px', textAlign: 'right', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>Precio Unit.</th>
+                  <th style={{ padding: '10px 16px', textAlign: 'center', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>Cantidad</th>
+                  <th style={{ padding: '10px 16px', textAlign: 'right', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>Subtotal</th>
+                  <th style={{ padding: '10px 16px', textAlign: 'center', fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>Acciones</th>
                 </tr>
-              ) : (
-                cartItems.map((item) => (
-                  <tr key={item.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                    <td style={{ padding: '12px 16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
-                          {item.image ? (
-                            <img src={item.image} alt={item.productName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          ) : (
-                            <Package size={18} style={{ color: 'var(--text-secondary)' }} />
-                          )}
-                        </div>
-                        <div>
-                          <p style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>{item.productName}</p>
-                          <p style={{ fontSize: '11px', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>{item.sku}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', color: 'var(--text-primary)' }}>{formatCurrency(item.price)}</td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-                        <button
-                          onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
-                          style={{ width: '28px', height: '28px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        >
-                          <Minus size={12} />
-                        </button>
-                        <span style={{ width: '32px', textAlign: 'center', fontSize: '13px', fontWeight: 500 }}>{item.quantity}</span>
-                        <button
-                          onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
-                          style={{ width: '28px', height: '28px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        >
-                          <Plus size={12} />
-                        </button>
-                      </div>
-                    </td>
-                    <td style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: 600, color: 'var(--accent)' }}>{formatCurrency(item.subtotal)}</td>
-                    <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                      <button
-                        onClick={() => handleRemoveItem(item.id)}
-                        style={{ width: '28px', height: '28px', borderRadius: '6px', border: '1px solid #fecaca', background: '#fef2f2', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444' }}
-                      >
-                        <Trash2 size={14} />
-                      </button>
+              </thead>
+              <tbody>
+                {cartItems.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} style={{ padding: '40px 16px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                      <ShoppingCart size={36} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
+                      <p style={{ fontSize: '14px' }}>No hay productos en esta venta</p>
+                      <p style={{ fontSize: '12px', marginTop: '4px' }}>Busca un producto o escanea un codigo QR</p>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  cartItems.map((item) => (
+                    <tr key={item.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                      <td style={{ padding: '12px 16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+                            {item.image ? (
+                              <img src={item.image} alt={item.productName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              <Package size={18} style={{ color: 'var(--text-secondary)' }} />
+                            )}
+                          </div>
+                          <div>
+                            <p style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>{item.productName}</p>
+                            <p style={{ fontSize: '11px', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>{item.sku}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', color: 'var(--text-primary)' }}>{formatCurrency(item.price)}</td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                          <button
+                            onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                            className={isMobile ? 'pos-touch-btn' : ''}
+                            style={{ width: isMobile ? '36px' : '28px', height: isMobile ? '36px' : '28px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                          >
+                            <Minus size={12} />
+                          </button>
+                          <span style={{ width: '32px', textAlign: 'center', fontSize: '13px', fontWeight: 500 }}>{item.quantity}</span>
+                          <button
+                            onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                            className={isMobile ? 'pos-touch-btn' : ''}
+                            style={{ width: isMobile ? '36px' : '28px', height: isMobile ? '36px' : '28px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                          >
+                            <Plus size={12} />
+                          </button>
+                        </div>
+                      </td>
+                      <td style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: 600, color: 'var(--accent)' }}>{formatCurrency(item.subtotal)}</td>
+                      <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                        <button
+                          onClick={() => handleRemoveItem(item.id)}
+                          className={isMobile ? 'pos-touch-btn danger' : ''}
+                          style={{ width: isMobile ? '36px' : '28px', height: isMobile ? '36px' : '28px', borderRadius: '6px', border: '1px solid #fecaca', background: '#fef2f2', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444' }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
 
           {/* Scan prompt */}
           {cartItems.length > 0 && (
@@ -457,7 +470,7 @@ export default function NuevaVentaPage() {
         </div>
 
         {/* Summary */}
-        <div className="card" style={{ padding: '20px', position: 'sticky', top: '80px' }}>
+        <div className="card" style={{ padding: isMobile ? '16px' : '20px', position: isMobile ? 'static' : 'sticky', top: isMobile ? 'auto' : '80px' }}>
           <h2 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Receipt size={16} style={{ color: 'var(--accent)' }} />
             Resumen de la Venta
@@ -510,11 +523,12 @@ export default function NuevaVentaPage() {
             onClick={handleSubmit}
             disabled={isSubmitting || cartItems.length === 0}
             style={{
-              width: '100%', padding: '14px', background: cartItems.length === 0 ? '#94a3b8' : 'linear-gradient(135deg, #06b6d4, #0891b2)',
-              color: '#fff', border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: 600,
+              width: '100%', padding: isMobile ? '16px' : '14px', background: cartItems.length === 0 ? '#94a3b8' : 'linear-gradient(135deg, #06b6d4, #0891b2)',
+              color: '#fff', border: 'none', borderRadius: '10px', fontSize: isMobile ? '16px' : '15px', fontWeight: 600,
               cursor: isSubmitting || cartItems.length === 0 ? 'not-allowed' : 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-              opacity: isSubmitting ? 0.7 : 1, transition: 'all 0.2s'
+              opacity: isSubmitting ? 0.7 : 1, transition: 'all 0.2s',
+              minHeight: isMobile ? '52px' : 'auto'
             }}
           >
             {isSubmitting ? (
@@ -538,7 +552,7 @@ export default function NuevaVentaPage() {
       {/* New Customer Modal */}
       {showNewCustomerForm && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '16px' }}>
-          <div style={{ background: 'var(--bg-secondary)', borderRadius: '16px', padding: '24px', maxWidth: '440px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+          <div style={{ background: 'var(--bg-secondary)', borderRadius: '16px', padding: isMobile ? '20px' : '24px', maxWidth: '440px', width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>Nuevo Cliente</h2>
               <button onClick={() => setShowNewCustomerForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
@@ -581,7 +595,7 @@ export default function NuevaVentaPage() {
             <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
               <button
                 onClick={() => setShowNewCustomerForm(false)}
-                style={{ flex: 1, padding: '10px', border: '1px solid var(--border)', borderRadius: '8px', background: 'transparent', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '14px' }}
+                style={{ flex: 1, padding: isMobile ? '14px' : '10px', border: '1px solid var(--border)', borderRadius: '8px', background: 'transparent', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '14px', minHeight: isMobile ? '48px' : 'auto' }}
               >
                 Cancelar
               </button>
@@ -596,7 +610,7 @@ export default function NuevaVentaPage() {
                     showToast('Nombre y telefono son obligatorios', 'warning');
                   }
                 }}
-                style={{ flex: 1, padding: '10px', border: 'none', borderRadius: '8px', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}
+                style={{ flex: 1, padding: isMobile ? '14px' : '10px', border: 'none', borderRadius: '8px', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: 600, minHeight: isMobile ? '48px' : 'auto' }}
               >
                 Guardar Cliente
               </button>
@@ -616,9 +630,6 @@ export default function NuevaVentaPage() {
 
       <style>{`
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @media (max-width: 1024px) {
-          .pos-grid { grid-template-columns: 1fr !important; }
-        }
       `}</style>
     </div>
   );
