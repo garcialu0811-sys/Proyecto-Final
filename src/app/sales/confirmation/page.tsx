@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
   CheckCircle, Printer, FileText, Download, X, MapPin, Phone,
-  User, Calendar, Clock, ShoppingBag, Receipt, FileSpreadsheet
+  User, Calendar, Clock, Receipt, FileSpreadsheet
 } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
 
@@ -266,18 +266,9 @@ function ConfirmacionContent() {
                 {saleData.items.map((item, idx) => (
                   <tr key={idx} style={{ borderBottom: '1px solid #f3f4f6' }}>
                     <td style={{ padding: '10px 0' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
-                          {item.image ? (
-                            <img src={item.image} alt={item.productName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          ) : (
-                            <ShoppingBag size={16} style={{ color: '#9ca3af' }} />
-                          )}
-                        </div>
-                        <div>
-                          <p style={{ fontWeight: 500, color: '#111827', margin: 0 }}>{item.productName}</p>
-                          <p style={{ fontSize: '11px', color: '#9ca3af', fontFamily: 'monospace', margin: '2px 0 0' }}>{item.sku}</p>
-                        </div>
+                      <div>
+                        <p style={{ fontWeight: 500, color: '#111827', margin: 0 }}>{item.productName}</p>
+                        <p style={{ fontSize: '11px', color: '#9ca3af', fontFamily: 'monospace', margin: '2px 0 0' }}>{item.sku}</p>
                       </div>
                     </td>
                     <td style={{ padding: '10px 0', textAlign: 'center' }}>{item.quantity}</td>
