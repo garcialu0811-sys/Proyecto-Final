@@ -169,24 +169,26 @@ export default function NuevaVentaPage() {
     }
     setIsSubmitting(true);
     try {
-      for (const item of cartItems) {
-        const res = await fetch('/api/sales', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            productId: item.productId,
-            quantity: item.quantity,
-            clientName: customer.name,
-            clientPhone: customer.phone,
-            clientAddress: customer.address
-          })
-        });
-        if (!res.ok) {
-          const err = await res.json();
-          showToast(err.message || 'Error al registrar venta', 'error');
-          setIsSubmitting(false);
-          return;
-        }
+      const res = await fetch('/api/sales', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: cartItems.map(i => ({
+            productId: i.productId,
+            quantity: i.quantity,
+            price: i.price
+          })),
+          clientName: customer.name,
+          clientPhone: customer.phone,
+          clientAddress: customer.address,
+          discount: totals.discount
+        })
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        showToast(err.message || 'Error al registrar venta', 'error');
+        setIsSubmitting(false);
+        return;
       }
       showToast('Venta registrada exitosamente!', 'success');
       const itemsParam = encodeURIComponent(JSON.stringify(cartItems.map(i => ({

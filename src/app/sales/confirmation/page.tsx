@@ -59,11 +59,15 @@ function ConfirmacionContent() {
 
   useEffect(() => {
     const saleId = searchParams?.get('saleId');
+    const folioParam = searchParams?.get('folio');
     const itemsParam = searchParams?.get('items');
     const totalParam = searchParams?.get('total');
     const subtotalParam = searchParams?.get('subtotal');
     const discountParam = searchParams?.get('discount');
     const customerParam = searchParams?.get('customer');
+    const sellerParam = searchParams?.get('seller');
+    const dateParam = searchParams?.get('date');
+    const timeParam = searchParams?.get('time');
 
     if (itemsParam) {
       try {
@@ -71,10 +75,10 @@ function ConfirmacionContent() {
         const now = new Date();
         setSaleData({
           id: saleId || Date.now().toString(),
-          folio: generateFolio(),
-          date: now.toLocaleDateString('es-GT', { day: '2-digit', month: '2-digit', year: 'numeric' }),
-          time: now.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' }),
-          sellerName: 'Administrador QRShop',
+          folio: folioParam || generateFolio(),
+          date: dateParam || now.toLocaleDateString('es-GT', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+          time: timeParam || now.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' }),
+          sellerName: sellerParam || 'Administrador QRShop',
           items,
           subtotal: parseFloat(subtotalParam || '0'),
           discount: parseFloat(discountParam || '0'),

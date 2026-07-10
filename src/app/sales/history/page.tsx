@@ -360,10 +360,10 @@ function HistorialContent() {
                   </thead>
                   <tbody>
                     {paginatedSales.map((sale) => (
-                      <tr key={sale.id} style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer' }} onClick={() => setSelectedSale(sale)} onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-primary)'} onMouseLeave={e => e.currentTarget.style.background = ''}>
+                      <tr key={sale.id} style={{ borderBottom: '1px solid var(--border)' }} onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-primary)'} onMouseLeave={e => e.currentTarget.style.background = ''}>
                         <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>{sale.folio}</td>
                         <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-secondary)' }}>{sale.date} {sale.time}</td>
-                        <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-primary)' }}>{sale.clientName}</td>
+                        <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-primary)' }}>{sale.clientName || 'Cliente General'}</td>
                         <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-secondary)', textAlign: 'center' }}>{sale.items?.length || 0} prod.</td>
                         <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: 'var(--accent)', textAlign: 'right' }}>{formatCurrency(sale.total)}</td>
                         <td style={{ padding: '12px 16px', textAlign: 'center' }}>
@@ -415,7 +415,7 @@ function HistorialContent() {
               </div>
               <div>
                 <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Cliente</p>
-                <p style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>{selectedSale.clientName}</p>
+                <p style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>{selectedSale.clientName || 'Cliente General'}</p>
               </div>
               <div>
                 <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Estado</p>
@@ -457,11 +457,16 @@ function HistorialContent() {
             <button
               onClick={() => {
                 const params = new URLSearchParams({
+                  saleId: selectedSale.id,
+                  folio: selectedSale.folio,
                   items: encodeURIComponent(JSON.stringify(selectedSale.items)),
                   subtotal: selectedSale.subtotal.toFixed(2),
                   discount: selectedSale.discount.toFixed(2),
                   total: selectedSale.total.toFixed(2),
-                  customer: selectedSale.clientName
+                  customer: selectedSale.clientName || 'Cliente General',
+                  seller: selectedSale.sellerName,
+                  date: selectedSale.date,
+                  time: selectedSale.time
                 });
                 router.push(`/sales/confirmation?${params.toString()}`);
               }}
