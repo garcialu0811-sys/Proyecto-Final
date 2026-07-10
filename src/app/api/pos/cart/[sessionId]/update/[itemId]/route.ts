@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/db/prisma';
 
 export async function PUT(
@@ -6,6 +8,12 @@ export async function PUT(
   { params }: { params: Promise<{ sessionId: string; itemId: string }> }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
+
+    const user = session.user as any;
     const { sessionId, itemId } = await params;
     const body = await request.json();
     const { quantity } = body;
@@ -24,9 +32,9 @@ export async function PUT(
       );
     }
 
-    // Find the POS session
+    // Find the POS session belonging to this user
     const posSession = await prisma!.posSession.findFirst({
-      where: { sessionId, status: 'ACTIVE' },
+      where: { sessionId, sellerId: user.id, status: 'ACTIVE' },
     });
 
     if (!posSession) {
@@ -49,10 +57,8 @@ export async function PUT(
     }
 
     if (quantity === 0) {
-      // Delete item if quantity is 0
       await prisma!.posItem.delete({ where: { id: itemId } });
     } else {
-      // Update quantity
       const newSubtotal = item.price * quantity;
       await prisma!.posItem.update({
         where: { id: itemId },

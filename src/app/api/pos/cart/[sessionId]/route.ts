@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/db/prisma';
 
 export async function GET(
@@ -6,6 +8,12 @@ export async function GET(
   { params }: { params: Promise<{ sessionId: string }> }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
+
+    const user = session.user as any;
     const { sessionId } = await params;
 
     if (!sessionId) {
@@ -15,10 +23,11 @@ export async function GET(
       );
     }
 
-    // Find the active POS session
+    // Find the active POS session belonging to this user
     const posSession = await prisma!.posSession.findFirst({
       where: {
         sessionId,
+        sellerId: user.id,
         status: 'ACTIVE',
       },
     });
@@ -37,7 +46,7 @@ export async function GET(
       orderBy: { createdAt: 'asc' },
     });
 
-    const subtotal = items.reduce((sum, i) => sum + i.subtotal, 0);
+    const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
 
     return NextResponse.json({
       success: true,
@@ -52,10 +61,10 @@ export async function GET(
         image: item.image,
       })),
       totals: {
-        subtotal,
-        total: subtotal,
+        subtotal: posSession.subtotal,
+        total: posSession.total,
         itemCount: items.length,
-        totalItems: items.reduce((sum, i) => sum + i.quantity, 0),
+        totalItems,
       },
     });
   } catch (error) {

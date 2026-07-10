@@ -50,6 +50,8 @@ export default function NuevaVentaPage() {
   const searchRef = useRef<HTMLDivElement>(null);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const lastCartHashRef = useRef<string>('');
+  const discountRef = useRef(0);
+  const discountTypeRef = useRef<'fixed' | 'percent'>('fixed');
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -58,7 +60,7 @@ export default function NuevaVentaPage() {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // Create POS session on mount
+  // Create POS session on mount (or reuse existing)
   useEffect(() => {
     if (status !== 'authenticated') return;
     const initSession = async () => {
@@ -67,6 +69,20 @@ export default function NuevaVentaPage() {
         const data = await res.json();
         if (data.success) {
           setSessionId(data.session.sessionId);
+          // Load existing items if session was reused
+          if (data.items && data.items.length > 0) {
+            setCartItems(data.items);
+            const t = data.totals || { subtotal: 0, total: 0, itemCount: 0, totalItems: 0 };
+            const disc = discountTypeRef.current === 'percent'
+              ? t.subtotal * (discountRef.current / 100)
+              : discountRef.current;
+            setTotals({
+              items: t.totalItems,
+              subtotal: t.subtotal,
+              discount: disc,
+              total: t.subtotal - disc,
+            });
+          }
         } else {
           showToast(data.error || 'Error al crear sesion', 'error');
         }
@@ -77,7 +93,7 @@ export default function NuevaVentaPage() {
     initSession();
   }, [status, showToast]);
 
-  // Polling: fetch cart every 2 seconds
+  // Polling: fetch cart every 2 seconds (NO discount dependency to avoid restarts)
   const fetchCart = useCallback(async (sid: string) => {
     try {
       const res = await fetch(`/api/pos/cart/${sid}`);
@@ -91,21 +107,22 @@ export default function NuevaVentaPage() {
           lastCartHashRef.current = newHash;
           setCartItems(newItems);
 
-          const disc = discountType === 'percent'
-            ? data.totals.subtotal * (discount / 100)
-            : discount;
+          const t = data.totals || { subtotal: 0, total: 0, itemCount: 0, totalItems: 0 };
+          const disc = discountTypeRef.current === 'percent'
+            ? t.subtotal * (discountRef.current / 100)
+            : discountRef.current;
           setTotals({
-            items: data.totals.totalItems,
-            subtotal: data.totals.subtotal,
+            items: t.totalItems,
+            subtotal: t.subtotal,
             discount: disc,
-            total: data.totals.subtotal - disc,
+            total: t.subtotal - disc,
           });
         }
       }
     } catch {
       // Silently fail polling
     }
-  }, [discount, discountType]);
+  }, []);
 
   useEffect(() => {
     if (!sessionId) return;
@@ -113,7 +130,7 @@ export default function NuevaVentaPage() {
     // Initial fetch
     fetchCart(sessionId);
 
-    // Start polling
+    // Start polling every 2 seconds
     pollingRef.current = setInterval(() => {
       fetchCart(sessionId);
     }, 2000);
@@ -128,6 +145,8 @@ export default function NuevaVentaPage() {
 
   // Recalculate totals when discount changes
   useEffect(() => {
+    discountRef.current = discount;
+    discountTypeRef.current = discountType;
     if (cartItems.length === 0) return;
     const subtotal = cartItems.reduce((sum, item) => sum + item.subtotal, 0);
     const disc = discountType === 'percent' ? subtotal * (discount / 100) : discount;
