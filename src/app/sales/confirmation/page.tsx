@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
   CheckCircle, Printer, FileText, Download, X, MapPin, Phone,
-  User, Calendar, Clock, Receipt, FileSpreadsheet
+  User, Calendar, Clock, Receipt
 } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
 
@@ -171,36 +171,6 @@ function ConfirmacionContent() {
       showToast('Error al generar el PDF', 'error');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleDownloadExcel = async () => {
-    if (!saleData) return;
-    try {
-      const XLSX = await import('xlsx');
-      const wb = XLSX.utils.book_new();
-      const data = [
-        ['Variedades Coatan - Recibo de Venta'],
-        [''],
-        ['Folio:', saleData.folio],
-        ['Fecha:', saleData.date],
-        ['Hora:', saleData.time],
-        ['Vendedor:', saleData.sellerName],
-        [''],
-        ['Producto', 'SKU', 'Cantidad', 'Precio Unit.', 'Subtotal'],
-        ...saleData.items.map(i => [i.productName, i.sku, i.quantity, i.price, i.subtotal]),
-        [''],
-        ['Subtotal', '', '', '', saleData.subtotal],
-        ['Descuento', '', '', '', saleData.discount],
-        ['TOTAL', '', '', '', saleData.total],
-      ];
-      const ws = XLSX.utils.aoa_to_sheet(data);
-      ws['!cols'] = [{ wch: 25 }, { wch: 16 }, { wch: 10 }, { wch: 12 }, { wch: 12 }];
-      XLSX.utils.book_append_sheet(wb, ws, 'Recibo');
-      XLSX.writeFile(wb, `recibo-${saleData.folio}.xlsx`);
-      showToast('Excel descargado exitosamente', 'success');
-    } catch {
-      showToast('Error al generar Excel', 'error');
     }
   };
 
@@ -382,22 +352,6 @@ function ConfirmacionContent() {
                   Descargar PDF
                 </>
               )}
-            </button>
-          </div>
-
-          {/* Excel */}
-          <div className="card" style={{ padding: '20px', marginBottom: '16px', textAlign: 'center' }}>
-            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-              <FileSpreadsheet size={24} style={{ color: '#16a34a' }} />
-            </div>
-            <h4 style={{ fontSize: '15px', fontWeight: 600, color: '#111827', marginBottom: '4px' }}>Descargar Excel</h4>
-            <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '12px' }}>Descarga los detalles de la venta en Excel.</p>
-            <button
-              onClick={handleDownloadExcel}
-              style={{ width: '100%', padding: isMobile ? '14px' : '10px', background: '#16a34a', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', minHeight: isMobile ? '48px' : 'auto' }}
-            >
-              <Download size={15} />
-              Descargar Excel
             </button>
           </div>
 
