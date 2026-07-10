@@ -12,7 +12,6 @@ const MODULES = [
   { key: 'orders', label: 'Pedidos', actions: ['view', 'create', 'edit', 'delete'] },
   { key: 'deliveries', label: 'Entregas', actions: ['view', 'create', 'edit', 'delete'] },
   { key: 'users', label: 'Usuarios', actions: ['view', 'create', 'edit', 'delete', 'manage_roles'] },
-  { key: 'forum', label: 'Foro', actions: ['view', 'create', 'edit', 'delete', 'moderate'] },
   { key: 'settings', label: 'Configuracion', actions: ['view', 'edit'] },
 ];
 
@@ -25,7 +24,6 @@ const DEFAULT_ROLE_PERMISSIONS: Record<string, Record<string, boolean>> = {
     'orders:view': true, 'orders:create': true, 'orders:edit': true, 'orders:delete': true,
     'deliveries:view': true, 'deliveries:create': true, 'deliveries:edit': true, 'deliveries:delete': true,
     'users:view': true, 'users:create': true, 'users:edit': true, 'users:delete': true, 'users:manage_roles': true,
-    'forum:view': true, 'forum:create': true, 'forum:edit': true, 'forum:delete': true, 'forum:moderate': true,
     'settings:view': true, 'settings:edit': true,
   },
   VENDEDOR: {
@@ -36,7 +34,6 @@ const DEFAULT_ROLE_PERMISSIONS: Record<string, Record<string, boolean>> = {
     'orders:view': true, 'orders:create': true, 'orders:edit': true, 'orders:delete': false,
     'deliveries:view': true, 'deliveries:create': true, 'deliveries:edit': true, 'deliveries:delete': false,
     'users:view': false, 'users:create': false, 'users:edit': false, 'users:delete': false, 'users:manage_roles': false,
-    'forum:view': true, 'forum:create': true, 'forum:edit': true, 'forum:delete': false, 'forum:moderate': false,
     'settings:view': true, 'settings:edit': false,
   },
 

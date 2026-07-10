@@ -15,7 +15,7 @@ import {
   Truck,
   Users,
   ShieldCheck,
-  MessageSquare,
+
   Settings,
   LogOut,
   QrCode,
@@ -122,17 +122,6 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
           path: '/roles',
           icon: ShieldCheck,
           roles: ['ADMIN']
-        }
-      ]
-    },
-    {
-      title: 'COMUNIDAD',
-      items: [
-        {
-          name: 'Foro',
-          path: '/forum',
-          icon: MessageSquare,
-          roles: ['ADMIN', 'VENDEDOR']
         }
       ]
     },

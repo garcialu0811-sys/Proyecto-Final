@@ -12,7 +12,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const isAuthPage = pathname === '/login' || pathname === '/register';
   const isStorePage = pathname === '/store' || pathname.startsWith('/store') || pathname === '/checkout';
-  const isClientPage = pathname === '/profile' || pathname === '/favoritos' || pathname === '/orders' || pathname.startsWith('/orders/client') || pathname === '/forum';
+  const isClientPage = pathname === '/profile' || pathname === '/favoritos' || pathname === '/orders' || pathname.startsWith('/orders/client');
   const isApiAuth = pathname.startsWith('/api/auth');
 
   // Close mobile sidebar on route change

@@ -51,7 +51,6 @@ export const config = {
     '/users/:path*', 
     '/roles/:path*', 
     '/profile/:path*', 
-    '/forum/:path*',
     '/settings/:path*',
     '/favoritos/:path*'
   ],

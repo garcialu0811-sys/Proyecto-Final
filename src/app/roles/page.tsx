@@ -43,13 +43,12 @@ const MODULES = [
   { key: 'orders', label: 'Pedidos', icon: 'file', actions: ['view', 'create', 'edit', 'delete'] },
   { key: 'deliveries', label: 'Entregas', icon: 'truck', actions: ['view', 'create', 'edit', 'delete'] },
   { key: 'users', label: 'Usuarios', icon: 'users', actions: ['view', 'create', 'edit', 'delete', 'manage_roles'] },
-  { key: 'forum', label: 'Foro', icon: 'message', actions: ['view', 'create', 'edit', 'delete', 'moderate'] },
   { key: 'settings', label: 'Configuracion', icon: 'settings', actions: ['view', 'edit'] },
 ];
 
 const ACTION_LABELS: Record<string, string> = {
   view: 'Ver', create: 'Crear', edit: 'Editar', delete: 'Eliminar',
-  export: 'Exportar', moderate: 'Moderar', manage_roles: 'Gestionar roles',
+  export: 'Exportar', manage_roles: 'Gestionar roles',
 };
 
 const ROLE_ICONS: Record<string, any> = {
