@@ -4,9 +4,9 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import {
-  ShoppingCart, Plus, Minus, Trash2, X, Check, Camera,
-  DollarSign, User, Phone, MapPin, UserPlus, Receipt,
-  Save, Search, Package, Scan, RefreshCw, AlertCircle
+  ShoppingCart, Plus, Minus, Trash2, X,
+  DollarSign, User, Phone, MapPin, Receipt,
+  Save, Search, Package, Scan, RefreshCw
 } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
 import { QRScanner } from '@/components/pos/QRScanner';
@@ -20,7 +20,6 @@ interface CartItem {
   quantity: number;
   subtotal: number;
   image?: string;
-  stock: number;
 }
 
 interface Customer {
@@ -34,7 +33,9 @@ export default function NuevaVentaPage() {
   const router = useRouter();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [totals, setTotals] = useState({ items: 0, subtotal: 0, discount: 0, total: 0 });
   const [customer, setCustomer] = useState<Customer>({ name: '', phone: '', address: '' });
   const [showNewCustomerForm, setShowNewCustomerForm] = useState(false);
   const [newCustomer, setNewCustomer] = useState<Customer>({ name: '', phone: '', address: '' });
@@ -47,6 +48,8 @@ export default function NuevaVentaPage() {
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
+  const lastCartHashRef = useRef<string>('');
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -55,13 +58,86 @@ export default function NuevaVentaPage() {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  const totals = {
-    items: cartItems.reduce((sum, item) => sum + item.quantity, 0),
-    subtotal: cartItems.reduce((sum, item) => sum + item.subtotal, 0),
-    discount: discountType === 'percent' ? cartItems.reduce((sum, item) => sum + item.subtotal, 0) * (discount / 100) : discount,
-    total: 0
-  };
-  totals.total = totals.subtotal - totals.discount;
+  // Create POS session on mount
+  useEffect(() => {
+    if (status !== 'authenticated') return;
+    const initSession = async () => {
+      try {
+        const res = await fetch('/api/pos/session', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          setSessionId(data.session.sessionId);
+        } else {
+          showToast(data.error || 'Error al crear sesion', 'error');
+        }
+      } catch {
+        showToast('Error al inicializar sesion', 'error');
+      }
+    };
+    initSession();
+  }, [status, showToast]);
+
+  // Polling: fetch cart every 2 seconds
+  const fetchCart = useCallback(async (sid: string) => {
+    try {
+      const res = await fetch(`/api/pos/cart/${sid}`);
+      const data = await res.json();
+      if (data.success) {
+        const newItems: CartItem[] = data.items || [];
+        const newHash = JSON.stringify(newItems.map((i: CartItem) => `${i.productId}:${i.quantity}`).sort());
+
+        // Only update state if cart actually changed
+        if (newHash !== lastCartHashRef.current) {
+          lastCartHashRef.current = newHash;
+          setCartItems(newItems);
+
+          const disc = discountType === 'percent'
+            ? data.totals.subtotal * (discount / 100)
+            : discount;
+          setTotals({
+            items: data.totals.totalItems,
+            subtotal: data.totals.subtotal,
+            discount: disc,
+            total: data.totals.subtotal - disc,
+          });
+        }
+      }
+    } catch {
+      // Silently fail polling
+    }
+  }, [discount, discountType]);
+
+  useEffect(() => {
+    if (!sessionId) return;
+
+    // Initial fetch
+    fetchCart(sessionId);
+
+    // Start polling
+    pollingRef.current = setInterval(() => {
+      fetchCart(sessionId);
+    }, 2000);
+
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
+  }, [sessionId, fetchCart]);
+
+  // Recalculate totals when discount changes
+  useEffect(() => {
+    if (cartItems.length === 0) return;
+    const subtotal = cartItems.reduce((sum, item) => sum + item.subtotal, 0);
+    const disc = discountType === 'percent' ? subtotal * (discount / 100) : discount;
+    setTotals(prev => ({
+      ...prev,
+      subtotal,
+      discount: disc,
+      total: subtotal - disc,
+    }));
+  }, [discount, discountType, cartItems]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -84,56 +160,110 @@ export default function NuevaVentaPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [cartItems, customer, totals]);
 
-  const handleAddItem = (product: any) => {
-    const existing = cartItems.find(item => item.productId === product.id);
-    if (existing) {
-      if (existing.quantity >= (product.stock || 0)) {
-        showToast('Stock insuficiente', 'warning');
+  // QR Scan handler - sends productId to server
+  const handleScanQR = async (code: string) => {
+    if (!sessionId) {
+      showToast('No hay sesion activa', 'error');
+      return;
+    }
+
+    try {
+      // First look up the product by QR code
+      const lookupRes = await fetch(`/api/products/qr/${code}`);
+      const product = await lookupRes.json();
+
+      if (!lookupRes.ok || !product?.id) {
+        showToast('Producto no encontrado', 'error');
         return;
       }
-      setCartItems(cartItems.map(item =>
-        item.productId === product.id
-          ? { ...item, quantity: item.quantity + 1, subtotal: item.price * (item.quantity + 1) }
-          : item
-      ));
-    } else {
-      const newItem: CartItem = {
-        id: Date.now().toString(),
-        productId: product.id,
-        productName: product.name,
-        sku: product.sku || product.qrCode || 'N/A',
-        price: product.price,
-        quantity: 1,
-        subtotal: product.price,
-        image: product.imageUrl || product.image,
-        stock: product.stock || 0
-      };
-      setCartItems([...cartItems, newItem]);
+
+      // Add to server cart
+      const res = await fetch('/api/pos/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, productId: product.id }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showToast(data.message, 'success');
+        // Force immediate cart refresh
+        fetchCart(sessionId);
+      } else {
+        showToast(data.error || 'Error al agregar producto', 'error');
+      }
+    } catch {
+      showToast('Error al buscar producto', 'error');
     }
-    showToast(`${product.name} agregado`, 'success');
   };
 
-  const handleUpdateQuantity = (itemId: string, newQuantity: number) => {
+  // Add item from search - sends to server
+  const handleAddItem = async (product: any) => {
+    if (!sessionId) {
+      showToast('No hay sesion activa', 'error');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/pos/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, productId: product.id }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showToast(data.message, 'success');
+        fetchCart(sessionId);
+      } else {
+        showToast(data.error || 'Error al agregar producto', 'error');
+      }
+    } catch {
+      showToast('Error al agregar producto', 'error');
+    }
+  };
+
+  // Update quantity via server
+  const handleUpdateQuantity = async (itemId: string, newQuantity: number) => {
+    if (!sessionId) return;
+
     if (newQuantity < 1) {
       handleRemoveItem(itemId);
       return;
     }
-    const item = cartItems.find(i => i.id === itemId);
-    if (item && newQuantity > item.stock) {
-      showToast('Stock insuficiente', 'warning');
-      return;
+
+    try {
+      const res = await fetch(`/api/pos/cart/${sessionId}/update/${itemId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quantity: newQuantity }),
+      });
+      if (res.ok) {
+        fetchCart(sessionId);
+      }
+    } catch {
+      showToast('Error al actualizar cantidad', 'error');
     }
-    setCartItems(cartItems.map(item =>
-      item.id === itemId
-        ? { ...item, quantity: newQuantity, subtotal: item.price * newQuantity }
-        : item
-    ));
   };
 
-  const handleRemoveItem = (itemId: string) => {
-    setCartItems(cartItems.filter(item => item.id !== itemId));
+  // Remove item via server
+  const handleRemoveItem = async (itemId: string) => {
+    if (!sessionId) return;
+
+    try {
+      const res = await fetch(`/api/pos/cart/${sessionId}/remove/${itemId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        showToast('Producto eliminado', 'success');
+        fetchCart(sessionId);
+      }
+    } catch {
+      showToast('Error al eliminar producto', 'error');
+    }
   };
 
+  // Search products
   const handleSearch = async (term: string) => {
     setSearchTerm(term);
     if (term.length < 2) {
@@ -151,23 +281,7 @@ export default function NuevaVentaPage() {
     }
   };
 
-  const handleScanQR = async (code: string) => {
-    try {
-      setLoading(true);
-      const res = await fetch(`/api/products/qr/${code}`);
-      const data = await res.json();
-      if (res.ok && data) {
-        handleAddItem(data);
-      } else {
-        showToast('Producto no encontrado', 'error');
-      }
-    } catch {
-      showToast('Error al buscar producto', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Submit sale
   const handleSubmit = async () => {
     if (cartItems.length === 0) {
       showToast('Agrega al menos un producto', 'warning');
@@ -186,13 +300,13 @@ export default function NuevaVentaPage() {
           items: cartItems.map(i => ({
             productId: i.productId,
             quantity: i.quantity,
-            price: i.price
+            price: i.price,
           })),
           clientName: customer.name,
           clientPhone: customer.phone,
           clientAddress: customer.address,
-          discount: totals.discount
-        })
+          discount: totals.discount,
+        }),
       });
       if (!res.ok) {
         const err = await res.json();
@@ -207,14 +321,14 @@ export default function NuevaVentaPage() {
         quantity: i.quantity,
         price: i.price,
         subtotal: i.subtotal,
-        image: i.image
+        image: i.image,
       }))));
       const params = new URLSearchParams({
         items: itemsParam,
         subtotal: totals.subtotal.toFixed(2),
         discount: totals.discount.toFixed(2),
         total: totals.total.toFixed(2),
-        customer: customer.name
+        customer: customer.name,
       });
       setCartItems([]);
       setCustomer({ name: '', phone: '', address: '' });
@@ -250,13 +364,21 @@ export default function NuevaVentaPage() {
             {!isMobile && <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Registra una nueva venta agregando productos e informacion del cliente.</p>}
           </div>
         </div>
-        <button
-          onClick={() => router.push('/sales')}
-          style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: isMobile ? '10px 14px' : '8px 16px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-secondary)', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: isMobile ? '14px' : '13px', minHeight: isMobile ? '44px' : 'auto' }}
-        >
-          <X size={16} />
-          {isMobile ? 'Cancelar' : 'Cancelar Venta'}
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {sessionId && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '20px', background: '#f0fdf4', border: '1px solid #bbf7d0', fontSize: '11px', color: '#16a34a', fontWeight: 500 }}>
+              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e', animation: 'pulse 2s infinite' }} />
+              Sesion activa
+            </div>
+          )}
+          <button
+            onClick={() => router.push('/sales')}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: isMobile ? '10px 14px' : '8px 16px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-secondary)', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: isMobile ? '14px' : '13px', minHeight: isMobile ? '44px' : 'auto' }}
+          >
+            <X size={16} />
+            {isMobile ? 'Cancelar' : 'Cancelar Venta'}
+          </button>
+        </div>
       </div>
 
       {/* Customer Info */}
@@ -313,7 +435,7 @@ export default function NuevaVentaPage() {
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: isMobile ? '12px' : '8px 14px', border: '1px dashed var(--accent)', borderRadius: '8px', background: 'transparent', color: 'var(--accent)', cursor: 'pointer', fontSize: '13px', fontWeight: 500, whiteSpace: 'nowrap', minHeight: isMobile ? '44px' : 'auto' }}
           >
             <Plus size={14} />
-            {isMobile ? 'Nuevo Cliente' : 'Nuevo Cliente'}
+            Nuevo Cliente
           </button>
         </div>
       </div>
@@ -332,7 +454,8 @@ export default function NuevaVentaPage() {
             </h2>
             <button
               onClick={() => setShowQRScanner(true)}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: isMobile ? '12px 16px' : '6px 12px', border: '1px solid var(--accent)', borderRadius: '8px', background: isMobile ? 'var(--accent)' : 'var(--bg-secondary)', color: isMobile ? '#fff' : 'var(--text-primary)', cursor: 'pointer', fontSize: isMobile ? '14px' : '12px', fontWeight: 500, minHeight: isMobile ? '44px' : 'auto' }}
+              disabled={!sessionId}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: isMobile ? '12px 16px' : '6px 12px', border: '1px solid var(--accent)', borderRadius: '8px', background: isMobile ? 'var(--accent)' : 'var(--bg-secondary)', color: isMobile ? '#fff' : 'var(--text-primary)', cursor: !sessionId ? 'not-allowed' : 'pointer', fontSize: isMobile ? '14px' : '12px', fontWeight: 500, minHeight: isMobile ? '44px' : 'auto', opacity: !sessionId ? 0.5 : 1 }}
             >
               <Scan size={isMobile ? 18 : 14} />
               {isMobile ? 'Escanear QR' : 'Escanear QR'}
@@ -515,7 +638,7 @@ export default function NuevaVentaPage() {
           {/* Tip */}
           <div style={{ padding: '12px', background: '#eff6ff', borderRadius: '8px', marginBottom: '16px', border: '1px solid #dbeafe' }}>
             <p style={{ fontSize: '12px', color: '#1d4ed8', fontWeight: 500, marginBottom: '2px' }}>Consejo:</p>
-            <p style={{ fontSize: '11px', color: '#3b82f6' }}>Puedes escanear codigos QR o buscar productos para agregarlos rapidamente.</p>
+            <p style={{ fontSize: '11px', color: '#3b82f6' }}>El carrito se sincroniza automaticamente. Escanea desde cualquier dispositivo.</p>
           </div>
 
           {/* Submit */}
@@ -630,6 +753,7 @@ export default function NuevaVentaPage() {
 
       <style>{`
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
       `}</style>
     </div>
   );

@@ -23,6 +23,7 @@ model User {
   updatedAt       DateTime  @updatedAt
   sales           Sale[]
   orders          Order[]
+  posSessions     PosSession[]
   notificationSettings NotificationSettings?
 }
 
@@ -149,4 +150,32 @@ model Product {
   location    Json?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model PosSession {
+  id        String     @id @default(uuid())
+  sessionId String     @unique
+  sellerId  String
+  seller    User       @relation(fields: [sellerId], references: [id])
+  status    String     @default("ACTIVE") // ACTIVE, CLOSED
+  subtotal  Float      @default(0)
+  total     Float      @default(0)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  items     PosItem[]
+}
+
+model PosItem {
+  id          String     @id @default(uuid())
+  sessionId   String
+  session     PosSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  productId   String
+  productName String
+  sku         String?
+  price       Float
+  quantity    Int
+  subtotal    Float
+  image       String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
