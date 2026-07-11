@@ -45,6 +45,7 @@ export async function GET(
       date: createdAt.toLocaleDateString('es-GT', { day: '2-digit', month: '2-digit', year: 'numeric' }),
       time: createdAt.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' }),
       sellerName: sellerMap[first.sellerId]?.name || 'Vendedor',
+      clientName: (first as any).clientName || '',
       items,
       itemCount: items.reduce((sum: number, i: any) => sum + i.quantity, 0),
       subtotal: calculatedTotal,

@@ -384,6 +384,7 @@ function HistorialContent() {
                     <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-primary)' }}>
                       <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>No. Venta</th>
                       <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Fecha / Hora</th>
+                      <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Vendedor</th>
                       <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Cliente</th>
                       <th style={{ padding: '10px 16px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Productos</th>
                       <th style={{ padding: '10px 16px', textAlign: 'right', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Total</th>
@@ -396,6 +397,7 @@ function HistorialContent() {
                       <tr key={sale.id} style={{ borderBottom: '1px solid var(--border)' }} onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-primary)'} onMouseLeave={e => e.currentTarget.style.background = ''}>
                         <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>{sale.folio}</td>
                         <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-secondary)' }}>{sale.date} {sale.time}</td>
+                        <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-primary)' }}>{sale.sellerName || 'Vendedor'}</td>
                         <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-primary)' }}>{sale.clientName || 'Cliente General'}</td>
                         <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-secondary)', textAlign: 'center' }}>{sale.itemCount || sale.items?.length || 0} prod.</td>
                         <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: 'var(--accent)', textAlign: 'right' }}>{formatCurrency(sale.total)}</td>

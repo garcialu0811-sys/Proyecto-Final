@@ -287,6 +287,11 @@ function ConfirmacionContent() {
             <div style={{ fontSize: '13px', color: '#4b5563', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <User size={13} style={{ color: '#9ca3af' }} /> Vendedor: {saleData.sellerName}
             </div>
+            {saleData.customerName && (
+              <div style={{ fontSize: '13px', color: '#4b5563', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <User size={13} style={{ color: '#9ca3af' }} /> Cliente: {saleData.customerName}
+              </div>
+            )}
 
             {/* Products Table */}
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>

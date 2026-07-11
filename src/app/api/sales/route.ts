@@ -45,52 +45,64 @@ export async function GET(request: Request) {
       mySales = mySales.filter((s: any) => s.sellerId === filterSellerId);
     }
 
-    const sortedSales = [...mySales].sort((a: any, b: any) => {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
+    // Group sales by folio
+    const folioMap: Record<string, any[]> = {};
+    for (const s of mySales) {
+      const folio = (s as any).folio || '';
+      if (!folioMap[folio]) folioMap[folio] = [];
+      folioMap[folio].push(s);
+    }
 
     const toDateStr = (d: Date) => d.toISOString().split('T')[0];
 
-    const grouped = sortedSales.map((s: any) => {
-      const createdAt = new Date(s.createdAt);
+    const result: any[] = [];
+    for (const [folio, sales] of Object.entries(folioMap)) {
+      const first = sales[0];
+      const createdAt = new Date(first.createdAt);
 
       if (startParam || endParam) {
         const saleDate = toDateStr(createdAt);
-        if (startParam && saleDate < startParam) return null;
-        if (endParam && saleDate > endParam) return null;
+        if (startParam && saleDate < startParam) continue;
+        if (endParam && saleDate > endParam) continue;
       }
 
-      return {
-        id: s.id,
-        folio: s.folio || '',
-        saleIds: [s.id],
+      const items = sales.map((s: any) => ({
+        productName: s.productName,
+        sku: '',
+        quantity: s.quantity,
+        price: s.price,
+        subtotal: s.total,
+        image: ''
+      }));
+
+      const totalItems = items.reduce((sum: number, i: any) => sum + i.quantity, 0);
+      const calculatedTotal = items.reduce((sum: number, i: any) => sum + i.subtotal, 0);
+
+      result.push({
+        id: first.id,
+        folio,
+        saleIds: sales.map((s: any) => s.id),
         date: createdAt.toLocaleDateString('es-GT', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Guatemala' }),
         time: createdAt.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guatemala' }),
         createdAt: createdAt.toISOString(),
-        sellerName: sellerMap[s.sellerId]?.name || 'Vendedor',
-        sellerId: s.sellerId,
-        clientName: '',
+        sellerName: sellerMap[first.sellerId]?.name || 'Vendedor',
+        sellerId: first.sellerId,
+        clientName: (first as any).clientName || '',
         clientPhone: '',
-        items: [{
-          productName: s.productName,
-          sku: '',
-          quantity: s.quantity,
-          price: s.price,
-          subtotal: s.total,
-          image: ''
-        }],
-        itemCount: s.quantity,
-        subtotal: s.total,
+        items,
+        itemCount: totalItems,
+        subtotal: calculatedTotal,
         discount: 0,
-        total: s.total,
+        total: calculatedTotal,
         paymentMethod: 'Efectivo',
-        status: (s as any).saleType === 'CAMBIO' ? 'Cambio' : 'Completada',
-        saleType: (s as any).saleType || 'VENTA',
-        saleTypeNote: (s as any).saleTypeNote || '',
-      };
-    });
+        status: (first as any).saleType === 'CAMBIO' ? 'Cambio' : 'Completada',
+        saleType: (first as any).saleType || 'VENTA',
+        saleTypeNote: (first as any).saleTypeNote || '',
+      });
+    }
 
-    const result = grouped.filter(Boolean);
+    // Sort by date descending
+    result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     return NextResponse.json({
       sales: result,
@@ -161,7 +173,8 @@ export async function POST(request: Request) {
         quantity: qty,
         price: product.price,
         total: itemTotal,
-        sellerId: user.id
+        sellerId: user.id,
+        clientName: clientName || undefined,
       });
       createdSales.push(sale);
     }

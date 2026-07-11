@@ -77,6 +77,7 @@ model Sale {
   seller        User     @relation(fields: [sellerId], references: [id])
   saleType      String   @default("VENTA") // VENTA, CAMBIO
   saleTypeNote  String?  // e.g. "Cambio de Contol por Tenis"
+  clientName    String   @default("")
   createdAt     DateTime @default(now())
 }
 
