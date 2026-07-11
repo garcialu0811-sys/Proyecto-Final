@@ -199,7 +199,7 @@ export default function NuevaVentaPage() {
   }, [cartItems, customer, totals]);
 
   // QR Scan handler - sends productId to server
-  const handleScanQR = async (code: string) => {
+  const handleScanQR = useCallback(async (code: string) => {
     if (!sessionId) {
       showToast('No hay sesion activa', 'error');
       return;
@@ -231,7 +231,6 @@ export default function NuevaVentaPage() {
 
       if (data.success) {
         showToast(data.message, 'success');
-        // Force immediate cart refresh
         fetchCart(sessionId);
       } else {
         showToast(data.error || 'Error al agregar producto', 'error');
@@ -239,7 +238,7 @@ export default function NuevaVentaPage() {
     } catch {
       showToast('Error al buscar producto', 'error');
     }
-  };
+  }, [sessionId, fetchCart, showToast]);
 
   // Add item from search - sends to server
   const handleAddItem = async (product: any) => {
@@ -784,9 +783,7 @@ export default function NuevaVentaPage() {
       {/* QR Scanner Modal */}
       <QRScanner
         isOpen={showQRScanner}
-        onScanSuccess={(code) => {
-          handleScanQR(code);
-        }}
+        onScanSuccess={handleScanQR}
         onClose={() => setShowQRScanner(false)}
       />
 

@@ -22,7 +22,7 @@ export function QRScanner({ onScanSuccess, onClose, isOpen }: QRScannerProps) {
   const isStartingRef = useRef(false);
   const lastScanTimeRef = useRef(0);
   const lastScanCodeRef = useRef<string>('');
-  const DEBOUNCE_MS = 200;
+  const DEBOUNCE_MS = 3000;
 
   const stopScanner = useCallback(async () => {
     if (scannerRef.current) {
