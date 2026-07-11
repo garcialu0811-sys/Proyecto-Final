@@ -33,10 +33,17 @@ export async function GET(
     });
 
     if (!posSession) {
+      // Session was closed or doesn't exist — check if it was just completed by a sale
+      const closedSession = await prisma!.posSession.findFirst({
+        where: { sessionId, sellerId: user.id, status: 'CLOSED' },
+        orderBy: { updatedAt: 'desc' },
+      });
       return NextResponse.json({
         success: true,
         items: [],
         totals: { subtotal: 0, total: 0, itemCount: 0, totalItems: 0 },
+        sessionClosed: true,
+        saleCompletedAt: closedSession?.saleCompletedAt?.toISOString() || null,
       });
     }
 

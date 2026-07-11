@@ -97,16 +97,17 @@ model Product {
 }
 
 model PosSession {
-  id        String     @id @default(uuid())
-  sessionId String     @unique
-  sellerId  String
-  seller    User       @relation(fields: [sellerId], references: [id])
-  status    String     @default("ACTIVE") // ACTIVE, CLOSED
-  subtotal  Float      @default(0)
-  total     Float      @default(0)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  items     PosItem[]
+  id              String     @id @default(uuid())
+  sessionId       String     @unique
+  sellerId        String
+  seller          User       @relation(fields: [sellerId], references: [id])
+  status          String     @default("ACTIVE") // ACTIVE, CLOSED
+  saleCompletedAt DateTime?  // Set when sale is registered, so other devices can detect
+  subtotal        Float      @default(0)
+  total           Float      @default(0)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  items           PosItem[]
 }
 
 model PosItem {

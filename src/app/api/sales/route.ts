@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { dbClient } from '@/lib/db/dbClient';
+import prisma from '@/lib/db/prisma';
 
 async function generateNextFolio(): Promise<string> {
   const allSales = await dbClient.sales.findMany();
@@ -175,6 +176,17 @@ export async function POST(request: Request) {
         sellerId: user.id
       });
       createdSales.push(sale);
+    }
+
+    // Close the active POS session for this seller so other devices can detect the sale
+    try {
+      const now = new Date();
+      await prisma!.posSession.updateMany({
+        where: { sellerId: user.id, status: 'ACTIVE' },
+        data: { status: 'CLOSED', saleCompletedAt: now },
+      });
+    } catch (e) {
+      // Non-critical: session close failure shouldn't block the sale
     }
 
     return NextResponse.json({

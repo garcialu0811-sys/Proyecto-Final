@@ -99,6 +99,25 @@ export default function NuevaVentaPage() {
       const res = await fetch(`/api/pos/cart/${sid}`);
       const data = await res.json();
       if (data.success) {
+        // Another device completed the sale — session closed
+        if (data.sessionClosed && data.saleCompletedAt) {
+          showToast('Venta registrada en otro dispositivo. Iniciando nueva venta...', 'success');
+          setCartItems([]);
+          setTotals({ items: 0, subtotal: 0, discount: 0, total: 0 });
+          setDiscount(0);
+          setShowQRScanner(false);
+          lastCartHashRef.current = '';
+          // Create a new session
+          try {
+            const sessionRes = await fetch('/api/pos/session', { method: 'POST' });
+            const sessionData = await sessionRes.json();
+            if (sessionData.success) {
+              setSessionId(sessionData.session.sessionId);
+            }
+          } catch { /* ignore */ }
+          return;
+        }
+
         const newItems: CartItem[] = data.items || [];
         const newHash = JSON.stringify(newItems.map((i: CartItem) => `${i.productId}:${i.quantity}`).sort());
 
@@ -122,7 +141,7 @@ export default function NuevaVentaPage() {
     } catch {
       // Silently fail polling
     }
-  }, []);
+  }, [showToast]);
 
   useEffect(() => {
     if (!sessionId) return;
