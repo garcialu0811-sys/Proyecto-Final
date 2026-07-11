@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
-import { Menu, Sun, Moon, LogIn, Bell, Settings, Search, AlertTriangle, Info } from 'lucide-react';
+import { Menu, Sun, Moon, LogIn, Bell, Settings, AlertTriangle, Info } from 'lucide-react';
 
 interface HeaderProps {
   collapsed: boolean;
@@ -93,16 +93,6 @@ export function Header({ collapsed, setCollapsed }: HeaderProps) {
         >
           <Menu size={20} />
         </button>
-      </div>
-
-      {/* Barra de búsqueda superior en escritorio */}
-      <div className="header-search-container">
-        <Search size={16} className="search-icon" />
-        <input 
-          type="text" 
-          placeholder="Buscar productos, pedidos, usuarios..." 
-          className="header-search-input"
-        />
       </div>
 
       <div className="header-right">

@@ -302,46 +302,6 @@ button, input, select, textarea {
 }
 
 /* Header specific mockup additions */
-.header-search-container {
-  display: none;
-  position: relative;
-  width: 100%;
-  max-width: 400px;
-  margin: 0 24px;
-}
-
-@media (min-width: 768px) {
-  .header-search-container {
-    display: flex;
-    align-items: center;
-  }
-}
-
-.search-icon {
-  position: absolute;
-  left: 14px;
-  color: var(--text-light);
-}
-
-.header-search-input {
-  width: 100%;
-  padding: 8px 16px 8px 40px;
-  border-radius: 50px;
-  border: 1px solid var(--border);
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  outline: none;
-  font-size: 13px;
-  transition: var(--transition);
-  height: 38px;
-}
-
-.header-search-input:focus {
-  border-color: var(--accent);
-  background-color: var(--bg-secondary);
-  box-shadow: 0 0 0 3px var(--accent-light);
-}
-
 .notification-bell-box {
   position: relative;
   cursor: pointer;
@@ -1175,9 +1135,6 @@ button, input, select, textarea {
     padding: 0 16px;
     height: 60px;
   }
-  .header-search-container {
-    max-width: 250px;
-  }
   .metric-card {
     padding: 16px;
   }
@@ -1249,9 +1206,6 @@ button, input, select, textarea {
   .header {
     height: 56px;
     padding: 0 12px 0 56px;
-  }
-  .header-search-container {
-    display: none !important;
   }
   .header-right {
     gap: 8px;
