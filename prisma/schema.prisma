@@ -66,16 +66,18 @@ model Permission {
 }
 
 model Sale {
-  id          String   @id @default(uuid())
-  folio       String   @unique @default("")
-  productId   String
-  productName String
-  quantity    Int
-  price       Float
-  total       Float
-  sellerId    String
-  seller      User     @relation(fields: [sellerId], references: [id])
-  createdAt   DateTime @default(now())
+  id            String   @id @default(uuid())
+  folio         String   @unique @default("")
+  productId     String
+  productName   String
+  quantity      Int
+  price         Float
+  total         Float
+  sellerId      String
+  seller        User     @relation(fields: [sellerId], references: [id])
+  saleType      String   @default("VENTA") // VENTA, CAMBIO
+  saleTypeNote  String?  // e.g. "Cambio de Contol por Tenis"
+  createdAt     DateTime @default(now())
 }
 
 model Product {

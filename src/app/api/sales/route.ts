@@ -84,7 +84,9 @@ export async function GET(request: Request) {
         discount: 0,
         total: s.total,
         paymentMethod: 'Efectivo',
-        status: 'Completada'
+        status: (s as any).saleType === 'CAMBIO' ? 'Cambio' : 'Completada',
+        saleType: (s as any).saleType || 'VENTA',
+        saleTypeNote: (s as any).saleTypeNote || '',
       };
     });
 

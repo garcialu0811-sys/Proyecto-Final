@@ -37,6 +37,7 @@ interface ReceiptData {
   time: string;
   sellerName: string;
   items: Array<{
+    productId: string;
     productName: string;
     quantity: number;
     price: number;
@@ -526,7 +527,26 @@ export default function ScanPage() {
         <ChangeProductModal
           receipt={receiptData}
           onClose={() => setShowChangeProduct(false)}
-          onConfirm={() => { setShowChangeProduct(false); showToast('Cambio registrado', 'success'); }}
+          onConfirm={async (exchangeData) => {
+            setShowChangeProduct(false);
+            try {
+              const res = await fetch('/api/sales/exchange', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(exchangeData),
+              });
+              const result = await res.json();
+              if (res.ok && result.success) {
+                showToast(result.message, 'success');
+                // Redirect to confirmation page with exchange data
+                router.push(`/sales/confirmation?folio=${result.folio}&exchange=1&diff=${result.difference}&old=${exchangeData.oldProductName}&new=${exchangeData.newProductName}`);
+              } else {
+                showToast(result.error || 'Error al registrar el cambio', 'error');
+              }
+            } catch {
+              showToast('Error al procesar el cambio', 'error');
+            }
+          }}
         />
       )}
 

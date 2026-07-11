@@ -30,6 +30,7 @@ export async function GET(
     const first = matchingSales[0];
     const createdAt = new Date(first.createdAt);
     const items = matchingSales.map((s: any) => ({
+      productId: s.productId,
       productName: s.productName,
       sku: '',
       quantity: s.quantity,
@@ -49,6 +50,8 @@ export async function GET(
       subtotal: calculatedTotal,
       discount: 0,
       total: calculatedTotal,
+      saleType: (first as any).saleType || 'VENTA',
+      saleTypeNote: (first as any).saleTypeNote || '',
     });
   } catch (error) {
     console.error('Error al buscar venta por folio:', error);

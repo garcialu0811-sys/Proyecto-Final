@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
 import { QRCodeCanvas } from 'qrcode.react';
+import { useSession } from 'next-auth/react';
 
 interface SaleItem {
   productName: string;
@@ -29,12 +30,16 @@ interface SaleData {
   discount: number;
   total: number;
   customerName?: string;
+  isExchange?: boolean;
+  exchangeOldProduct?: string;
+  exchangeNewProduct?: string;
 }
 
 function ConfirmacionContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { showToast } = useToast();
+  const { data: session } = useSession();
   const receiptRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(false);
   const [saleData, setSaleData] = useState<SaleData | null>(null);
@@ -71,8 +76,38 @@ function ConfirmacionContent() {
     const sellerParam = searchParams?.get('seller');
     const dateParam = searchParams?.get('date');
     const timeParam = searchParams?.get('time');
+    const isExchange = searchParams?.get('exchange') === '1';
+    const diffParam = searchParams?.get('diff');
+    const oldProductParam = searchParams?.get('old');
+    const newProductParam = searchParams?.get('new');
 
-    if (itemsParam) {
+    if (isExchange && folioParam) {
+      // Exchange difference receipt
+      const diff = parseFloat(diffParam || '0');
+      const now = new Date();
+      setSaleData({
+        id: saleId || Date.now().toString(),
+        folio: folioParam,
+        date: dateParam || now.toLocaleDateString('es-GT', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+        time: timeParam || now.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' }),
+        sellerName: sellerParam || session?.user?.name || 'Vendedor',
+        items: [
+          {
+            productName: `Cambio: ${oldProductParam} → ${newProductParam}`,
+            sku: 'CAMBIO',
+            quantity: 1,
+            price: diff,
+            subtotal: diff,
+          }
+        ],
+        subtotal: diff,
+        discount: 0,
+        total: diff,
+        isExchange: true,
+        exchangeOldProduct: oldProductParam || '',
+        exchangeNewProduct: newProductParam || '',
+      });
+    } else if (itemsParam) {
       try {
         const items = JSON.parse(decodeURIComponent(itemsParam));
         const now = new Date();
@@ -200,8 +235,12 @@ function ConfirmacionContent() {
           <X size={20} />
         </button>
         <CheckCircle size={isMobile ? 40 : 48} style={{ color: '#10b981', margin: '0 auto 12px' }} />
-        <h1 style={{ fontSize: isMobile ? '18px' : '22px', fontWeight: 700, color: '#065f46', marginBottom: '4px' }}>Venta registrada con exito!</h1>
-        <p style={{ fontSize: '14px', color: '#047857' }}>Tu venta ha sido guardada correctamente.</p>
+        <h1 style={{ fontSize: isMobile ? '18px' : '22px', fontWeight: 700, color: '#065f46', marginBottom: '4px' }}>
+          {saleData.isExchange ? 'Cambio registrado con exito!' : 'Venta registrada con exito!'}
+        </h1>
+        <p style={{ fontSize: '14px', color: '#047857' }}>
+          {saleData.isExchange ? 'El cambio ha sido procesado correctamente.' : 'Tu venta ha sido guardada correctamente.'}
+        </p>
       </div>
       )}
 
@@ -229,8 +268,15 @@ function ConfirmacionContent() {
 
             {/* Title */}
             <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#111827', margin: '0 0 4px' }}>RECIBO DE VENTA</h3>
+              <h3 style={{ fontSize: '18px', fontWeight: 700, color: saleData.isExchange ? '#d97706' : '#111827', margin: '0 0 4px' }}>
+                {saleData.isExchange ? 'RECIBO DE CAMBIO' : 'RECIBO DE VENTA'}
+              </h3>
               <p style={{ fontSize: '14px', color: 'var(--accent)', fontWeight: 600, margin: 0 }}>No. {saleData.folio}</p>
+              {saleData.isExchange && (
+                <p style={{ fontSize: '12px', color: '#d97706', margin: '4px 0 0' }}>
+                  Diferencia a pagar por cambio de producto
+                </p>
+              )}
             </div>
 
             {/* Info */}

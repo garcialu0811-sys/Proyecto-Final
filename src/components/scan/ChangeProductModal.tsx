@@ -7,6 +7,7 @@ interface ChangeProductModalProps {
   receipt: {
     folio: string;
     items: Array<{
+      productId: string;
       productName: string;
       quantity: number;
       price: number;
@@ -14,7 +15,16 @@ interface ChangeProductModalProps {
     }>;
   };
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: (data: {
+    originalFolio: string;
+    oldProductId: string;
+    oldProductName: string;
+    oldProductPrice: number;
+    newProductId: string;
+    newProductName: string;
+    newProductPrice: number;
+    difference: number;
+  }) => void;
 }
 
 export function ChangeProductModal({ receipt, onClose, onConfirm }: ChangeProductModalProps) {
@@ -68,8 +78,17 @@ export function ChangeProductModal({ receipt, onClose, onConfirm }: ChangeProduc
   };
 
   const handleSubmit = () => {
-    if (oldProductIdx < 0 || !newProductId) return;
-    onConfirm();
+    if (oldProductIdx < 0 || !newProductId || !oldProduct) return;
+    onConfirm({
+      originalFolio: receipt.folio,
+      oldProductId: oldProduct.productId,
+      oldProductName: oldProduct.productName,
+      oldProductPrice: oldProduct.price,
+      newProductId,
+      newProductName,
+      newProductPrice,
+      difference,
+    });
   };
 
   return (

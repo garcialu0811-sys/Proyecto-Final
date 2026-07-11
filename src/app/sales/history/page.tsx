@@ -36,6 +36,8 @@ interface Sale {
   total: number;
   paymentMethod: string;
   status: string;
+  saleType?: string;
+  saleTypeNote?: string;
 }
 
 function HistorialContent() {
@@ -398,9 +400,15 @@ function HistorialContent() {
                         <td style={{ padding: '12px 16px', fontSize: '13px', color: 'var(--text-secondary)', textAlign: 'center' }}>{sale.itemCount || sale.items?.length || 0} prod.</td>
                         <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: 600, color: 'var(--accent)', textAlign: 'right' }}>{formatCurrency(sale.total)}</td>
                         <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#16a34a', fontWeight: 500 }}>
-                            <CheckCircle size={14} /> Completada
-                          </span>
+                          {sale.saleType === 'CAMBIO' ? (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#d97706', fontWeight: 500 }}>
+                              <RefreshCw size={14} /> Cambio
+                            </span>
+                          ) : (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#16a34a', fontWeight: 500 }}>
+                              <CheckCircle size={14} /> Completada
+                            </span>
+                          )}
                         </td>
                         <td style={{ padding: '12px 16px', textAlign: 'center' }}>
                           <button onClick={e => { e.stopPropagation(); setSelectedSale(sale); }} style={{ padding: '6px', border: 'none', background: 'none', cursor: 'pointer', color: 'var(--accent)' }}>
@@ -450,9 +458,19 @@ function HistorialContent() {
               </div>
               <div>
                 <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Estado</p>
-                <p style={{ fontSize: '13px', fontWeight: 500, color: '#16a34a', display: 'flex', alignItems: 'center', gap: '4px' }}><CheckCircle size={13} /> Completada</p>
+                {selectedSale.saleType === 'CAMBIO' ? (
+                  <p style={{ fontSize: '13px', fontWeight: 500, color: '#d97706', display: 'flex', alignItems: 'center', gap: '4px' }}><RefreshCw size={13} /> Cambio</p>
+                ) : (
+                  <p style={{ fontSize: '13px', fontWeight: 500, color: '#16a34a', display: 'flex', alignItems: 'center', gap: '4px' }}><CheckCircle size={13} /> Completada</p>
+                )}
               </div>
             </div>
+
+            {selectedSale.saleType === 'CAMBIO' && selectedSale.saleTypeNote && (
+              <div style={{ padding: '10px 14px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', marginBottom: '16px', fontSize: '12px', color: '#92400e' }}>
+                {selectedSale.saleTypeNote}
+              </div>
+            )}
 
             <h4 style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '10px' }}>Productos</h4>
             <div style={{ marginBottom: '16px' }}>
