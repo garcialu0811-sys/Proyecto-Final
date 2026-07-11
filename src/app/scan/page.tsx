@@ -213,7 +213,7 @@ export default function ScanPage() {
       const qrValue = `PROD:${productData.id}`;
       const { default: QRCode } = await import('qrcode');
       const dataUrl = await QRCode.toDataURL(qrValue, {
-        width: 300, margin: 2,
+        width: 300, margin: 2, errorCorrectionLevel: 'H',
         color: { dark: '#0f172a', light: '#ffffff' }
       });
       const link = document.createElement('a');

@@ -624,8 +624,10 @@ export default function ProductsPage() {
                     const ctx = canvas.getContext('2d');
                     const img = new Image();
                     img.onload = () => {
-                      canvas.width = img.width;
-                      canvas.height = img.height;
+                      const scale = 3;
+                      canvas.width = img.width * scale;
+                      canvas.height = img.height * scale;
+                      ctx?.scale(scale, scale);
                       ctx?.drawImage(img, 0, 0);
                       const link = document.createElement('a');
                       link.download = `VariedadesCoatan-${selectedProduct.sku || selectedProduct.name}.png`;

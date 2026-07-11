@@ -67,9 +67,10 @@ export function QRScanner({ onScanSuccess, onClose, isOpen }: QRScannerProps) {
       await scanner.start(
         { facingMode: 'environment' },
         {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
+          fps: 15,
+          qrbox: { width: 300, height: 300 },
           aspectRatio: 1.0,
+          disableFlip: false,
         },
         (decodedText) => {
           const now = Date.now();
