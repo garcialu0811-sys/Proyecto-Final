@@ -119,11 +119,26 @@ function ConfirmacionContent() {
   const handlePrint = useCallback(() => {
     const el = document.getElementById('receipt-printable');
     if (!el) return;
+
+    // Convert QR canvas to data URL for print window
+    const qrCanvas = el.querySelector('canvas');
+    let qrDataUrl = '';
+    if (qrCanvas) {
+      try { qrDataUrl = qrCanvas.toDataURL('image/png'); } catch {}
+    }
+
     const win = window.open('', '_blank');
     if (!win) {
       showToast('No se pudo abrir la ventana de impresion', 'error');
       return;
     }
+
+    let html = el.innerHTML;
+    // Replace canvas with img if we have the data URL
+    if (qrDataUrl) {
+      html = html.replace(/<canvas[^>]*>.*?<\/canvas>/gi, `<img src="${qrDataUrl}" style="width:160px;height:160px;" />`);
+    }
+
     win.document.write(`<!DOCTYPE html><html><head><title>Recibo</title><style>
       body{font-family:'Courier New',monospace;margin:0;padding:16px;background:#fff;color:#000;font-size:12px;}
       .r{max-width:320px;margin:0 auto;}
@@ -135,7 +150,7 @@ function ConfirmacionContent() {
       td{padding:3px 0;}
       .right{text-align:right;}
       .small{font-size:10px;color:#555;}
-    </style></head><body><div class="r">${el.innerHTML}</div>
+    </style></head><body><div class="r">${html}</div>
     <script>window.onload=function(){window.print();window.close();}<\/script>
     </body></html>`);
     win.document.close();
