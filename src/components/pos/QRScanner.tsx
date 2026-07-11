@@ -15,13 +15,14 @@ export function QRScanner({ onScanSuccess, onClose, isOpen }: QRScannerProps) {
   const [error, setError] = useState<string | null>(null);
   const [lastScanned, setLastScanned] = useState<string | null>(null);
   const [scanCount, setScanCount] = useState(0);
+  const [scanSuccess, setScanSuccess] = useState(false);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const containerId = 'qr-scanner-video';
   const isStartingRef = useRef(false);
   const lastScanTimeRef = useRef(0);
   const lastScanCodeRef = useRef<string>('');
-  const DEBOUNCE_MS = 500;
+  const DEBOUNCE_MS = 200;
 
   const stopScanner = useCallback(async () => {
     if (scannerRef.current) {
@@ -67,7 +68,7 @@ export function QRScanner({ onScanSuccess, onClose, isOpen }: QRScannerProps) {
         (decodedText) => {
           const now = Date.now();
 
-          // Debounce: ignore same code within 500ms
+          // Debounce: ignore same code within 200ms (prevents double-reads)
           if (
             decodedText === lastScanCodeRef.current &&
             now - lastScanTimeRef.current < DEBOUNCE_MS
@@ -75,15 +76,12 @@ export function QRScanner({ onScanSuccess, onClose, isOpen }: QRScannerProps) {
             return;
           }
 
-          // Also debounce any scan within 500ms of the last scan
-          if (now - lastScanTimeRef.current < DEBOUNCE_MS) {
-            return;
-          }
-
           lastScanTimeRef.current = now;
           lastScanCodeRef.current = decodedText;
           setLastScanned(decodedText);
           setScanCount((c) => c + 1);
+          setScanSuccess(true);
+          setTimeout(() => setScanSuccess(false), 400);
           onScanSuccess(decodedText);
           if (navigator.vibrate) navigator.vibrate(100);
         },
@@ -147,7 +145,7 @@ export function QRScanner({ onScanSuccess, onClose, isOpen }: QRScannerProps) {
             </div>
             <div>
               <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#111827', margin: 0 }}>
-                Escanear QR
+                Escanear Codigo
               </h3>
               <p style={{ fontSize: '11px', color: '#6b7280', margin: 0 }}>
                 Apunta al codigo del producto
@@ -189,6 +187,14 @@ export function QRScanner({ onScanSuccess, onClose, isOpen }: QRScannerProps) {
                   <div style={{ position: 'absolute', bottom: 0, right: 0, width: '30px', height: '30px', borderBottom: '3px solid #3b82f6', borderRight: '3px solid #3b82f6', borderRadius: '0 0 4px 0' }} />
                 </div>
               </div>
+            )}
+            {/* Success flash */}
+            {scanSuccess && (
+              <div style={{
+                position: 'absolute', inset: 0, background: 'rgba(34,197,94,0.25)',
+                pointerEvents: 'none', borderRadius: '12px',
+                animation: 'flashFade 0.4s ease-out forwards'
+              }} />
             )}
           </div>
 
@@ -255,7 +261,7 @@ export function QRScanner({ onScanSuccess, onClose, isOpen }: QRScannerProps) {
                   Como escanear
                 </p>
                 <ol style={{ fontSize: '12px', color: '#64748b', margin: 0, paddingLeft: '16px', lineHeight: '1.6' }}>
-                  <li>Apunta la camara al codigo QR del producto</li>
+                  <li>Apunta la camara al codigo de barras del producto</li>
                   <li>Manten el telefono estable y a 15-20cm de distancia</li>
                   <li>Cada escaneo suma una unidad al carrito</li>
                   <li>Puedes escanear el mismo producto varias veces</li>
@@ -300,6 +306,10 @@ export function QRScanner({ onScanSuccess, onClose, isOpen }: QRScannerProps) {
         @keyframes pulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.4; }
+        }
+        @keyframes flashFade {
+          0% { opacity: 1; }
+          100% { opacity: 0; }
         }
         #qr-scanner-video video {
           border-radius: 12px;
