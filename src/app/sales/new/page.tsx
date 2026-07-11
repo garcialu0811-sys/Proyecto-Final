@@ -205,14 +205,13 @@ export default function NuevaVentaPage() {
       return;
     }
 
-    // Only accept product QR codes (PROD: prefix)
-    if (!code.startsWith('PROD:')) {
-      showToast('Codigo no valido. Escanea un codigo QR de producto.', 'error');
-      return;
+    // Extract product ID from QR code (accept PROD: prefix or raw ID)
+    let productId = code;
+    if (code.startsWith('PROD:')) {
+      productId = code.replace('PROD:', '');
     }
 
     try {
-      const productId = code.replace('PROD:', '');
       const lookupRes = await fetch(`/api/products/qr/${productId}`);
       const product = await lookupRes.json();
 

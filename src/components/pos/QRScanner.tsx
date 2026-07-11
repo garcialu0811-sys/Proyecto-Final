@@ -22,7 +22,13 @@ export function QRScanner({ onScanSuccess, onClose, isOpen }: QRScannerProps) {
   const isStartingRef = useRef(false);
   const lastScanTimeRef = useRef(0);
   const lastScanCodeRef = useRef<string>('');
+  const onScanSuccessRef = useRef(onScanSuccess);
   const DEBOUNCE_MS = 3000;
+
+  // Keep callback ref current without restarting scanner
+  useEffect(() => {
+    onScanSuccessRef.current = onScanSuccess;
+  }, [onScanSuccess]);
 
   const stopScanner = useCallback(async () => {
     if (scannerRef.current) {
@@ -68,7 +74,6 @@ export function QRScanner({ onScanSuccess, onClose, isOpen }: QRScannerProps) {
         (decodedText) => {
           const now = Date.now();
 
-          // Debounce: ignore same code within 200ms (prevents double-reads)
           if (
             decodedText === lastScanCodeRef.current &&
             now - lastScanTimeRef.current < DEBOUNCE_MS
@@ -82,10 +87,10 @@ export function QRScanner({ onScanSuccess, onClose, isOpen }: QRScannerProps) {
           setScanCount((c) => c + 1);
           setScanSuccess(true);
           setTimeout(() => setScanSuccess(false), 400);
-          onScanSuccess(decodedText);
+          onScanSuccessRef.current(decodedText);
           if (navigator.vibrate) navigator.vibrate(100);
         },
-        () => {} // ignore scan errors
+        () => {}
       );
 
       setIsScanning(true);
@@ -102,7 +107,7 @@ export function QRScanner({ onScanSuccess, onClose, isOpen }: QRScannerProps) {
     } finally {
       isStartingRef.current = false;
     }
-  }, [onScanSuccess]);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -261,7 +266,7 @@ export function QRScanner({ onScanSuccess, onClose, isOpen }: QRScannerProps) {
                   Como escanear
                 </p>
                 <ol style={{ fontSize: '12px', color: '#64748b', margin: 0, paddingLeft: '16px', lineHeight: '1.6' }}>
-                  <li>Apunta la camara al codigo de barras del producto</li>
+                  <li>Apunta la camara al codigo QR del producto</li>
                   <li>Manten el telefono estable y a 15-20cm de distancia</li>
                   <li>Cada escaneo suma una unidad al carrito</li>
                   <li>Puedes escanear el mismo producto varias veces</li>
