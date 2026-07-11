@@ -11,7 +11,7 @@ interface BarcodeProps {
   style?: React.CSSProperties;
 }
 
-export default function Barcode({ value, width = 2, height = 50, fontSize = 14, style }: BarcodeProps) {
+export default function Barcode({ value, width = 1.5, height = 35, fontSize = 11, style }: BarcodeProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
 
   useEffect(() => {

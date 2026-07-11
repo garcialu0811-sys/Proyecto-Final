@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Upload, Package, CheckCircle, Eye } from 'lucide-react';
+import { X, Upload, Package, CheckCircle, Eye, Download } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
 import Barcode from '@/components/ui/Barcode';
 
@@ -134,16 +134,6 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, categorie
     }
   };
 
-  const downloadQR = () => {
-    const canvas = document.querySelector('#qr-preview canvas') as HTMLCanvasElement;
-    if (canvas) {
-      const link = document.createElement('a');
-      link.download = `VariedadesCoatan-${formSku || formName || 'producto'}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-    }
-  };
-
   const barcodeValue = formSku || formName || '';
 
   if (!isOpen) return null;
@@ -261,11 +251,9 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, categorie
               {/* Barcode Preview Card */}
               <div style={{ backgroundColor: 'var(--bg-primary)', borderRadius: '12px', padding: '20px', marginBottom: '16px' }}>
                 <p style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px' }}>Vista previa del codigo de barras</p>
-                <div style={{ backgroundColor: '#fff', borderRadius: '10px', padding: '16px', textAlign: 'center', border: '1px solid var(--border)', minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div id="barcode-create-preview" style={{ backgroundColor: '#fff', borderRadius: '10px', padding: '16px', textAlign: 'center', border: '1px solid var(--border)', minHeight: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {barcodeValue ? (
-                    <div id="barcode-preview">
-                      <Barcode value={barcodeValue} width={2} height={50} fontSize={14} />
-                    </div>
+                    <Barcode value={barcodeValue} width={1.5} height={35} fontSize={11} />
                   ) : (
                     <div style={{ padding: '20px' }}>
                       <Package size={40} style={{ color: 'var(--text-light)', margin: '0 auto 8px auto', display: 'block' }} />
@@ -276,6 +264,32 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, categorie
                 <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '12px', lineHeight: 1.5 }}>
                   Este codigo de barras es unico para este producto y podra ser escaneado por tus clientes.
                 </p>
+                {barcodeValue && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const svg = document.querySelector('#barcode-create-preview svg') as SVGSVGElement;
+                      if (!svg) return;
+                      const svgData = new XMLSerializer().serializeToString(svg);
+                      const canvas = document.createElement('canvas');
+                      const ctx = canvas.getContext('2d');
+                      const img = new Image();
+                      img.onload = () => {
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        ctx?.drawImage(img, 0, 0);
+                        const link = document.createElement('a');
+                        link.download = `VariedadesCoatan-${formSku || formName || 'producto'}.png`;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                      };
+                      img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+                    }}
+                    style={{ marginTop: '10px', width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid var(--border)', backgroundColor: 'var(--bg-secondary)', cursor: 'pointer', fontSize: '13px', fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: 'var(--text-primary)' }}
+                  >
+                    <Download size={14} /> Descargar codigo de barras
+                  </button>
+                )}
               </div>
             </div>
           </div>

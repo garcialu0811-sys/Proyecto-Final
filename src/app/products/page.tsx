@@ -603,8 +603,8 @@ export default function ProductsPage() {
               <p style={{ fontWeight: 600, fontSize: '16px', marginBottom: '4px' }}>{selectedProduct.name}</p>
               <p style={{ fontSize: '12px', color: 'var(--text-light)', marginBottom: '16px' }}>SKU: {selectedProduct.sku || 'N/A'}</p>
               {selectedProduct.qrCode && selectedProduct.qrCode !== 'temp' ? (
-                <div style={{ backgroundColor: '#fff', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)', display: 'inline-block' }}>
-                  <BarcodeComponent value={selectedProduct.qrCode} width={2} height={50} fontSize={14} />
+                <div id="barcode-page-preview" style={{ backgroundColor: '#fff', padding: '12px', borderRadius: '12px', border: '1px solid var(--border)', display: 'inline-block' }}>
+                  <BarcodeComponent value={selectedProduct.qrCode} width={1.5} height={35} fontSize={11} />
                 </div>
               ) : (
                 <div style={{ width: '220px', height: '220px', backgroundColor: 'var(--bg-primary)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', border: '1px solid var(--border)' }}>
@@ -614,6 +614,32 @@ export default function ProductsPage() {
               <p style={{ fontSize: '11px', color: 'var(--text-light)', marginTop: '12px', fontFamily: 'monospace' }}>ID: {selectedProduct.id}</p>
             </div>
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', padding: '16px 0 8px 0' }}>
+              {selectedProduct.qrCode && selectedProduct.qrCode !== 'temp' && (
+                <button
+                  onClick={() => {
+                    const svg = document.querySelector('#barcode-page-preview svg') as SVGSVGElement;
+                    if (!svg) return;
+                    const svgData = new XMLSerializer().serializeToString(svg);
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const img = new Image();
+                    img.onload = () => {
+                      canvas.width = img.width;
+                      canvas.height = img.height;
+                      ctx?.drawImage(img, 0, 0);
+                      const link = document.createElement('a');
+                      link.download = `VariedadesCoatan-${selectedProduct.sku || selectedProduct.name}.png`;
+                      link.href = canvas.toDataURL('image/png');
+                      link.click();
+                    };
+                    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+                  }}
+                  className="btn btn-primary"
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px' }}
+                >
+                  <Download size={14} /> Descargar
+                </button>
+              )}
               <button onClick={() => setModal(null)} className="btn btn-secondary" style={{ padding: '8px 16px' }}>Cerrar</button>
             </div>
           </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Upload, Package, CheckCircle, Eye, Save } from 'lucide-react';
+import { X, Upload, Package, CheckCircle, Eye, Save, Download } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
 import Barcode from '@/components/ui/Barcode';
 
@@ -157,16 +157,6 @@ export default function EditProductModal({ isOpen, onClose, onSuccess, product, 
     }
   };
 
-  const downloadQR = () => {
-    const canvas = document.querySelector('#qr-edit-preview canvas') as HTMLCanvasElement;
-    if (canvas) {
-      const link = document.createElement('a');
-      link.download = `VariedadesCoatan-${formSku || formName || 'producto'}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-    }
-  };
-
   if (!isOpen || !product) return null;
 
   return (
@@ -282,9 +272,9 @@ export default function EditProductModal({ isOpen, onClose, onSuccess, product, 
               {/* Barcode Preview Card */}
               <div style={{ backgroundColor: 'var(--bg-primary)', borderRadius: '12px', padding: '20px', marginBottom: '16px' }}>
                 <p style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px' }}>Codigo de barras del producto</p>
-                <div style={{ backgroundColor: '#fff', borderRadius: '10px', padding: '16px', textAlign: 'center', border: '1px solid var(--border)', minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div id="barcode-edit-preview" style={{ backgroundColor: '#fff', borderRadius: '10px', padding: '16px', textAlign: 'center', border: '1px solid var(--border)', minHeight: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {product.qrCode ? (
-                    <Barcode value={product.qrCode} width={2} height={50} fontSize={14} />
+                    <Barcode value={product.qrCode} width={1.5} height={35} fontSize={11} />
                   ) : (
                     <div style={{ padding: '20px' }}>
                       <Package size={40} style={{ color: 'var(--text-light)', margin: '0 auto 8px auto', display: 'block' }} />
@@ -318,7 +308,7 @@ export default function EditProductModal({ isOpen, onClose, onSuccess, product, 
                     }}
                     style={{ marginTop: '10px', width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid var(--border)', backgroundColor: 'var(--bg-secondary)', cursor: 'pointer', fontSize: '13px', fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: 'var(--text-primary)' }}
                   >
-                    <Eye size={14} /> Descargar codigo de barras
+                    <Download size={14} /> Descargar codigo de barras
                   </button>
                 )}
               </div>
