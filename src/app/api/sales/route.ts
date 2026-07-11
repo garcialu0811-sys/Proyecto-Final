@@ -45,7 +45,7 @@ export async function GET(request: Request) {
     }
 
     const sortedSales = [...mySales].sort((a: any, b: any) => {
-      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
     const toDateStr = (d: Date) => d.toISOString().split('T')[0];
