@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import {
   Camera, ShoppingBag, Save, Check, Clock, Trash2, Edit3, X,
-  AlertTriangle, Package, Plus, DollarSign, BoxSelect, Hash, FileText,
+  AlertTriangle, Package, Plus, DollarSign, BoxSelect, Hash,
 } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
 import { Html5QrcodeScanner } from 'html5-qrcode';
@@ -39,7 +39,7 @@ export default function ScanPage() {
   const role = user?.role || 'VENDEDOR';
 
   const [scannedProduct, setScannedProduct] = useState<Product | null>(null);
-  const [scannedReceipt, setScannedReceipt] = useState<any>(null);
+
   const [manualCode, setManualCode] = useState('');
   const [loadingSearch, setLoadingSearch] = useState(false);
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
@@ -120,29 +120,11 @@ export default function ScanPage() {
 
     setLoadingSearch(true);
     try {
-      // Check if scanned code is a receipt QR URL
-      if (code.includes('/api/sales/folio/')) {
-        const folio = code.split('/api/sales/folio/')[1];
-        if (folio) {
-          const res = await fetch(`/api/sales/folio/${folio}`);
-          if (res.ok) {
-            const data = await res.json();
-            setScannedProduct(null);
-            setScannedReceipt(data);
-            addToHistory(folio, `Recibo ${folio}`, 'Recibo escaneado', `Total: Q${data.total?.toFixed(2)}`);
-            showToast(`Recibo encontrado: ${data.folio}`, 'success');
-            setLoadingSearch(false);
-            return;
-          }
-        }
-      }
-
       // Try product lookup
       const res = await fetch(`/api/products/qr/${code}`);
       const data = await res.json();
       if (res.ok) {
         setScannedProduct(data);
-        setScannedReceipt(null);
         setEditPrice(data.price.toString());
         setEditStock(data.stock.toString());
         setSellQty('1');
@@ -375,45 +357,6 @@ export default function ScanPage() {
 
           {loadingSearch ? (
             <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '40px' }}>Buscando...</p>
-          ) : scannedReceipt ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ padding: '12px', backgroundColor: '#ecfdf5', borderRadius: '8px', border: '1px solid #a7f3d0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <FileText size={20} style={{ color: '#059669' }} />
-                <span style={{ fontSize: '14px', fontWeight: 600, color: '#059669' }}>Recibo Escaneado</span>
-              </div>
-              <div style={{ backgroundColor: 'var(--bg-primary)', borderRadius: '8px', padding: '16px', border: '1px solid var(--border)' }}>
-                <p style={{ fontSize: '18px', fontWeight: 700, color: 'var(--accent)', marginBottom: '4px' }}>{scannedReceipt.folio}</p>
-                <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
-                  <span>{scannedReceipt.date}</span>
-                  <span>{scannedReceipt.time}</span>
-                </div>
-                <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Vendedor: <strong style={{ color: 'var(--text-primary)' }}>{scannedReceipt.sellerName}</strong></p>
-              </div>
-              <div style={{ maxHeight: '200px', overflow: 'auto', border: '1px solid var(--border)', borderRadius: '8px' }}>
-                <table style={{ width: '100%', fontSize: '12px' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--bg-primary)' }}>
-                      <th style={{ padding: '8px', textAlign: 'left' }}>Producto</th>
-                      <th style={{ padding: '8px', textAlign: 'center' }}>Cant.</th>
-                      <th style={{ padding: '8px', textAlign: 'right' }}>Subtotal</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {scannedReceipt.items.map((item: any, idx: number) => (
-                      <tr key={idx} style={{ borderBottom: '1px solid var(--border)' }}>
-                        <td style={{ padding: '8px' }}>{item.productName}</td>
-                        <td style={{ padding: '8px', textAlign: 'center' }}>{item.quantity}</td>
-                        <td style={{ padding: '8px', textAlign: 'right', fontWeight: 600 }}>Q{item.subtotal.toFixed(2)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div style={{ padding: '12px', backgroundColor: 'var(--accent)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '16px', fontWeight: 600, color: 'var(--accent-contrast)' }}>Total</span>
-                <span style={{ fontSize: '20px', fontWeight: 700, color: 'var(--accent-contrast)' }}>Q{scannedReceipt.total.toFixed(2)}</span>
-              </div>
-            </div>
           ) : !scannedProduct ? (
             <div style={{ padding: '60px 10px', textAlign: 'center', color: 'var(--text-secondary)' }}>
               <Camera size={40} style={{ margin: '0 auto 12px auto', opacity: 0.5 }} />

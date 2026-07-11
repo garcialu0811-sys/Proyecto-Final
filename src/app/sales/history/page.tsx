@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import {
   Calendar, ChevronLeft, ChevronRight, Download, RefreshCw, Eye,
   FileText, FileSpreadsheet, DollarSign, Package, ShoppingCart,
-  CheckCircle, Search, X, Printer, BarChart3, Filter
+  CheckCircle, Search, X, BarChart3, Filter
 } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
 
@@ -481,27 +481,6 @@ function HistorialContent() {
                 <span style={{ fontSize: '20px', fontWeight: 800, color: 'var(--accent)' }}>{formatCurrency(selectedSale.total)}</span>
               </div>
             </div>
-
-            <button
-              onClick={() => {
-                const params = new URLSearchParams({
-                  saleId: selectedSale.id,
-                  folio: selectedSale.folio,
-                  items: encodeURIComponent(JSON.stringify(selectedSale.items)),
-                  subtotal: selectedSale.subtotal.toFixed(2),
-                  discount: selectedSale.discount.toFixed(2),
-                  total: selectedSale.total.toFixed(2),
-                  customer: selectedSale.clientName || 'Cliente General',
-                  seller: selectedSale.sellerName,
-                  date: selectedSale.date,
-                  time: selectedSale.time
-                });
-                router.push(`/sales/confirmation?${params.toString()}`);
-              }}
-              style={{ width: '100%', marginTop: '16px', padding: '10px', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--bg-secondary)', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '13px', fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-            >
-              <Printer size={15} /> Ver / Imprimir Recibo
-            </button>
           </div>
         )}
       </div>

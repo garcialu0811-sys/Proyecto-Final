@@ -15,7 +15,6 @@ import {
   Users,
   ShieldCheck,
   FileText,
-  Receipt,
   Settings,
   LogOut,
   QrCode,
@@ -100,12 +99,6 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
           name: 'Historial de Ventas',
           path: '/sales/history',
           icon: History,
-          roles: ['ADMIN', 'VENDEDOR']
-        },
-        {
-          name: 'Recibos',
-          path: '/sales/receipts',
-          icon: Receipt,
           roles: ['ADMIN', 'VENDEDOR']
         }
       ]
