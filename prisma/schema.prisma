@@ -67,7 +67,7 @@ model Permission {
 
 model Sale {
   id            String   @id @default(uuid())
-  folio         String   @unique @default("")
+  folio         String   @default("")
   productId     String
   productName   String
   quantity      Int
