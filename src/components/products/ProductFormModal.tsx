@@ -134,7 +134,7 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, categorie
     }
   };
 
-  const barcodeValue = formSku || (formName ? formName.substring(0, 10) : '');
+  const barcodeValue = formName ? `PROD:${formName.substring(0, 8).toLowerCase().replace(/\s+/g, '-')}` : '';
 
   if (!isOpen) return null;
 
@@ -250,7 +250,7 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, categorie
 
               {/* Barcode Preview Card */}
               <div style={{ backgroundColor: 'var(--bg-primary)', borderRadius: '12px', padding: '20px', marginBottom: '16px' }}>
-                <p style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px' }}>Vista previa del codigo de barras</p>
+                <p style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px' }}>Vista previa del codigo QR</p>
                 <div id="barcode-create-preview" style={{ backgroundColor: '#fff', borderRadius: '10px', padding: '16px', textAlign: 'center', border: '1px solid var(--border)', minHeight: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {barcodeValue ? (
                     <Barcode value={barcodeValue} width={1.5} height={35} fontSize={11} maxWidth="260px" />
@@ -262,7 +262,7 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, categorie
                   )}
                 </div>
                 <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '12px', lineHeight: 1.5 }}>
-                  Este codigo de barras es unico para este producto y podra ser escaneado por tus clientes.
+                  Este codigo QR es unico para este producto y podra ser escaneado por tus clientes.
                 </p>
                 {barcodeValue && (
                   <button

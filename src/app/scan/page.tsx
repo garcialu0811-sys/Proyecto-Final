@@ -146,10 +146,37 @@ export default function ScanPage() {
   const handleScanResult = async (code: string) => {
     setLoadingSearch(true);
     try {
-      if (scanMode === 'receipt' || code.includes('/api/sales/folio/')) {
-        const folio = code.includes('/api/sales/folio/')
-          ? code.split('/api/sales/folio/')[1]
-          : code;
+      const isProductQR = code.startsWith('PROD:');
+      const isReceiptQR = code.includes('/api/sales/folio/');
+
+      if (scanMode === 'product') {
+        if (isReceiptQR) {
+          showToast('Este es un codigo de recibo. Cambia a modo "Escanear recibo".', 'error');
+          setScanStatus('error');
+          setLoadingSearch(false);
+          return;
+        }
+        const productId = isProductQR ? code.replace('PROD:', '') : code;
+        const res = await fetch(`/api/products/qr/${productId}`);
+        const data = await res.json();
+        if (res.ok && data.id) {
+          setProductData(data);
+          setReceiptData(null);
+          setScanStatus('success');
+          stopScanner();
+          showToast(`Producto encontrado: ${data.name}`, 'success');
+        } else {
+          showToast('Codigo de producto no registrado', 'error');
+          setScanStatus('error');
+        }
+      } else {
+        if (isProductQR) {
+          showToast('Este es un codigo de producto. Cambia a modo "Escanear producto".', 'error');
+          setScanStatus('error');
+          setLoadingSearch(false);
+          return;
+        }
+        const folio = isReceiptQR ? code.split('/api/sales/folio/')[1] : code;
         const res = await fetch(`/api/sales/folio/${folio}`);
         if (res.ok) {
           const data = await res.json();
@@ -158,22 +185,10 @@ export default function ScanPage() {
           setScanStatus('success');
           stopScanner();
           showToast(`Recibo ${data.folio} encontrado`, 'success');
-          setLoadingSearch(false);
-          return;
+        } else {
+          showToast('Codigo de recibo no valido', 'error');
+          setScanStatus('error');
         }
-      }
-
-      const res = await fetch(`/api/products/qr/${code}`);
-      const data = await res.json();
-      if (res.ok && data.id) {
-        setProductData(data);
-        setReceiptData(null);
-        setScanStatus('success');
-        stopScanner();
-        showToast(`Producto encontrado: ${data.name}`, 'success');
-      } else {
-        showToast('Codigo no registrado', 'error');
-        setScanStatus('error');
       }
     } catch {
       showToast('Error al buscar', 'error');
@@ -195,7 +210,7 @@ export default function ScanPage() {
   const handleDownloadQR = async () => {
     if (!productData) return;
     try {
-      const qrValue = productData.sku || productData.id;
+      const qrValue = `PROD:${productData.id}`;
       const { default: QRCode } = await import('qrcode');
       const dataUrl = await QRCode.toDataURL(qrValue, {
         width: 300, margin: 2,

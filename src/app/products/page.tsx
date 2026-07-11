@@ -604,7 +604,7 @@ export default function ProductsPage() {
               <p style={{ fontSize: '12px', color: 'var(--text-light)', marginBottom: '16px' }}>SKU: {selectedProduct.sku || 'N/A'}</p>
               {selectedProduct.qrCode && selectedProduct.qrCode !== 'temp' ? (
                 <div id="barcode-page-preview" style={{ backgroundColor: '#fff', padding: '12px', borderRadius: '12px', border: '1px solid var(--border)', display: 'inline-block' }}>
-                  <BarcodeComponent value={selectedProduct.sku || selectedProduct.name.substring(0, 10)} width={1.5} height={35} fontSize={11} maxWidth="260px" />
+                  <BarcodeComponent value={`PROD:${selectedProduct.id}`} maxWidth="260px" />
                 </div>
               ) : (
                 <div style={{ width: '220px', height: '220px', backgroundColor: 'var(--bg-primary)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', border: '1px solid var(--border)' }}>

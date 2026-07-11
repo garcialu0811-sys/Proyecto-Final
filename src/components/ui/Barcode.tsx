@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import JsBarcode from 'jsbarcode';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface BarcodeProps {
   value: string;
@@ -12,33 +11,19 @@ interface BarcodeProps {
   maxWidth?: string;
 }
 
-export default function Barcode({ value, width = 1.5, height = 35, fontSize = 11, style, maxWidth = '100%' }: BarcodeProps) {
-  const svgRef = useRef<SVGSVGElement | null>(null);
-
-  useEffect(() => {
-    if (svgRef.current && value) {
-      try {
-        JsBarcode(svgRef.current, value, {
-          format: 'CODE128',
-          width,
-          height,
-          displayValue: true,
-          fontSize,
-          margin: 8,
-          background: '#ffffff',
-          lineColor: '#1a2a3a',
-        });
-      } catch (err) {
-        console.error('Barcode error:', err);
-      }
-    }
-  }, [value, width, height, fontSize]);
-
+export default function Barcode({ value, maxWidth = '260px' }: BarcodeProps) {
   if (!value) return null;
 
   return (
-    <div style={{ maxWidth, overflow: 'hidden', display: 'flex', justifyContent: 'center' }}>
-      <svg ref={svgRef} style={{ ...style, width: '100%', minWidth: 0 }} />
+    <div style={{ maxWidth, display: 'flex', justifyContent: 'center', overflow: 'hidden' }}>
+      <QRCodeSVG
+        value={value}
+        size={180}
+        level="M"
+        fgColor="#1a2a3a"
+        bgColor="#ffffff"
+        style={{ width: '100%', maxWidth: '180px', height: 'auto' }}
+      />
     </div>
   );
 }
