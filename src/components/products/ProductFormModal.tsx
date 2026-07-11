@@ -134,7 +134,7 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, categorie
     }
   };
 
-  const barcodeValue = formSku || formName || '';
+  const barcodeValue = formSku || (formName ? formName.substring(0, 10) : '');
 
   if (!isOpen) return null;
 
@@ -253,7 +253,7 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, categorie
                 <p style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px' }}>Vista previa del codigo de barras</p>
                 <div id="barcode-create-preview" style={{ backgroundColor: '#fff', borderRadius: '10px', padding: '16px', textAlign: 'center', border: '1px solid var(--border)', minHeight: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {barcodeValue ? (
-                    <Barcode value={barcodeValue} width={1.5} height={35} fontSize={11} />
+                    <Barcode value={barcodeValue} width={1.5} height={35} fontSize={11} maxWidth="260px" />
                   ) : (
                     <div style={{ padding: '20px' }}>
                       <Package size={40} style={{ color: 'var(--text-light)', margin: '0 auto 8px auto', display: 'block' }} />

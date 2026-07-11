@@ -9,9 +9,10 @@ interface BarcodeProps {
   height?: number;
   fontSize?: number;
   style?: React.CSSProperties;
+  maxWidth?: string;
 }
 
-export default function Barcode({ value, width = 1.5, height = 35, fontSize = 11, style }: BarcodeProps) {
+export default function Barcode({ value, width = 1.5, height = 35, fontSize = 11, style, maxWidth = '100%' }: BarcodeProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
 
   useEffect(() => {
@@ -35,5 +36,9 @@ export default function Barcode({ value, width = 1.5, height = 35, fontSize = 11
 
   if (!value) return null;
 
-  return <svg ref={svgRef} style={style} />;
+  return (
+    <div style={{ maxWidth, overflow: 'hidden', display: 'flex', justifyContent: 'center' }}>
+      <svg ref={svgRef} style={{ ...style, width: '100%', minWidth: 0 }} />
+    </div>
+  );
 }
