@@ -1,15 +1,19 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import {
-  Camera, ShoppingBag, Save, Check, Clock, Trash2, Edit3, X,
-  AlertTriangle, Package, Plus, DollarSign, BoxSelect, Hash, FileText,
+  QrCode, Scan, Camera, X, Package, Receipt, Download, RefreshCw,
+  Plus, CheckCircle, AlertCircle, ChevronRight, DollarSign, Tag,
+  Calendar, Clock, User, FileText, Search, Edit3, Trash2, Save
 } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
-import { Html5QrcodeScanner } from 'html5-qrcode';
-import confetti from 'canvas-confetti';
+import { Html5Qrcode } from 'html5-qrcode';
+import { ProductDetail } from '@/components/scan/ProductDetail';
+import { ReceiptDetail } from '@/components/scan/ReceiptDetail';
+import { AddStockModal } from '@/components/scan/AddStockModal';
+import { ChangeProductModal } from '@/components/scan/ChangeProductModal';
 
 interface Product {
   id: string;
@@ -20,16 +24,30 @@ interface Product {
   category: string;
   imageUrl: string;
   qrCode: string;
+  sku?: string;
+  isActive?: boolean;
   minStock?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-interface ScanHistoryItem {
-  productId: string;
-  productName: string;
-  action: string;
-  timestamp: string;
-  details?: string;
+interface ReceiptData {
+  folio: string;
+  date: string;
+  time: string;
+  sellerName: string;
+  items: Array<{
+    productName: string;
+    quantity: number;
+    price: number;
+    subtotal: number;
+  }>;
+  subtotal: number;
+  discount: number;
+  total: number;
 }
+
+type ScanMode = 'product' | 'receipt';
 
 export default function ScanPage() {
   const { data: session, status } = useSession();
@@ -38,591 +56,469 @@ export default function ScanPage() {
   const user = session?.user as any;
   const role = user?.role || 'VENDEDOR';
 
-  const [scannedProduct, setScannedProduct] = useState<Product | null>(null);
-  const [scannedReceipt, setScannedReceipt] = useState<any>(null);
+  const [scanMode, setScanMode] = useState<ScanMode>('product');
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanStatus, setScanStatus] = useState<'idle' | 'scanning' | 'success' | 'error'>('idle');
+  const [scannerError, setScannerError] = useState<string | null>(null);
 
-  const [manualCode, setManualCode] = useState('');
+  const [productData, setProductData] = useState<Product | null>(null);
+  const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
+
+  const [showAddStock, setShowAddStock] = useState(false);
+  const [showChangeProduct, setShowChangeProduct] = useState(false);
   const [loadingSearch, setLoadingSearch] = useState(false);
-  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+
+  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const containerId = 'qr-scanner-container';
+  const isStartingRef = useRef(false);
   const lastScanRef = useRef<{ code: string; time: number }>({ code: '', time: 0 });
-
-  const [editPrice, setEditPrice] = useState('');
-  const [editStock, setEditStock] = useState('');
-  const [sellQty, setSellQty] = useState('1');
-  const [clientName, setClientName] = useState('');
-  const [actionLoading, setActionLoading] = useState(false);
-
-  const [scanHistory, setScanHistory] = useState<ScanHistoryItem[]>([]);
-  const [showHistory, setShowHistory] = useState(false);
-
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editModalName, setEditModalName] = useState('');
-  const [editModalDesc, setEditModalDesc] = useState('');
-  const [editModalPrice, setEditModalPrice] = useState('');
-  const [editModalStock, setEditModalStock] = useState('');
-  const [editModalCategory, setEditModalCategory] = useState('');
-  const [editModalMinStock, setEditModalMinStock] = useState('5');
-
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [newProductName, setNewProductName] = useState('');
-  const [newProductDesc, setNewProductDesc] = useState('');
-  const [newProductPrice, setNewProductPrice] = useState('');
-  const [newProductStock, setNewProductStock] = useState('');
-  const [newProductCategory, setNewProductCategory] = useState('Perifericos');
-  const [newProductMinStock, setNewProductMinStock] = useState('5');
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    if (status === 'unauthenticated') { router.push('/login'); return; }
-    if (session) {
-      if (role !== 'ADMIN' && role !== 'VENDEDOR') { showToast('Acceso restringido.', 'error'); router.push('/'); return; }
-      const saved = localStorage.getItem('qrshop-scan-history');
-      if (saved) setScanHistory(JSON.parse(saved));
-      startScanner();
-    }
-    return () => stopScanner();
-  }, [session, status]);
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
-  const startScanner = () => {
-    setTimeout(() => {
+  useEffect(() => {
+    if (status === 'unauthenticated') router.push('/login');
+  }, [status, router]);
+
+  const stopScanner = useCallback(async () => {
+    if (scannerRef.current) {
       try {
-        if (scannerRef.current) return;
-        const scanner = new Html5QrcodeScanner('scan-reader', { fps: 10, qrbox: { width: 250, height: 250 } }, false);
-        scannerRef.current = scanner;
-        scanner.render((decodedText) => { handleScanSuccess(decodedText); }, () => {});
-      } catch (err) { console.error('Scanner error:', err); }
-    }, 100);
-  };
+        const state = scannerRef.current.getState();
+        if (state === 2) await scannerRef.current.stop();
+        scannerRef.current.clear();
+      } catch { /* ignore */ }
+      scannerRef.current = null;
+    }
+    setIsScanning(false);
+  }, []);
 
-  const stopScanner = () => {
-    if (scannerRef.current) { try { scannerRef.current.clear(); } catch {} scannerRef.current = null; }
-  };
+  const startScanner = useCallback(async () => {
+    if (isStartingRef.current || scannerRef.current) return;
+    isStartingRef.current = true;
+    setScannerError(null);
 
-  const addToHistory = (productId: string, productName: string, action: string, details?: string) => {
-    const item: ScanHistoryItem = { productId, productName, action, timestamp: new Date().toISOString(), details };
-    const updated = [item, ...scanHistory].slice(0, 50);
-    setScanHistory(updated);
-    localStorage.setItem('qrshop-scan-history', JSON.stringify(updated));
-  };
+    try {
+      const container = document.getElementById(containerId);
+      if (!container) {
+        setScannerError('Contenedor no encontrado');
+        isStartingRef.current = false;
+        return;
+      }
 
-  const clearHistory = () => { setScanHistory([]); localStorage.removeItem('qrshop-scan-history'); showToast('Historial limpiado.', 'info'); };
+      const scanner = new Html5Qrcode(containerId);
+      scannerRef.current = scanner;
 
-  const getStockStatus = (stock: number, minStock?: number) => {
-    const min = minStock || 5;
-    if (stock === 0) return { label: 'Sin stock', color: '#DC2626', bg: '#FEE2E2' };
-    if (stock <= min) return { label: 'Stock bajo', color: '#D97706', bg: '#FEF3C7' };
-    if (stock <= min * 2) return { label: 'Stock medio', color: '#2563EB', bg: '#DBEAFE' };
-    return { label: 'Stock alto', color: '#059669', bg: '#D1FAE5' };
-  };
+      await scanner.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 },
+        (decodedText) => {
+          const now = Date.now();
+          if (decodedText === lastScanRef.current.code && now - lastScanRef.current.time < 2000) return;
+          lastScanRef.current = { code: decodedText, time: now };
+          handleScanResult(decodedText);
+        },
+        () => {}
+      );
 
-  const handleScanSuccess = async (code: string) => {
-    const now = Date.now();
-    if (code === lastScanRef.current.code && now - lastScanRef.current.time < 3000) return;
-    lastScanRef.current = { code, time: now };
+      setIsScanning(true);
+      setScanStatus('scanning');
+    } catch (err: any) {
+      if (err?.toString?.().includes('Permission') || err?.toString?.().includes('NotAllowedError')) {
+        setScannerError('Permiso de camara denegado. Habilita el permiso en la configuracion del navegador.');
+      } else {
+        setScannerError('No se pudo acceder a la camara. Verifica los permisos.');
+      }
+      setScanStatus('error');
+    } finally {
+      isStartingRef.current = false;
+    }
+  }, [scanMode]);
 
+  useEffect(() => {
+    return () => { stopScanner(); };
+  }, [stopScanner]);
+
+  const handleScanResult = async (code: string) => {
     setLoadingSearch(true);
     try {
-      // Check if scanned code is a receipt QR URL
-      if (code.includes('/api/sales/folio/')) {
-        const folio = code.split('/api/sales/folio/')[1];
-        if (folio) {
-          const res = await fetch(`/api/sales/folio/${folio}`);
-          if (res.ok) {
-            const data = await res.json();
-            setScannedProduct(null);
-            setScannedReceipt(data);
-            addToHistory(folio, `Recibo ${folio}`, 'Recibo escaneado', `Total: Q${data.total?.toFixed(2)}`);
-            showToast(`Recibo encontrado: ${data.folio}`, 'success');
-            setLoadingSearch(false);
-            return;
-          }
+      if (scanMode === 'receipt' || code.includes('/api/sales/folio/')) {
+        const folio = code.includes('/api/sales/folio/')
+          ? code.split('/api/sales/folio/')[1]
+          : code;
+        const res = await fetch(`/api/sales/folio/${folio}`);
+        if (res.ok) {
+          const data = await res.json();
+          setReceiptData(data);
+          setProductData(null);
+          setScanStatus('success');
+          stopScanner();
+          showToast(`Recibo ${data.folio} encontrado`, 'success');
+          setLoadingSearch(false);
+          return;
         }
       }
 
-      // Try product lookup
       const res = await fetch(`/api/products/qr/${code}`);
       const data = await res.json();
-      if (res.ok) {
-        setScannedProduct(data);
-        setScannedReceipt(null);
-        setEditPrice(data.price.toString());
-        setEditStock(data.stock.toString());
-        setSellQty('1');
-        addToHistory(data.id, data.name, 'Escaneado');
+      if (res.ok && data.id) {
+        setProductData(data);
+        setReceiptData(null);
+        setScanStatus('success');
+        stopScanner();
         showToast(`Producto encontrado: ${data.name}`, 'success');
       } else {
-        showToast('Codigo no registrado.', 'error');
+        showToast('Codigo no registrado', 'error');
+        setScanStatus('error');
       }
-    } catch { showToast('Error al buscar.', 'error'); }
-    finally { setLoadingSearch(false); }
-  };
-
-  const handleManualSubmit = (e: React.FormEvent) => { e.preventDefault(); if (manualCode) handleScanSuccess(manualCode); };
-
-  const handleQuickEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!scannedProduct) return;
-    setActionLoading(true);
-    try {
-      const res = await fetch(`/api/products/${scannedProduct.id}`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ price: Number(editPrice), stock: Number(editStock) })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setScannedProduct(data);
-        addToHistory(data.id, data.name, 'Stock/Precio ajustado', `Precio: $${editPrice}, Stock: ${editStock}`);
-        showToast('Producto actualizado.', 'success');
-      }
-      else { showToast(data.message || 'Error al actualizar.', 'error'); }
-    } catch { showToast('Error de conexion.', 'error'); }
-    finally { setActionLoading(false); }
-  };
-
-  const handleQuickSell = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!scannedProduct || Number(sellQty) <= 0) return;
-    if (scannedProduct.stock < Number(sellQty)) { showToast('Stock insuficiente.', 'error'); return; }
-    setActionLoading(true);
-    try {
-      const res = await fetch('/api/sales', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId: scannedProduct.id, quantity: Number(sellQty), clientName: clientName || 'Venta QR' })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
-        const total = scannedProduct.price * Number(sellQty);
-        addToHistory(scannedProduct.id, scannedProduct.name, `Venta registrada`, `x${sellQty} - Q${total.toFixed(2)} - ${clientName || 'Cliente general'}`);
-        showToast('Venta realizada con exito.', 'success');
-        handleScanSuccess(scannedProduct.id);
-        setSellQty('1'); setClientName('');
-      } else { showToast(data.message || 'Error al vender.', 'error'); }
-    } catch { showToast('Error de conexion.', 'error'); }
-    finally { setActionLoading(false); }
-  };
-
-  const handleDeleteProduct = async () => {
-    if (!scannedProduct || role !== 'ADMIN') return;
-    if (!confirm(`Eliminar "${scannedProduct.name}"? Esta accion no se puede deshacer.`)) return;
-    try {
-      const res = await fetch(`/api/products/${scannedProduct.id}`, { method: 'DELETE' });
-      if (res.ok) {
-        addToHistory(scannedProduct.id, scannedProduct.name, 'Producto eliminado');
-        showToast('Producto eliminado.', 'success');
-        setScannedProduct(null);
-      }
-      else { showToast('Error al eliminar.', 'error'); }
-    } catch { showToast('Error de conexion.', 'error'); }
-  };
-
-  const handleOpenEditModal = () => {
-    if (!scannedProduct) return;
-    setEditModalName(scannedProduct.name);
-    setEditModalDesc(scannedProduct.description);
-    setEditModalPrice(scannedProduct.price.toString());
-    setEditModalStock(scannedProduct.stock.toString());
-    setEditModalCategory(scannedProduct.category);
-    setEditModalMinStock(scannedProduct.minStock?.toString() || '5');
-    setShowEditModal(true);
-  };
-
-  const handleSaveEditModal = async () => {
-    if (!scannedProduct) return;
-    setActionLoading(true);
-    try {
-      const res = await fetch(`/api/products/${scannedProduct.id}`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: editModalName, description: editModalDesc,
-          price: Number(editModalPrice), stock: Number(editModalStock),
-          category: editModalCategory, minStock: Number(editModalMinStock)
-        })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setScannedProduct(data);
-        setShowEditModal(false);
-        addToHistory(data.id, data.name, 'Edicion completa', `Nombre: ${editModalName}, Precio: $${editModalPrice}, Stock: ${editModalStock}`);
-        showToast('Producto actualizado.', 'success');
-      }
-      else { showToast(data.message || 'Error.', 'error'); }
-    } catch { showToast('Error de conexion.', 'error'); }
-    finally { setActionLoading(false); }
-  };
-
-  const handleAddProduct = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newProductName || !newProductPrice || !newProductStock) {
-      showToast('Completa los campos obligatorios.', 'warning'); return;
+    } catch {
+      showToast('Error al buscar', 'error');
+      setScanStatus('error');
+    } finally {
+      setLoadingSearch(false);
     }
-    setActionLoading(true);
-    try {
-      const res = await fetch('/api/products', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: newProductName, description: newProductDesc || newProductName,
-          price: Number(newProductPrice), stock: Number(newProductStock),
-          category: newProductCategory, minStock: Number(newProductMinStock) || 5
-        })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        confetti({ particleCount: 100, spread: 60, origin: { y: 0.6 } });
-        addToHistory(data.id, data.name, 'Producto creado', `Precio: $${newProductPrice}, Stock: ${newProductStock}`);
-        showToast('Producto creado exitosamente.', 'success');
-        setShowAddModal(false);
-        setNewProductName(''); setNewProductDesc(''); setNewProductPrice('');
-        setNewProductStock(''); setNewProductCategory('Perifericos'); setNewProductMinStock('5');
-        if (data.id) handleScanSuccess(data.id);
-      } else {
-        showToast(data.message || 'Error al crear producto.', 'error');
-      }
-    } catch { showToast('Error de conexion.', 'error'); }
-    finally { setActionLoading(false); }
   };
 
-  const stockStatus = scannedProduct ? getStockStatus(scannedProduct.stock, scannedProduct.minStock) : null;
+  const handleScanAgain = () => {
+    setProductData(null);
+    setReceiptData(null);
+    setScanStatus('idle');
+    setScannerError(null);
+    stopScanner();
+    setTimeout(() => startScanner(), 300);
+  };
+
+  const handleDownloadQR = async () => {
+    if (!productData) return;
+    try {
+      const qrValue = productData.sku || productData.id;
+      const { default: QRCode } = await import('qrcode');
+      const dataUrl = await QRCode.toDataURL(qrValue, {
+        width: 300, margin: 2,
+        color: { dark: '#0f172a', light: '#ffffff' }
+      });
+      const link = document.createElement('a');
+      link.download = `qr-${productData.sku || productData.id}.png`;
+      link.href = dataUrl;
+      link.click();
+      showToast('QR descargado', 'success');
+    } catch {
+      showToast('Error al generar QR', 'error');
+    }
+  };
+
+  const handleAddStock = async (quantity: number, reason: string) => {
+    if (!productData) return;
+    try {
+      const res = await fetch(`/api/products/${productData.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stock: productData.stock + quantity })
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setProductData(updated);
+        setShowAddStock(false);
+        showToast(`${quantity} unidades agregadas`, 'success');
+      } else {
+        showToast('Error al actualizar stock', 'error');
+      }
+    } catch {
+      showToast('Error de conexion', 'error');
+    }
+  };
 
   return (
     <div>
-      <div className="flex-between" style={{ marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
-        <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 700 }}>Escanear Codigos QR</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Escanea productos para vender, editar o verificar stock.</p>
+      {/* Header */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        marginBottom: isMobile ? '16px' : '24px', flexWrap: 'wrap', gap: '12px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '10px' : '12px' }}>
+          <div style={{
+            width: isMobile ? '36px' : '40px', height: isMobile ? '36px' : '40px',
+            borderRadius: '10px', background: 'var(--accent-light)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+          }}>
+            <QrCode size={isMobile ? 18 : 20} style={{ color: 'var(--accent)' }} />
+          </div>
+          <div>
+            <h1 style={{ fontSize: isMobile ? '17px' : '20px', fontWeight: 700, color: 'var(--text-primary)' }}>
+              Escanear QR
+            </h1>
+            {!isMobile && (
+              <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                Escanea codigos QR de productos o recibos de venta.
+              </p>
+            )}
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          {role === 'ADMIN' && (
-            <button onClick={() => setShowAddModal(true)} className="btn btn-primary" style={{ display: 'flex', gap: '8px', fontSize: '13px' }}>
-              <Plus size={16} /> Agregar Producto
+      </div>
+
+      {/* Two-column layout */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+        gap: isMobile ? '16px' : '24px',
+        alignItems: 'start'
+      }}>
+        {/* LEFT - Scanner */}
+        <div className="card" style={{ padding: isMobile ? '16px' : '20px' }}>
+          <h2 style={{
+            fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)',
+            marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px'
+          }}>
+            <Scan size={16} style={{ color: 'var(--accent)' }} />
+            Escanear codigo QR
+          </h2>
+          <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+            Apunta la camara al codigo QR para escanear.
+          </p>
+
+          {/* Scanner area */}
+          <div style={{
+            position: 'relative', borderRadius: '12px', overflow: 'hidden',
+            background: '#000', aspectRatio: '1', maxHeight: '350px'
+          }}>
+            <div id={containerId} style={{ width: '100%' }} />
+
+            {/* Corner guides when scanning */}
+            {isScanning && (
+              <div style={{
+                position: 'absolute', inset: 0, pointerEvents: 'none',
+                display: 'flex', alignItems: 'center', justifyContent: 'center'
+              }}>
+                <div style={{ width: '200px', height: '200px', position: 'relative' }}>
+                  <div style={{ position: 'absolute', top: 0, left: 0, width: '24px', height: '24px', borderTop: '3px solid var(--accent)', borderLeft: '3px solid var(--accent)', borderRadius: '4px 0 0 0' }} />
+                  <div style={{ position: 'absolute', top: 0, right: 0, width: '24px', height: '24px', borderTop: '3px solid var(--accent)', borderRight: '3px solid var(--accent)', borderRadius: '0 4px 0 0' }} />
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, width: '24px', height: '24px', borderBottom: '3px solid var(--accent)', borderLeft: '3px solid var(--accent)', borderRadius: '0 0 0 4px' }} />
+                  <div style={{ position: 'absolute', bottom: 0, right: 0, width: '24px', height: '24px', borderBottom: '3px solid var(--accent)', borderRight: '3px solid var(--accent)', borderRadius: '0 0 4px 0' }} />
+                </div>
+              </div>
+            )}
+
+            {/* Overlay when not scanning */}
+            {!isScanning && scanStatus !== 'scanning' && (
+              <div style={{
+                position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
+              }}>
+                <Camera size={48} style={{ color: 'rgba(255,255,255,0.4)', marginBottom: '12px' }} />
+                <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>
+                  Presiona Iniciar para comenzar
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Scan mode selector */}
+          <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+            <button
+              onClick={() => { setScanMode('product'); if (isScanning) { stopScanner(); setTimeout(() => startScanner(), 300); } }}
+              style={{
+                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                padding: isMobile ? '12px' : '10px', borderRadius: '8px', fontSize: '13px', fontWeight: 500,
+                border: `2px solid ${scanMode === 'product' ? 'var(--accent)' : 'var(--border)'}`,
+                background: scanMode === 'product' ? 'var(--accent-light)' : 'transparent',
+                color: scanMode === 'product' ? 'var(--accent)' : 'var(--text-secondary)',
+                cursor: 'pointer', transition: 'all 0.2s', minHeight: isMobile ? '44px' : 'auto'
+              }}
+            >
+              <Package size={16} />
+              Escanear producto
             </button>
-          )}
-          <button onClick={() => setShowHistory(!showHistory)} className="btn btn-secondary" style={{ display: 'flex', gap: '8px', fontSize: '13px' }}>
-            <Clock size={16} />
-            <span>Historial ({scanHistory.length})</span>
-          </button>
-        </div>
-      </div>
-
-      {showHistory && (
-        <div className="card" style={{ marginBottom: '24px' }}>
-          <div className="flex-between" style={{ marginBottom: '12px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Clock size={18} /> Historial de Actividad
-            </h3>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={clearHistory} className="btn btn-secondary" style={{ padding: '4px 10px', fontSize: '12px', color: 'var(--danger)' }}>
-                <Trash2 size={12} /> Limpiar
-              </button>
-              <button onClick={() => setShowHistory(false)} className="btn btn-secondary" style={{ padding: '4px 10px', fontSize: '12px' }}>
-                <X size={12} />
-              </button>
-            </div>
+            <button
+              onClick={() => { setScanMode('receipt'); if (isScanning) { stopScanner(); setTimeout(() => startScanner(), 300); } }}
+              style={{
+                flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                padding: isMobile ? '12px' : '10px', borderRadius: '8px', fontSize: '13px', fontWeight: 500,
+                border: `2px solid ${scanMode === 'receipt' ? 'var(--accent)' : 'var(--border)'}`,
+                background: scanMode === 'receipt' ? 'var(--accent-light)' : 'transparent',
+                color: scanMode === 'receipt' ? 'var(--accent)' : 'var(--text-secondary)',
+                cursor: 'pointer', transition: 'all 0.2s', minHeight: isMobile ? '44px' : 'auto'
+              }}
+            >
+              <Receipt size={16} />
+              Escanear recibo
+            </button>
           </div>
-          {scanHistory.length === 0 ? (
-            <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '20px', fontSize: '13px' }}>Sin actividad reciente.</p>
-          ) : (
-            <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-              {scanHistory.map((item, idx) => (
-                <div key={idx} style={{
-                  padding: '10px 14px', borderBottom: '1px solid var(--border)',
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', fontSize: '13px', gap: '12px'
-                }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                      <span style={{ fontWeight: 600 }}>{item.productName}</span>
-                      <span style={{
-                        padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600,
-                        backgroundColor: item.action.includes('Venta') ? '#D1FAE5' :
-                          item.action.includes('eliminado') ? '#FEE2E2' :
-                          item.action.includes('creado') ? '#DBEAFE' : '#FEF3C7',
-                        color: item.action.includes('Venta') ? '#059669' :
-                          item.action.includes('eliminado') ? '#DC2626' :
-                          item.action.includes('creado') ? '#2563EB' : '#D97706'
-                      }}>
-                        {item.action}
-                      </span>
-                    </div>
-                    {item.details && (
-                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>{item.details}</p>
-                    )}
-                  </div>
-                  <span style={{ fontSize: '11px', color: 'var(--text-light)', whiteSpace: 'nowrap' }}>
-                    {new Date(item.timestamp).toLocaleString('es-ES')}
-                  </span>
-                </div>
-              ))}
+
+          {/* Scanner error */}
+          {scannerError && (
+            <div style={{
+              marginTop: '12px', padding: '10px 14px', background: '#fef2f2',
+              border: '1px solid #fecaca', borderRadius: '8px', display: 'flex',
+              alignItems: 'center', gap: '8px', fontSize: '13px', color: '#dc2626'
+            }}>
+              <AlertCircle size={16} style={{ flexShrink: 0 }} />
+              {scannerError}
             </div>
           )}
-        </div>
-      )}
 
-      <div className="grid-2" style={{ alignItems: 'flex-start', gap: '24px' }}>
-        <div className="card">
-          <h2 className="card-title"><span>Lector QR</span><Camera size={20} style={{ color: 'var(--accent)' }} /></h2>
-          <div className="scanner-container" style={{ minHeight: '300px', display: 'flex', justifyContent: 'center' }}>
-            <div id="scan-reader" style={{ width: '100%' }}></div>
-          </div>
-          <div style={{ borderTop: '1px solid var(--border)', marginTop: '20px', paddingTop: '16px' }}>
-            <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '8px' }}>Simular lectura</h3>
-            <form onSubmit={handleManualSubmit} style={{ display: 'flex', gap: '8px' }}>
-              <input type="text" className="form-control" placeholder="ID del producto (Ej: prod-1)" value={manualCode} onChange={e => setManualCode(e.target.value)} />
-              <button type="submit" className="btn btn-primary" disabled={loadingSearch}>Escanear</button>
-            </form>
-          </div>
-        </div>
-
-        <div className="card" style={{ minHeight: '300px' }}>
-          <h2 className="card-title"><span>Producto Escaneado</span><ShoppingBag size={20} style={{ color: 'var(--accent)' }} /></h2>
-
-          {loadingSearch ? (
-            <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '40px' }}>Buscando...</p>
-          ) : scannedReceipt ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ padding: '12px', backgroundColor: '#ecfdf5', borderRadius: '8px', border: '1px solid #a7f3d0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <FileText size={20} style={{ color: '#059669' }} />
-                <span style={{ fontSize: '14px', fontWeight: 600, color: '#059669' }}>Recibo Escaneado</span>
+          {/* Scan success */}
+          {scanStatus === 'success' && (
+            <div style={{
+              marginTop: '12px', padding: '12px 14px', background: '#f0fdf4',
+              border: '1px solid #bbf7d0', borderRadius: '8px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#16a34a', fontWeight: 500 }}>
+                <CheckCircle size={16} />
+                Escaneo completado
               </div>
-              <div style={{ backgroundColor: 'var(--bg-primary)', borderRadius: '8px', padding: '16px', border: '1px solid var(--border)' }}>
-                <p style={{ fontSize: '18px', fontWeight: 700, color: 'var(--accent)', marginBottom: '4px' }}>{scannedReceipt.folio}</p>
-                <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
-                  <span>{scannedReceipt.date}</span>
-                  <span>{scannedReceipt.time}</span>
+              <p style={{ fontSize: '12px', color: '#15803d', marginTop: '4px' }}>
+                El codigo QR ha sido leido correctamente. Puedes escanear otro producto o recibo.
+              </p>
+            </div>
+          )}
+
+          {/* Scanner controls */}
+          <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+            {!isScanning ? (
+              <button
+                onClick={startScanner}
+                style={{
+                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  padding: isMobile ? '14px' : '10px', background: 'var(--accent)', color: '#fff',
+                  border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 600,
+                  cursor: 'pointer', minHeight: isMobile ? '48px' : 'auto'
+                }}
+              >
+                <Camera size={16} />
+                Iniciar escaner
+              </button>
+            ) : (
+              <button
+                onClick={handleScanAgain}
+                style={{
+                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  padding: isMobile ? '14px' : '10px', background: 'var(--success)', color: '#fff',
+                  border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 600,
+                  cursor: 'pointer', minHeight: isMobile ? '48px' : 'auto'
+                }}
+              >
+                <RefreshCw size={16} />
+                Volver a escanear
+              </button>
+            )}
+            {isScanning && (
+              <button
+                onClick={() => { stopScanner(); setScanStatus('idle'); }}
+                style={{
+                  padding: isMobile ? '14px 16px' : '10px 16px', background: 'transparent',
+                  border: '1px solid var(--border)', borderRadius: '8px', fontSize: '13px',
+                  color: 'var(--text-primary)', cursor: 'pointer', display: 'flex',
+                  alignItems: 'center', gap: '6px', minHeight: isMobile ? '48px' : 'auto'
+                }}
+              >
+                <X size={16} />
+                Cerrar
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* RIGHT - Result */}
+        <div>
+          {loadingSearch && (
+            <div className="card" style={{ padding: '60px 20px', textAlign: 'center' }}>
+              <div style={{
+                width: '40px', height: '40px', border: '3px solid var(--border)',
+                borderTopColor: 'var(--accent)', borderRadius: '50%',
+                animation: 'spin 1s linear infinite', margin: '0 auto 16px'
+              }} />
+              <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Buscando...</p>
+            </div>
+          )}
+
+          {!loadingSearch && productData && scanStatus === 'success' && (
+            <ProductDetail
+              product={productData}
+              onDownloadQR={handleDownloadQR}
+              onAddStock={() => setShowAddStock(true)}
+            />
+          )}
+
+          {!loadingSearch && receiptData && scanStatus === 'success' && (
+            <ReceiptDetail
+              receipt={receiptData}
+              onChangeProduct={() => setShowChangeProduct(true)}
+            />
+          )}
+
+          {!loadingSearch && scanStatus === 'idle' && !productData && !receiptData && (
+            <div className="card" style={{ padding: '60px 20px', textAlign: 'center' }}>
+              <QrCode size={56} style={{ color: 'var(--border)', margin: '0 auto 16px' }} />
+              <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
+                Esperando escaneo
+              </h3>
+              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '280px', margin: '0 auto' }}>
+                Escanea un codigo QR de un producto o recibo para ver su informacion aqui.
+              </p>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-light)' }}>
+                  <Package size={14} />
+                  Producto
                 </div>
-                <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Vendedor: <strong style={{ color: 'var(--text-primary)' }}>{scannedReceipt.sellerName}</strong></p>
-              </div>
-              <div style={{ maxHeight: '200px', overflow: 'auto', border: '1px solid var(--border)', borderRadius: '8px' }}>
-                <table style={{ width: '100%', fontSize: '12px' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--bg-primary)' }}>
-                      <th style={{ padding: '8px', textAlign: 'left' }}>Producto</th>
-                      <th style={{ padding: '8px', textAlign: 'center' }}>Cant.</th>
-                      <th style={{ padding: '8px', textAlign: 'right' }}>Subtotal</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {scannedReceipt.items.map((item: any, idx: number) => (
-                      <tr key={idx} style={{ borderBottom: '1px solid var(--border)' }}>
-                        <td style={{ padding: '8px' }}>{item.productName}</td>
-                        <td style={{ padding: '8px', textAlign: 'center' }}>{item.quantity}</td>
-                        <td style={{ padding: '8px', textAlign: 'right', fontWeight: 600 }}>Q{item.subtotal.toFixed(2)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div style={{ padding: '12px', backgroundColor: 'var(--accent)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '16px', fontWeight: 600, color: 'var(--accent-contrast)' }}>Total</span>
-                <span style={{ fontSize: '20px', fontWeight: 700, color: 'var(--accent-contrast)' }}>Q{scannedReceipt.total.toFixed(2)}</span>
+                <div style={{ width: '1px', height: '16px', background: 'var(--border)' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-light)' }}>
+                  <Receipt size={14} />
+                  Recibo
+                </div>
               </div>
             </div>
-          ) : !scannedProduct ? (
-            <div style={{ padding: '60px 10px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-              <Camera size={40} style={{ margin: '0 auto 12px auto', opacity: 0.5 }} />
-              <p style={{ fontSize: '14px', fontWeight: 600 }}>Esperando Lectura</p>
-              <p style={{ fontSize: '12px' }}>Escanea un QR o introduce un ID.</p>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                <img src={scannedProduct.imageUrl || '/no-image.png'} alt={scannedProduct.name}
-                  style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border)' }} />
-                <div style={{ flex: 1 }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: 600 }}>{scannedProduct.name}</h3>
-                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', marginTop: '4px' }}>
-                    <span className="role-tag vendedor" style={{ fontSize: '11px' }}>{scannedProduct.category}</span>
-                    {stockStatus && (
-                      <span style={{
-                        padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600,
-                        backgroundColor: stockStatus.bg, color: stockStatus.color
-                      }}>
-                        {stockStatus.label}
-                      </span>
-                    )}
-                  </div>
-                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                    <DollarSign size={12} style={{ display: 'inline' }} />Q{scannedProduct.price.toFixed(2)}
-                    <span style={{ margin: '0 6px', color: 'var(--border)' }}>|</span>
-                    <Package size={12} style={{ display: 'inline' }} />{scannedProduct.stock} unidades
-                  </p>
-                </div>
-              </div>
+          )}
 
-              {scannedProduct.stock <= (scannedProduct.minStock || 5) && scannedProduct.stock > 0 && (
-                <div style={{ padding: '10px 14px', backgroundColor: '#FEF3C7', borderLeft: '4px solid #D97706', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <AlertTriangle size={16} style={{ color: '#D97706', flexShrink: 0 }} />
-                  <span style={{ fontSize: '12px', color: '#92400E' }}>Stock bajo. Minimo recomendado: {scannedProduct.minStock || 5} unidades.</span>
-                </div>
-              )}
-              {scannedProduct.stock === 0 && (
-                <div style={{ padding: '10px 14px', backgroundColor: '#FEE2E2', borderLeft: '4px solid #DC2626', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <AlertTriangle size={16} style={{ color: '#DC2626', flexShrink: 0 }} />
-                  <span style={{ fontSize: '12px', color: '#991B1B' }}>Sin stock disponible. Reabastecer urgentemente.</span>
-                </div>
-              )}
-
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                <button onClick={handleOpenEditModal} className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '12px', gap: '4px' }}>
-                  <Edit3 size={12} /> Editar
-                </button>
-                {role === 'ADMIN' && (
-                  <button onClick={handleDeleteProduct} className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '12px', gap: '4px', color: 'var(--danger)' }}>
-                    <Trash2 size={12} /> Eliminar
-                  </button>
-                )}
-              </div>
-
-              <form onSubmit={handleQuickEdit} style={{ borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
-                <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '12px', color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Save size={14} /> Ajuste Rapido
-                </h4>
-                <div className="grid-2">
-                  <div className="form-group" style={{ marginBottom: '10px' }}>
-                    <label className="form-label" style={{ fontSize: '11px' }}>Precio ($)</label>
-                    <input type="number" step="0.01" className="form-control" value={editPrice} onChange={e => setEditPrice(e.target.value)} disabled={actionLoading} />
-                  </div>
-                  <div className="form-group" style={{ marginBottom: '10px' }}>
-                    <label className="form-label" style={{ fontSize: '11px' }}>Stock</label>
-                    <input type="number" className="form-control" value={editStock} onChange={e => setEditStock(e.target.value)} disabled={actionLoading} />
-                  </div>
-                </div>
-                <button type="submit" className="btn btn-secondary" style={{ width: '100%', fontSize: '12px', gap: '4px' }} disabled={actionLoading}>
-                  <Save size={14} /> Guardar Cambios
-                </button>
-              </form>
-
-              <form onSubmit={handleQuickSell} style={{ borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
-                <h4 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '12px', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Check size={14} /> Registrar Venta
-                </h4>
-                <div className="grid-2">
-                  <div className="form-group" style={{ marginBottom: '10px' }}>
-                    <label className="form-label" style={{ fontSize: '11px' }}>Cantidad</label>
-                    <input type="number" min="1" max={scannedProduct.stock} className="form-control" value={sellQty} onChange={e => setSellQty(e.target.value)} disabled={actionLoading} />
-                  </div>
-                  <div className="form-group" style={{ marginBottom: '10px' }}>
-                    <label className="form-label" style={{ fontSize: '11px' }}>Cliente</label>
-                    <input type="text" placeholder="Nombre (opcional)" className="form-control" value={clientName} onChange={e => setClientName(e.target.value)} disabled={actionLoading} />
-                  </div>
-                </div>
-                {Number(sellQty) > 0 && scannedProduct.price > 0 && (
-                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
-                    Total: <strong style={{ color: 'var(--success)' }}>Q{(scannedProduct.price * Number(sellQty)).toFixed(2)}</strong>
-                  </p>
-                )}
-                <button type="submit" className="btn btn-primary" style={{ width: '100%', fontSize: '12px', gap: '4px' }} disabled={actionLoading || scannedProduct.stock <= 0}>
-                  <Check size={14} /> {scannedProduct.stock <= 0 ? 'Sin stock' : 'Registrar Venta'}
-                </button>
-              </form>
+          {!loadingSearch && scanStatus === 'error' && (
+            <div className="card" style={{ padding: '60px 20px', textAlign: 'center' }}>
+              <AlertCircle size={48} style={{ color: 'var(--danger)', margin: '0 auto 16px', opacity: 0.5 }} />
+              <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--danger)', marginBottom: '8px' }}>
+                Error al escanear
+              </h3>
+              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+                No se pudo leer el codigo QR. Asegurate de que el codigo sea valido.
+              </p>
+              <button
+                onClick={handleScanAgain}
+                style={{
+                  padding: '8px 20px', background: 'transparent', border: '1px solid var(--accent)',
+                  borderRadius: '8px', color: 'var(--accent)', fontSize: '13px', fontWeight: 500,
+                  cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px'
+                }}
+              >
+                <RefreshCw size={14} />
+                Intentar de nuevo
+              </button>
             </div>
           )}
         </div>
       </div>
 
-      {showEditModal && (
-        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
-          <div className="modal-content" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2 style={{ fontSize: '18px', fontWeight: 600 }}>Editar Producto</h2>
-              <button className="modal-close" onClick={() => setShowEditModal(false)}><X size={20} /></button>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Nombre</label>
-              <input type="text" className="form-control" value={editModalName} onChange={e => setEditModalName(e.target.value)} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Descripcion</label>
-              <textarea className="form-control" rows={3} value={editModalDesc} onChange={e => setEditModalDesc(e.target.value)} />
-            </div>
-            <div className="grid-2">
-              <div className="form-group">
-                <label className="form-label">Precio ($)</label>
-                <input type="number" step="0.01" className="form-control" value={editModalPrice} onChange={e => setEditModalPrice(e.target.value)} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Stock</label>
-                <input type="number" className="form-control" value={editModalStock} onChange={e => setEditModalStock(e.target.value)} />
-              </div>
-            </div>
-            <div className="grid-2">
-              <div className="form-group">
-                <label className="form-label">Categoria</label>
-                <select className="form-control" value={editModalCategory} onChange={e => setEditModalCategory(e.target.value)}>
-                  <option value="Perifericos">Perifericos</option>
-                  <option value="Monitores">Monitores</option>
-                  <option value="Componentes">Componentes</option>
-                  <option value="Audio">Audio</option>
-                  <option value="Otros">Otros</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Stock Minimo</label>
-                <input type="number" className="form-control" value={editModalMinStock} onChange={e => setEditModalMinStock(e.target.value)} />
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '16px' }}>
-              <button onClick={() => setShowEditModal(false)} className="btn btn-secondary">Cancelar</button>
-              <button onClick={handleSaveEditModal} className="btn btn-primary" disabled={actionLoading}>
-                {actionLoading ? 'Guardando...' : 'Guardar'}
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Modals */}
+      {showAddStock && productData && (
+        <AddStockModal
+          product={productData}
+          onClose={() => setShowAddStock(false)}
+          onConfirm={handleAddStock}
+        />
       )}
 
-      {showAddModal && (
-        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
-          <div className="modal-content" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2 style={{ fontSize: '18px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Plus size={20} /> Agregar Nuevo Producto
-              </h2>
-              <button className="modal-close" onClick={() => setShowAddModal(false)}><X size={20} /></button>
-            </div>
-            <form onSubmit={handleAddProduct}>
-              <div className="form-group">
-                <label className="form-label">Nombre *</label>
-                <input type="text" className="form-control" value={newProductName} onChange={e => setNewProductName(e.target.value)} placeholder="Nombre del producto" required />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Descripcion</label>
-                <textarea className="form-control" rows={2} value={newProductDesc} onChange={e => setNewProductDesc(e.target.value)} placeholder="Descripcion breve" />
-              </div>
-              <div className="grid-2">
-                <div className="form-group">
-                  <label className="form-label">Precio ($) *</label>
-                  <input type="number" step="0.01" className="form-control" value={newProductPrice} onChange={e => setNewProductPrice(e.target.value)} placeholder="0.00" required />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Stock Inicial *</label>
-                  <input type="number" className="form-control" value={newProductStock} onChange={e => setNewProductStock(e.target.value)} placeholder="0" required />
-                </div>
-              </div>
-              <div className="grid-2">
-                <div className="form-group">
-                  <label className="form-label">Categoria</label>
-                  <select className="form-control" value={newProductCategory} onChange={e => setNewProductCategory(e.target.value)}>
-                    <option value="Perifericos">Perifericos</option>
-                    <option value="Monitores">Monitores</option>
-                    <option value="Componentes">Componentes</option>
-                    <option value="Audio">Audio</option>
-                    <option value="Otros">Otros</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Stock Minimo</label>
-                  <input type="number" className="form-control" value={newProductMinStock} onChange={e => setNewProductMinStock(e.target.value)} placeholder="5" />
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '16px' }}>
-                <button type="button" onClick={() => setShowAddModal(false)} className="btn btn-secondary">Cancelar</button>
-                <button type="submit" className="btn btn-primary" disabled={actionLoading}>
-                  {actionLoading ? 'Creando...' : 'Crear Producto'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      {showChangeProduct && receiptData && (
+        <ChangeProductModal
+          receipt={receiptData}
+          onClose={() => setShowChangeProduct(false)}
+          onConfirm={() => { setShowChangeProduct(false); showToast('Cambio registrado', 'success'); }}
+        />
       )}
+
+      <style>{`
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #qr-scanner-container video { border-radius: 12px; object-fit: cover; }
+      `}</style>
     </div>
   );
 }
