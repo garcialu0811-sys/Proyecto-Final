@@ -15,7 +15,6 @@ import {
   Users,
   ShieldCheck,
   FileText,
-  Settings,
   LogOut,
   QrCode,
   Bell,
@@ -117,29 +116,6 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
           path: '/roles',
           icon: ShieldCheck,
           roles: ['ADMIN']
-        }
-      ]
-    },
-    {
-      title: 'CONFIGURACIÓN',
-      items: [
-        {
-          name: 'Notificaciones',
-          path: '/settings/notifications',
-          icon: Bell,
-          roles: ['ADMIN']
-        },
-        {
-          name: 'Ajustes',
-          path: '/settings',
-          icon: Settings,
-          roles: ['ADMIN', 'VENDEDOR']
-        },
-        {
-          name: 'Ajustes',
-          path: '/profile',
-          icon: Settings,
-          roles: ['VENDEDOR']
         }
       ]
     }

@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
-import { useSession } from 'next-auth/react';
-import { Menu, Sun, Moon, LogIn, Bell, Settings, AlertTriangle, Info } from 'lucide-react';
+import { useSession, signOut } from 'next-auth/react';
+import { Menu, Sun, Moon, LogIn, Bell, AlertTriangle, Info, Settings, LogOut, ChevronDown, User } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface HeaderProps {
   collapsed: boolean;
@@ -19,12 +20,13 @@ interface Notification {
 
 export function Header({ collapsed, setCollapsed }: HeaderProps) {
   const { data: session } = useSession();
+  const router = useRouter();
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  
-  // Estados para notificaciones
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
+  const userRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
@@ -40,7 +42,6 @@ export function Header({ collapsed, setCollapsed }: HeaderProps) {
     setTheme(nextTheme);
   };
 
-  // Obtener notificaciones desde la API
   const fetchNotifications = async () => {
     if (!session) return;
     try {
@@ -57,17 +58,18 @@ export function Header({ collapsed, setCollapsed }: HeaderProps) {
   useEffect(() => {
     if (session) {
       fetchNotifications();
-      // Consultar de forma síncrona cada 30 segundos
       const interval = setInterval(fetchNotifications, 30000);
       return () => clearInterval(interval);
     }
   }, [session]);
 
-  // Cerrar al hacer clic fuera del dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowDropdown(false);
+      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+        setShowNotifDropdown(false);
+      }
+      if (userRef.current && !userRef.current.contains(event.target as Node)) {
+        setShowUserDropdown(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -76,7 +78,7 @@ export function Header({ collapsed, setCollapsed }: HeaderProps) {
 
   const handleClearNotifications = () => {
     setNotifications([]);
-    setShowDropdown(false);
+    setShowNotifDropdown(false);
     localStorage.setItem('notifications_cleared', 'true');
   };
 
@@ -86,8 +88,8 @@ export function Header({ collapsed, setCollapsed }: HeaderProps) {
   return (
     <header className="header">
       <div className="header-left">
-        <button 
-          onClick={() => setCollapsed(!collapsed)} 
+        <button
+          onClick={() => setCollapsed(!collapsed)}
           className="toggle-btn"
           title={collapsed ? "Expandir menú" : "Colapsar menú"}
         >
@@ -97,8 +99,8 @@ export function Header({ collapsed, setCollapsed }: HeaderProps) {
 
       <div className="header-right">
         {/* Cambiar Tema */}
-        <button 
-          onClick={toggleTheme} 
+        <button
+          onClick={toggleTheme}
           className="toggle-btn"
           title={theme === 'light' ? "Modo Oscuro" : "Modo Claro"}
         >
@@ -107,14 +109,11 @@ export function Header({ collapsed, setCollapsed }: HeaderProps) {
 
         {session ? (
           <>
-            {/* Campana de Notificación con Badge */}
-            <div 
-              ref={dropdownRef}
-              style={{ position: 'relative' }}
-            >
-              <div 
-                className="notification-bell-box toggle-btn" 
-                onClick={() => setShowDropdown(!showDropdown)}
+            {/* Campana de Notificación */}
+            <div ref={notifRef} style={{ position: 'relative' }}>
+              <div
+                className="notification-bell-box toggle-btn"
+                onClick={() => { setShowNotifDropdown(!showNotifDropdown); setShowUserDropdown(false); }}
                 title="Notificaciones"
               >
                 <Bell size={18} />
@@ -123,13 +122,12 @@ export function Header({ collapsed, setCollapsed }: HeaderProps) {
                 )}
               </div>
 
-              {/* Menu Desplegable de Notificaciones */}
-              {showDropdown && (
+              {showNotifDropdown && (
                 <div className="notifications-dropdown">
                   <div className="flex-between" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '8px', marginBottom: '8px' }}>
                     <span style={{ fontWeight: 700, fontSize: '13px' }}>Alertas del Sistema</span>
                     {notifications.length > 0 && (
-                      <button 
+                      <button
                         onClick={handleClearNotifications}
                         style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
                       >
@@ -158,24 +156,119 @@ export function Header({ collapsed, setCollapsed }: HeaderProps) {
                       ))
                     )}
                   </div>
+
+                  <Link
+                    href="/settings/notifications"
+                    onClick={() => setShowNotifDropdown(false)}
+                    style={{
+                      display: 'block', textAlign: 'center', marginTop: '10px', padding: '8px',
+                      background: 'var(--bg-primary)', borderRadius: '6px', fontSize: '12px',
+                      fontWeight: 600, color: 'var(--accent)', textDecoration: 'none',
+                      border: '1px solid var(--border)'
+                    }}
+                  >
+                    Configurar Notificaciones
+                  </Link>
                 </div>
               )}
             </div>
 
-            {/* Gear de Ajustes */}
-            <Link href="/profile" className="toggle-btn" title="Ajustes de Perfil">
-              <Settings size={18} />
-            </Link>
+            {/* User Profile Dropdown */}
+            <div ref={userRef} style={{ position: 'relative' }}>
+              <div
+                className="header-user-avatar-group"
+                onClick={() => { setShowUserDropdown(!showUserDropdown); setShowNotifDropdown(false); }}
+                style={{ cursor: 'pointer' }}
+              >
+                <div className="header-avatar-circle">
+                  {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                </div>
+                <div className="header-user-details">
+                  <span className="user-name">{user?.name}</span>
+                  <span className="user-role">{roleText}</span>
+                </div>
+                <ChevronDown size={14} style={{ color: 'var(--text-secondary)', marginLeft: '4px', transition: 'transform 0.2s', transform: showUserDropdown ? 'rotate(180deg)' : 'rotate(0)' }} />
+              </div>
 
-            {/* Info y Avatar de Usuario */}
-            <div className="header-user-avatar-group">
-              <div className="header-avatar-circle">
-                {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
-              </div>
-              <div className="header-user-details">
-                <span className="user-name">{user?.name}</span>
-                <span className="user-role">{roleText}</span>
-              </div>
+              {showUserDropdown && (
+                <div style={{
+                  position: 'absolute', top: '100%', right: 0, marginTop: '8px',
+                  background: 'var(--bg-secondary)', border: '1px solid var(--border)',
+                  borderRadius: '10px', boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                  minWidth: '200px', zIndex: 100, overflow: 'hidden'
+                }}>
+                  <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
+                    <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{user?.name}</p>
+                    <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: '2px 0 0' }}>{user?.email}</p>
+                  </div>
+
+                  <div style={{ padding: '6px' }}>
+                    <button
+                      onClick={() => { router.push('/profile'); setShowUserDropdown(false); }}
+                      style={{
+                        width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
+                        padding: '10px 12px', border: 'none', background: 'transparent',
+                        borderRadius: '6px', cursor: 'pointer', fontSize: '13px',
+                        color: 'var(--text-primary)', textAlign: 'left'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-primary)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <User size={16} style={{ color: 'var(--text-secondary)' }} />
+                      Mi Perfil
+                    </button>
+
+                    <button
+                      onClick={() => { router.push('/settings/notifications'); setShowUserDropdown(false); }}
+                      style={{
+                        width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
+                        padding: '10px 12px', border: 'none', background: 'transparent',
+                        borderRadius: '6px', cursor: 'pointer', fontSize: '13px',
+                        color: 'var(--text-primary)', textAlign: 'left'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-primary)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <Bell size={16} style={{ color: 'var(--text-secondary)' }} />
+                      Notificaciones
+                    </button>
+
+                    {user?.role === 'ADMIN' && (
+                      <button
+                        onClick={() => { router.push('/settings'); setShowUserDropdown(false); }}
+                        style={{
+                          width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
+                          padding: '10px 12px', border: 'none', background: 'transparent',
+                          borderRadius: '6px', cursor: 'pointer', fontSize: '13px',
+                          color: 'var(--text-primary)', textAlign: 'left'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-primary)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                      >
+                        <Settings size={16} style={{ color: 'var(--text-secondary)' }} />
+                        Ajustes
+                      </button>
+                    )}
+                  </div>
+
+                  <div style={{ padding: '6px', borderTop: '1px solid var(--border)' }}>
+                    <button
+                      onClick={() => signOut({ callbackUrl: '/login' })}
+                      style={{
+                        width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
+                        padding: '10px 12px', border: 'none', background: 'transparent',
+                        borderRadius: '6px', cursor: 'pointer', fontSize: '13px',
+                        color: 'var(--danger)', textAlign: 'left'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-primary)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <LogOut size={16} />
+                      Cerrar Sesión
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </>
         ) : (
