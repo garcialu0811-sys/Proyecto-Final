@@ -7,6 +7,7 @@ import {
   User, Calendar, Clock, Receipt
 } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
+import { QRCodeCanvas } from 'qrcode.react';
 
 interface SaleItem {
   productName: string;
@@ -285,15 +286,18 @@ function ConfirmacionContent() {
             <div style={{ borderTop: '2px dashed #d1d5db', marginTop: '20px', paddingTop: '16px', textAlign: 'center' }}>
               <p style={{ fontSize: '15px', fontWeight: 600, color: '#111827', margin: '0 0 4px' }}>Gracias por tu compra!</p>
               <p style={{ fontSize: '13px', color: '#6b7280', margin: '0 0 12px' }}>Vuelve pronto</p>
-              {/* Barcode placeholder */}
-              <div style={{ margin: '0 auto 12px', maxWidth: '200px' }}>
-                <svg viewBox="0 0 200 40" style={{ width: '100%', height: '30px' }}>
-                  {Array.from({ length: 60 }).map((_, i) => (
-                    <rect key={i} x={i * 3.2 + 2} y={0} width={Math.random() > 0.5 ? 2 : 1} height={35} fill="#000" />
-                  ))}
-                  <text x="100" y="38" textAnchor="middle" fontSize="7" fill="#374151" fontFamily="monospace">{saleData.folio}</text>
-                </svg>
+              {/* QR Code for receipt */}
+              <div style={{ margin: '0 auto 12px', maxWidth: '180px' }}>
+                <QRCodeCanvas
+                  value={typeof window !== 'undefined' ? `${window.location.origin}/api/sales/folio/${saleData.folio}` : ''}
+                  size={160}
+                  level="M"
+                  includeMargin
+                  bgColor="#ffffff"
+                  fgColor="#1a2a3a"
+                />
               </div>
+              <p style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px', fontFamily: 'monospace' }}>{saleData.folio}</p>
             </div>
           </div>
 

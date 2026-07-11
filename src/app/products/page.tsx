@@ -23,6 +23,7 @@ import {
 import { useToast } from '@/components/ui/ToastContext';
 import ProductFormModal from '@/components/products/ProductFormModal';
 import EditProductModal from '@/components/products/EditProductModal';
+import BarcodeComponent from '@/components/ui/Barcode';
 
 interface Product {
   id: string;
@@ -594,7 +595,7 @@ export default function ProductsPage() {
             <div className="modal-header">
               <h2 style={{ fontSize: '18px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <QrCode size={20} style={{ color: 'var(--accent)' }} />
-                Codigo QR
+                Codigo de Barras
               </h2>
               <button className="modal-close" onClick={() => setModal(null)}><X size={20} /></button>
             </div>
@@ -602,7 +603,9 @@ export default function ProductsPage() {
               <p style={{ fontWeight: 600, fontSize: '16px', marginBottom: '4px' }}>{selectedProduct.name}</p>
               <p style={{ fontSize: '12px', color: 'var(--text-light)', marginBottom: '16px' }}>SKU: {selectedProduct.sku || 'N/A'}</p>
               {selectedProduct.qrCode && selectedProduct.qrCode !== 'temp' ? (
-                <img src={selectedProduct.qrCode} alt={`QR ${selectedProduct.name}`} style={{ width: '220px', height: '220px', backgroundColor: '#fff', padding: '8px', borderRadius: '12px', border: '1px solid var(--border)' }} />
+                <div style={{ backgroundColor: '#fff', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)', display: 'inline-block' }}>
+                  <BarcodeComponent value={selectedProduct.qrCode} width={2} height={50} fontSize={14} />
+                </div>
               ) : (
                 <div style={{ width: '220px', height: '220px', backgroundColor: 'var(--bg-primary)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', border: '1px solid var(--border)' }}>
                   <QrCode size={48} style={{ color: 'var(--text-light)' }} />
@@ -611,12 +614,6 @@ export default function ProductsPage() {
               <p style={{ fontSize: '11px', color: 'var(--text-light)', marginTop: '12px', fontFamily: 'monospace' }}>ID: {selectedProduct.id}</p>
             </div>
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', padding: '16px 0 8px 0' }}>
-              {selectedProduct.qrCode && selectedProduct.qrCode !== 'temp' && (
-                <a href={selectedProduct.qrCode} download={`VariedadesCoatan-${selectedProduct.name.replace(/\s+/g, '-')}.png`} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px' }}>
-                  <Download size={16} />
-                  Descargar QR
-                </a>
-              )}
               <button onClick={() => setModal(null)} className="btn btn-secondary" style={{ padding: '8px 16px' }}>Cerrar</button>
             </div>
           </div>

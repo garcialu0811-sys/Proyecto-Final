@@ -2,8 +2,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Upload, Package, CheckCircle, Eye } from 'lucide-react';
-import { QRCodeCanvas } from 'qrcode.react';
 import { useToast } from '@/components/ui/ToastContext';
+import Barcode from '@/components/ui/Barcode';
 
 interface ProductFormModalProps {
   isOpen: boolean;
@@ -144,9 +144,7 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, categorie
     }
   };
 
-  const qrValue = formName
-    ? JSON.stringify({ productId: 'pending', name: formName, sku: formSku, type: 'VariedadesCoatan', url: `${typeof window !== 'undefined' ? window.location.origin : ''}/scan` })
-    : '';
+  const barcodeValue = formSku || formName || '';
 
   if (!isOpen) return null;
 
@@ -247,49 +245,37 @@ export default function ProductFormModal({ isOpen, onClose, onSuccess, categorie
               </div>
             </div>
 
-            {/* Right: QR Preview */}
+            {/* Right: Barcode Preview */}
             <div>
-              {/* QR Generated Badge */}
+              {/* Barcode Generated Badge */}
               <div style={{ padding: '12px 16px', backgroundColor: '#D1FAE5', borderRadius: '10px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <CheckCircle size={16} style={{ color: '#fff' }} />
                 </div>
                 <div>
-                  <p style={{ fontSize: '13px', fontWeight: 600, color: '#065F46', margin: 0 }}>Codigo QR generado</p>
+                  <p style={{ fontSize: '13px', fontWeight: 600, color: '#065F46', margin: 0 }}>Codigo de barras generado</p>
                   <p style={{ fontSize: '11px', color: '#047857', margin: '2px 0 0 0' }}>Se generara automaticamente al crear el producto.</p>
                 </div>
               </div>
 
-              {/* QR Preview Card */}
+              {/* Barcode Preview Card */}
               <div style={{ backgroundColor: 'var(--bg-primary)', borderRadius: '12px', padding: '20px', marginBottom: '16px' }}>
-                <p style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px' }}>Vista previa del QR</p>
+                <p style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px' }}>Vista previa del codigo de barras</p>
                 <div style={{ backgroundColor: '#fff', borderRadius: '10px', padding: '16px', textAlign: 'center', border: '1px solid var(--border)', minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {qrValue ? (
-                    <div id="qr-preview">
-                      <QRCodeCanvas
-                        value={qrValue}
-                        size={180}
-                        level="H"
-                        includeMargin
-                        bgColor="#FFFFFF"
-                        fgColor="#000000"
-                      />
+                  {barcodeValue ? (
+                    <div id="barcode-preview">
+                      <Barcode value={barcodeValue} width={2} height={50} fontSize={14} />
                     </div>
                   ) : (
                     <div style={{ padding: '20px' }}>
                       <Package size={40} style={{ color: 'var(--text-light)', margin: '0 auto 8px auto', display: 'block' }} />
-                      <p style={{ fontSize: '12px', color: 'var(--text-light)' }}>El QR se generara automaticamente</p>
+                      <p style={{ fontSize: '12px', color: 'var(--text-light)' }}>El codigo se generara automaticamente</p>
                     </div>
                   )}
                 </div>
                 <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '12px', lineHeight: 1.5 }}>
-                  Este codigo QR sera unico para este producto y podra ser escaneado por tus clientes.
+                  Este codigo de barras es unico para este producto y podra ser escaneado por tus clientes.
                 </p>
-                {qrValue && (
-                  <button type="button" onClick={downloadQR} style={{ marginTop: '10px', width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid var(--border)', backgroundColor: 'var(--bg-secondary)', cursor: 'pointer', fontSize: '13px', fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: 'var(--text-primary)' }}>
-                    <Eye size={14} /> Vista previa de producto
-                  </button>
-                )}
               </div>
             </div>
           </div>

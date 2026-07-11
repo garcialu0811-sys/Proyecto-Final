@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { dbClient } from '@/lib/db/dbClient';
-import QRCode from 'qrcode';
 
 export async function GET(request: Request) {
   try {
@@ -99,23 +98,8 @@ export async function POST(request: Request) {
       location: location || { warehouse: 'Almacen Principal', aisle: '', shelf: '' },
     });
 
-    let qrDataUrl = '';
-    try {
-      qrDataUrl = await QRCode.toDataURL(tempProduct.id, {
-        width: 300,
-        margin: 2,
-        color: {
-          dark: '#1a2a3a',
-          light: '#ffffff'
-        }
-      });
-    } catch (qrErr) {
-      console.error('Error generando QR:', qrErr);
-    }
-
-    if (qrDataUrl) {
-      await dbClient.products.update(tempProduct.id, { qrCode: qrDataUrl });
-    }
+    // Store product ID as barcode value (rendered client-side)
+    await dbClient.products.update(tempProduct.id, { qrCode: tempProduct.id });
 
     return NextResponse.json(tempProduct, { status: 201 });
   } catch (error) {
