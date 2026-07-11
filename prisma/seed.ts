@@ -38,36 +38,6 @@ async function main() {
   });
 
   console.log("Users:", { admin: admin.id, vendedor: vendedor.id });
-
-  const sale1 = await prisma.sale.upsert({
-    where: { id: "sale-aj2pjze5y" },
-    update: {},
-    create: {
-      id: "sale-aj2pjze5y",
-      productId: "prod-1",
-      productName: "Teclado Mecánico RGB",
-      quantity: 1,
-      price: 89.99,
-      total: 89.99,
-      sellerId: vendedor.id,
-    },
-  });
-
-  const sale2 = await prisma.sale.upsert({
-    where: { id: "sale-91ztv6h8y" },
-    update: {},
-    create: {
-      id: "sale-91ztv6h8y",
-      productId: "prod-1",
-      productName: "Teclado Mecánico RGB",
-      quantity: 2,
-      price: 89.99,
-      total: 179.98,
-      sellerId: vendedor.id,
-    },
-  });
-
-  console.log("Sales:", { sale1: sale1.id, sale2: sale2.id });
   console.log("Seed completado!");
 }
 

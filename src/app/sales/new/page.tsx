@@ -353,10 +353,27 @@ export default function NuevaVentaPage() {
         return;
       }
       showToast('Venta registrada exitosamente!', 'success');
+      const data = await res.json();
+      const itemsParam = encodeURIComponent(JSON.stringify(cartItems.map(i => ({
+        productName: i.productName,
+        sku: i.sku,
+        quantity: i.quantity,
+        price: i.price,
+        subtotal: i.subtotal,
+        image: i.image,
+      }))));
+      const params = new URLSearchParams({
+        items: itemsParam,
+        subtotal: totals.subtotal.toFixed(2),
+        discount: totals.discount.toFixed(2),
+        total: totals.total.toFixed(2),
+        customer: customer.name,
+        folio: data.folio || '',
+      });
       setCartItems([]);
       setCustomer({ name: '', phone: '', address: '' });
       setDiscount(0);
-      router.push('/sales/history');
+      router.push(`/sales/confirmation?${params.toString()}`);
     } catch {
       showToast('Error al registrar la venta', 'error');
     } finally {
