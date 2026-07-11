@@ -273,8 +273,8 @@ export default function EditProductModal({ isOpen, onClose, onSuccess, product, 
               <div style={{ backgroundColor: 'var(--bg-primary)', borderRadius: '12px', padding: '20px', marginBottom: '16px' }}>
                 <p style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px' }}>Codigo de barras del producto</p>
                 <div id="barcode-edit-preview" style={{ backgroundColor: '#fff', borderRadius: '10px', padding: '16px', textAlign: 'center', border: '1px solid var(--border)', minHeight: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {product.id ? (
-                    <Barcode value={product.id} width={1.5} height={35} fontSize={11} maxWidth="260px" />
+                  {product.sku || product.name ? (
+                    <Barcode value={product.sku || product.name.substring(0, 10)} width={1.5} height={35} fontSize={11} maxWidth="260px" />
                   ) : (
                     <div style={{ padding: '20px' }}>
                       <Package size={40} style={{ color: 'var(--text-light)', margin: '0 auto 8px auto', display: 'block' }} />

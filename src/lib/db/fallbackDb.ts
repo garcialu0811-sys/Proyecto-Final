@@ -506,6 +506,9 @@ export const fallbackDb = {
     findByQrCode: (qrCode: string): Product | undefined => {
       return fallbackDb.get().products.find(p => p.qrCode === qrCode);
     },
+    findBySku: (sku: string): Product | undefined => {
+      return fallbackDb.get().products.find(p => p.sku === sku);
+    },
     create: (product: Omit<Product, 'id' | 'createdAt'>): Product => {
       const db = fallbackDb.get();
       const newProduct: Product = {

@@ -283,6 +283,33 @@ export const dbClient = {
         return undefined;
       }
     },
+    findBySku: async (sku: string) => {
+      if (isFallbackActive() || !prisma) {
+        return fallbackDb.products.findBySku(sku);
+      }
+      try {
+        const p = await prisma.product.findFirst({ where: { sku } });
+        if (!p) return undefined;
+        return {
+          id: p.id,
+          name: p.name,
+          description: p.description,
+          price: p.price,
+          stock: p.stock,
+          minStock: p.minStock ?? 5,
+          category: p.category,
+          sku: p.sku || '',
+          isActive: p.isActive,
+          imageUrl: p.imageUrl || '',
+          qrCode: p.qrCode || '',
+          costPrice: p.costPrice ?? 0,
+          location: (p.location as any) || { warehouse: 'Almacen Principal', aisle: '', shelf: '' },
+          createdAt: p.createdAt.toISOString()
+        };
+      } catch {
+        return undefined;
+      }
+    },
     create: async (data: any) => {
       if (isFallbackActive() || !prisma) {
         return fallbackDb.products.create(data);

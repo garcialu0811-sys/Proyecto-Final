@@ -8,21 +8,26 @@ export async function GET(
   try {
     const { qrCode } = await params;
     
-    // Buscar primero por ID directo (ya que el código QR codifica el ID)
+    // Buscar primero por ID directo
     let product = await dbClient.products.findUnique(qrCode);
     
-    // Si no se encuentra por ID, buscar por la cadena del código QR directamente
+    // Si no se encuentra por ID, buscar por SKU
+    if (!product) {
+      product = await dbClient.products.findBySku(qrCode);
+    }
+    
+    // Si no se encuentra por SKU, buscar por qrCode
     if (!product) {
       product = await dbClient.products.findByQrCode(qrCode);
     }
     
     if (!product) {
-      return NextResponse.json({ message: 'Producto no encontrado por código QR.' }, { status: 404 });
+      return NextResponse.json({ message: 'Producto no encontrado.' }, { status: 404 });
     }
     
     return NextResponse.json(product);
   } catch (error) {
-    console.error('Error al buscar producto por QR:', error);
-    return NextResponse.json({ message: 'Error interno del servidor al buscar producto.' }, { status: 500 });
+    console.error('Error al buscar producto:', error);
+    return NextResponse.json({ message: 'Error interno del servidor.' }, { status: 500 });
   }
 }
