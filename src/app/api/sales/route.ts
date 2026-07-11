@@ -50,26 +50,8 @@ export async function GET(request: Request) {
 
     const toDateStr = (d: Date) => d.toISOString().split('T')[0];
 
-    const saleGroups: any[][] = [];
-    let currentGroup: any[] = [];
-    let lastSeller = '';
-    let lastTime = 0;
-
-    for (const sale of sortedSales) {
-      const ts = new Date(sale.createdAt).getTime();
-      if (sale.sellerId !== lastSeller || ts - lastTime > 60000) {
-        if (currentGroup.length > 0) saleGroups.push(currentGroup);
-        currentGroup = [];
-      }
-      currentGroup.push(sale);
-      lastSeller = sale.sellerId;
-      lastTime = ts;
-    }
-    if (currentGroup.length > 0) saleGroups.push(currentGroup);
-
-    const grouped = saleGroups.map((group) => {
-      const first = group[0];
-      const createdAt = new Date(first.createdAt);
+    const grouped = sortedSales.map((s: any) => {
+      const createdAt = new Date(s.createdAt);
 
       if (startParam || endParam) {
         const saleDate = toDateStr(createdAt);
@@ -77,41 +59,35 @@ export async function GET(request: Request) {
         if (endParam && saleDate > endParam) return null;
       }
 
-      const items = group.map((s: any) => ({
-        productName: s.productName,
-        sku: '',
-        quantity: s.quantity,
-        price: s.price,
-        subtotal: s.total,
-        image: ''
-      }));
-
-      const calculatedTotal = items.reduce((sum: number, i: any) => sum + i.subtotal, 0);
-
       return {
-        id: first.id,
-        folio: first.folio || '',
-        saleIds: group.map((s: any) => s.id),
+        id: s.id,
+        folio: s.folio || '',
+        saleIds: [s.id],
         date: createdAt.toLocaleDateString('es-GT', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Guatemala' }),
         time: createdAt.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guatemala' }),
         createdAt: createdAt.toISOString(),
-        sellerName: sellerMap[first.sellerId]?.name || 'Vendedor',
-        sellerId: first.sellerId,
+        sellerName: sellerMap[s.sellerId]?.name || 'Vendedor',
+        sellerId: s.sellerId,
         clientName: '',
         clientPhone: '',
-        items,
-        itemCount: items.reduce((sum: number, i: any) => sum + i.quantity, 0),
-        subtotal: calculatedTotal,
+        items: [{
+          productName: s.productName,
+          sku: '',
+          quantity: s.quantity,
+          price: s.price,
+          subtotal: s.total,
+          image: ''
+        }],
+        itemCount: s.quantity,
+        subtotal: s.total,
         discount: 0,
-        total: calculatedTotal,
+        total: s.total,
         paymentMethod: 'Efectivo',
         status: 'Completada'
       };
     });
 
-    const result = grouped.filter(Boolean).sort((a: any, b: any) =>
-      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-    );
+    const result = grouped.filter(Boolean);
 
     return NextResponse.json({
       sales: result,
