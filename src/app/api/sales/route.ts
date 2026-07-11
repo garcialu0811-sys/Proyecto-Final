@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { dbClient } from '@/lib/db/dbClient';
 import prisma from '@/lib/db/prisma';
+import { checkProductStock } from '@/lib/stock/monitor';
 
 async function generateNextFolio(): Promise<string> {
   const allSales = await dbClient.sales.findMany();
@@ -139,6 +140,15 @@ export async function POST(request: Request) {
       }
 
       await dbClient.products.update(productId, { stock: product.stock - qty });
+
+      const newStock = product.stock - qty;
+      checkProductStock({
+        id: product.id,
+        name: product.name,
+        stock: newStock,
+        category: product.category,
+        price: product.price,
+      }).catch(() => {});
 
       const itemTotal = product.price * qty;
 
