@@ -89,8 +89,8 @@ export const authOptions: AuthOptions = {
         token.role = (user as any).role;
       }
 
-      // If Google sign-in, look up role from DB
-      if (token.email && !token.role) {
+      // Always ensure token has id and role from DB
+      if (token.email && (!token.id || !token.role)) {
         const dbUser = await dbClient.users.findUnique(token.email as string);
         if (dbUser) {
           token.id = dbUser.id;

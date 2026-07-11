@@ -57,9 +57,9 @@ export async function GET(request: Request) {
       const createdAt = new Date(first.createdAt);
 
       if (startParam || endParam) {
-        const dateStr = `${createdAt.getFullYear()}-${String(createdAt.getMonth() + 1).padStart(2, '0')}-${String(createdAt.getDate()).padStart(2, '0')}`;
-        if (startParam && dateStr < startParam) return null;
-        if (endParam && dateStr > endParam) return null;
+        const saleDate = `${createdAt.getUTCFullYear()}-${String(createdAt.getUTCMonth() + 1).padStart(2, '0')}-${String(createdAt.getUTCDate()).padStart(2, '0')}`;
+        if (startParam && saleDate < startParam) return null;
+        if (endParam && saleDate > endParam) return null;
       }
 
       const items = group.map((s: any) => ({
@@ -76,8 +76,8 @@ export async function GET(request: Request) {
       return {
         id: first.id,
         saleIds: group.map((s: any) => s.id),
-        date: createdAt.toLocaleDateString('es-GT', { day: '2-digit', month: '2-digit', year: 'numeric' }),
-        time: createdAt.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' }),
+        date: createdAt.toLocaleDateString('es-GT', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Guatemala' }),
+        time: createdAt.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guatemala' }),
         createdAt: createdAt.toISOString(),
         sellerName: sellerMap[first.sellerId]?.name || 'Vendedor',
         sellerId: first.sellerId,
