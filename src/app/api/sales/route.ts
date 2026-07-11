@@ -3,6 +3,19 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { dbClient } from '@/lib/db/dbClient';
 
+async function generateNextFolio(): Promise<string> {
+  const allSales = await dbClient.sales.findMany();
+  let maxNum = 0;
+  for (const s of allSales) {
+    const folio = (s as any).folio;
+    if (folio && folio.startsWith('VTA-')) {
+      const num = parseInt(folio.replace('VTA-', ''), 10);
+      if (!isNaN(num) && num > maxNum) maxNum = num;
+    }
+  }
+  return `VTA-${String(maxNum + 1).padStart(5, '0')}`;
+}
+
 export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -31,9 +44,10 @@ export async function GET(request: Request) {
     }
 
     const sortedSales = [...mySales].sort((a: any, b: any) => {
-      if (a.sellerId !== b.sellerId) return a.sellerId.localeCompare(b.sellerId);
       return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
     });
+
+    const toDateStr = (d: Date) => d.toISOString().split('T')[0];
 
     const saleGroups: any[][] = [];
     let currentGroup: any[] = [];
@@ -51,8 +65,6 @@ export async function GET(request: Request) {
       lastTime = ts;
     }
     if (currentGroup.length > 0) saleGroups.push(currentGroup);
-
-    const toDateStr = (d: Date) => d.toISOString().split('T')[0];
 
     const grouped = saleGroups.map((group) => {
       const first = group[0];
@@ -77,6 +89,7 @@ export async function GET(request: Request) {
 
       return {
         id: first.id,
+        folio: first.folio || '',
         saleIds: group.map((s: any) => s.id),
         date: createdAt.toLocaleDateString('es-GT', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Guatemala' }),
         time: createdAt.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guatemala' }),
@@ -97,10 +110,7 @@ export async function GET(request: Request) {
 
     const result = grouped.filter(Boolean).sort((a: any, b: any) =>
       new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-    ).map((item: any, idx: number) => ({
-      ...item,
-      folio: `VTA-${String(idx + 1).padStart(5, '0')}`
-    }));
+    );
 
     return NextResponse.json({
       sales: result,
@@ -132,6 +142,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'Datos de venta invalidos.' }, { status: 400 });
     }
 
+    const folio = await generateNextFolio();
     const createdSales: any[] = [];
 
     for (const item of items) {
@@ -155,6 +166,7 @@ export async function POST(request: Request) {
       const itemTotal = product.price * qty;
 
       const sale = await dbClient.sales.create({
+        folio,
         productId,
         productName: product.name,
         quantity: qty,
@@ -168,6 +180,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       sale: createdSales[0],
       sales: createdSales,
+      folio,
       message: 'Venta registrada con exito.'
     }, { status: 201 });
   } catch (error) {

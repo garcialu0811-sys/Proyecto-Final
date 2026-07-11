@@ -334,6 +334,7 @@ export default function NuevaVentaPage() {
         return;
       }
       showToast('Venta registrada exitosamente!', 'success');
+      const data = await res.json();
       const itemsParam = encodeURIComponent(JSON.stringify(cartItems.map(i => ({
         productName: i.productName,
         sku: i.sku,
@@ -348,6 +349,7 @@ export default function NuevaVentaPage() {
         discount: totals.discount.toFixed(2),
         total: totals.total.toFixed(2),
         customer: customer.name,
+        folio: data.folio || '',
       });
       setCartItems([]);
       setCustomer({ name: '', phone: '', address: '' });

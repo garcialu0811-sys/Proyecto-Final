@@ -18,6 +18,7 @@ export interface User {
 
 export interface Sale {
   id: string;
+  folio: string;
   productId: string;
   productName: string;
   quantity: number;
@@ -168,6 +169,7 @@ function initDb(): LocalSchema {
     sales: [
       {
         id: 'sale-1',
+        folio: 'VTA-00001',
         productId: 'prod-1',
         productName: 'Teclado Mecánico RGB',
         quantity: 1,
@@ -178,6 +180,7 @@ function initDb(): LocalSchema {
       },
       {
         id: 'sale-2',
+        folio: 'VTA-00002',
         productId: 'prod-2',
         productName: 'Mouse Gamer Inalámbrico',
         quantity: 2,
@@ -554,7 +557,7 @@ export const fallbackDb = {
         ...sale,
         id: 'sale-' + Math.random().toString(36).substr(2, 9),
         createdAt: new Date().toISOString(),
-      };
+      } as Sale;
       db.sales.push(newSale);
       fallbackDb.save(db);
       return newSale;

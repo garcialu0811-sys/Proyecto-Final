@@ -60,18 +60,6 @@ function ConfirmacionContent() {
     phone: '555-123-4567',
   };
 
-  const generateFolio = () => {
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    const d = String(now.getDate()).padStart(2, '0');
-    const h = String(now.getHours()).padStart(2, '0');
-    const min = String(now.getMinutes()).padStart(2, '0');
-    const s = String(now.getSeconds()).padStart(2, '0');
-    const rand = Math.floor(1000 + Math.random() * 9000);
-    return `VTA-${y}${m}${d}-${h}${min}${s}-${rand}`;
-  };
-
   useEffect(() => {
     const saleId = searchParams?.get('saleId');
     const folioParam = searchParams?.get('folio');
@@ -90,7 +78,7 @@ function ConfirmacionContent() {
         const now = new Date();
         setSaleData({
           id: saleId || Date.now().toString(),
-          folio: folioParam || generateFolio(),
+          folio: folioParam || 'VTA-00001',
           date: dateParam || now.toLocaleDateString('es-GT', { day: '2-digit', month: '2-digit', year: 'numeric' }),
           time: timeParam || now.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' }),
           sellerName: sellerParam || 'Administrador QRShop',
@@ -227,7 +215,7 @@ function ConfirmacionContent() {
             {/* Title */}
             <div style={{ textAlign: 'center', marginBottom: '16px' }}>
               <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#111827', margin: '0 0 4px' }}>RECIBO DE VENTA</h3>
-              <p style={{ fontSize: '14px', color: 'var(--accent)', fontWeight: 600, margin: 0 }}>Folio: {saleData.folio}</p>
+              <p style={{ fontSize: '14px', color: 'var(--accent)', fontWeight: 600, margin: 0 }}>No. {saleData.folio}</p>
             </div>
 
             {/* Info */}
