@@ -52,12 +52,14 @@ export async function GET(request: Request) {
     }
     if (currentGroup.length > 0) saleGroups.push(currentGroup);
 
+    const toDateStr = (d: Date) => d.toISOString().split('T')[0];
+
     const grouped = saleGroups.map((group) => {
       const first = group[0];
       const createdAt = new Date(first.createdAt);
 
       if (startParam || endParam) {
-        const saleDate = `${createdAt.getUTCFullYear()}-${String(createdAt.getUTCMonth() + 1).padStart(2, '0')}-${String(createdAt.getUTCDate()).padStart(2, '0')}`;
+        const saleDate = toDateStr(createdAt);
         if (startParam && saleDate < startParam) return null;
         if (endParam && saleDate > endParam) return null;
       }
@@ -93,9 +95,9 @@ export async function GET(request: Request) {
       };
     });
 
-    grouped.sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-
-    const result = grouped.filter(Boolean).map((item: any, idx: number) => ({
+    const result = grouped.filter(Boolean).sort((a: any, b: any) =>
+      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    ).map((item: any, idx: number) => ({
       ...item,
       folio: `VTA-${String(idx + 1).padStart(5, '0')}`
     }));
