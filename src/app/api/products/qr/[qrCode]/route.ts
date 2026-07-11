@@ -20,6 +20,11 @@ export async function GET(
     if (!product) {
       product = await dbClient.products.findByQrCode(qrCode);
     }
+
+    // Si no se encuentra, buscar por nombre exacto
+    if (!product) {
+      product = await dbClient.products.findByName(qrCode);
+    }
     
     if (!product) {
       return NextResponse.json({ message: 'Producto no encontrado.' }, { status: 404 });

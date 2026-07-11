@@ -509,6 +509,9 @@ export const fallbackDb = {
     findBySku: (sku: string): Product | undefined => {
       return fallbackDb.get().products.find(p => p.sku === sku);
     },
+    findByName: (name: string): Product | undefined => {
+      return fallbackDb.get().products.find(p => p.name === name);
+    },
     create: (product: Omit<Product, 'id' | 'createdAt'>): Product => {
       const db = fallbackDb.get();
       const newProduct: Product = {
