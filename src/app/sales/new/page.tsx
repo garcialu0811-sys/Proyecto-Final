@@ -329,10 +329,6 @@ export default function NuevaVentaPage() {
       showToast('Agrega al menos un producto', 'warning');
       return;
     }
-    if (!customer.name) {
-      showToast('Ingresa el nombre del cliente', 'warning');
-      return;
-    }
     setIsSubmitting(true);
     try {
       const res = await fetch('/api/sales', {
