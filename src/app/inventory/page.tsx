@@ -434,7 +434,6 @@ export default function InventoryPage() {
                     <th style={{ padding: '14px 16px', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Stock minimo</th>
                     <th style={{ padding: '14px 16px', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Estado</th>
                     <th style={{ padding: '14px 16px', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Valor de inventario</th>
-                    <th style={{ padding: '14px 16px', fontSize: '12px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', textAlign: 'center' }}>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -467,13 +466,6 @@ export default function InventoryPage() {
                           </span>
                         </td>
                         <td style={{ padding: '14px 16px', fontSize: '14px', fontWeight: 600 }}>{formatCurrency(p.price * p.stock)}</td>
-                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                          <button onClick={() => openView(p)} style={{ width: '34px', height: '34px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-secondary)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.15s', color: 'var(--accent)' }}
-                            onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--accent-light)'; e.currentTarget.style.borderColor = 'var(--accent)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'; e.currentTarget.style.borderColor = 'var(--border)'; }}>
-                            <ArrowRight size={16} />
-                          </button>
-                        </td>
                       </tr>
                     );
                   })}
