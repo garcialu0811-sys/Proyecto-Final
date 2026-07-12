@@ -3,21 +3,15 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useSession, signOut } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { 
   LayoutDashboard, 
   ShoppingBag, 
   FolderOpen,
   ClipboardList,
   Camera,
-  DollarSign,
-  ShoppingCart,
   Users,
   ShieldCheck,
-  FileText,
-  LogOut,
-  QrCode,
-  Bell,
   PlusCircle,
   History,
 } from 'lucide-react';
@@ -192,14 +186,6 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
               </span>
             </div>
           )}
-          <button 
-            onClick={() => signOut({ callbackUrl: '/login' })}
-            className="toggle-btn"
-            title="Cerrar Sesión"
-            style={{ color: 'var(--danger)', marginLeft: collapsed ? '0' : 'auto' }}
-          >
-            <LogOut size={20} />
-          </button>
         </div>
       )}
     </aside>

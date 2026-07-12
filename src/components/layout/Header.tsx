@@ -232,23 +232,6 @@ export function Header({ collapsed, setCollapsed }: HeaderProps) {
                       <Bell size={16} style={{ color: 'var(--text-secondary)' }} />
                       Notificaciones
                     </button>
-
-                    {user?.role === 'ADMIN' && (
-                      <button
-                        onClick={() => { router.push('/settings'); setShowUserDropdown(false); }}
-                        style={{
-                          width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
-                          padding: '10px 12px', border: 'none', background: 'transparent',
-                          borderRadius: '6px', cursor: 'pointer', fontSize: '13px',
-                          color: 'var(--text-primary)', textAlign: 'left'
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-primary)'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                      >
-                        <Settings size={16} style={{ color: 'var(--text-secondary)' }} />
-                        Ajustes
-                      </button>
-                    )}
                   </div>
 
                   <div style={{ padding: '6px', borderTop: '1px solid var(--border)' }}>
