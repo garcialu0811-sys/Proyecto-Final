@@ -171,23 +171,6 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
         })}
       </nav>
 
-      {session && (
-        <div className="sidebar-footer">
-          {!collapsed && (
-            <div className="sidebar-footer-info" style={{ flex: 1 }}>
-              <p style={{ fontWeight: 600, fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px' }}>
-                {user?.name}
-              </p>
-              <p style={{ fontSize: '11px', color: 'var(--text-light)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px', marginBottom: '4px' }}>
-                {user?.email}
-              </p>
-              <span className={`role-tag ${role.toLowerCase()}`}>
-                {role}
-              </span>
-            </div>
-          )}
-        </div>
-      )}
     </aside>
   );
 }
